@@ -1,2 +1,4 @@
-# LearningFluPy
-学习fluentpy的学习笔记以及代码例子
+# leetcode-practice
+1. 开始练习算法吧 练好了重新找工作
+2. 我现在好难受 很不开心
+20190405
