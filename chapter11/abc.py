@@ -58,9 +58,15 @@ Callable Hashable
 
 Iterator 是 Iterable的子类
 
-10pages finished
+****************************************
 2019-4-17:
-    null
+抽象基类的数字塔
+1. Number <- Complex <- Real <- Rational <- Integral
+2. isinstance(x, numbers.Integral)  可以接受int bool这样类型的
+3. isinstance(x, numbers.Real)      可以接受float int bool fractions Fraction
+4. decimal.Decimal 没有注册为numbers.Real的虚拟子类，所以判断的时候要小心一些
+5. callable(obj)                    可以检查对象是否可调用
+6. isinstance(obj, hashable)        可以检查对象是否可以散列
 
 """
 from random import shuffle
@@ -131,9 +137,6 @@ class MutableFrenchDeck(collections.MutableSequence):
         self._cards.insert(position, value)
     
 
-
-
-
 class Struggle:
     def __len__(self):
         return 20
@@ -143,6 +146,7 @@ class Struggle:
 """
 obj = Struggle()
 print(isinstance(obj, abc.Sized))
+
 
 
 
