@@ -7,6 +7,8 @@
 >> 2. 生成器： 用于凭空生成元素
 > 4. python中的`range`返回的是一个类似生成器的东西，但是并不是生成器，如果要求返回的是`list`,可以使用`list(range(5))`
 
+</br>
+
 ### 14.1 Sentence第一版: 单词序列
 ```python
 class Sentence:
@@ -36,6 +38,7 @@ issubclass(Foo, abc.Iterable)
 ```
 ##### 从python3.4开始，检查对象x能否迭代，最准确的方法就是调用iter(x)，如果不可以迭代，再处理TypeError,iter()会考虑到调用__getitem__()，但是abc.Iterable则不会考虑
 
+</br>
 
 ### 14.2 可迭代的对象与迭代器的对比
 #### 可迭代的对象
@@ -67,6 +70,8 @@ while True:
 >> `def __iter__(self): return self`
 #### 检查对象x是都是迭代器的最好的方式就是调用isinstance(x, abc.Iterator)
 #### 迭代器无法被还原，无法检查是否还有遗留的元素，如果想再次迭代，就要构造一个新的迭代器
+
+</br>
 
 ### 14.3 Sentence类第二版：典型的迭代器
 ```python
@@ -105,6 +110,7 @@ class SentenceIterable:
 > 为遍历多种不同的聚合结构提供一个统一的接口
 #### 要支持多种遍历就要实现自己的迭代器对象，这样就可以独立地实例化多个相互独立的迭代器对象了，也就可以实现多种遍历了
 
+</br>
 
 ### 14.4 Sentence类第3版：生成器函数
 #### python习惯的实现方式是用生成器函数代替SentenceIterator类。
@@ -151,6 +157,8 @@ for i in obj:
 > 3. 第四次循环，打印输出end, 到达到函数定义题的末尾，导致生成器对象抛出异常
 > 4. for循环机制会捕获异常，所以循环的时候是不会报错的
 
+</br>
+
 ### 14.5 Sentence第四版：惰性实现
 #### `re.finditer()`是`re.findall()`的惰性版本，它返回的不是一个列表，而是一个生成器
 ```python
@@ -167,6 +175,8 @@ class Sentence:
         for match in RE_WORD.finditer(self.text):
             return match.group()                        # 从MatchObject实例中提取匹配正则表达式的具体文本
 ```
+
+</br>
 
 ### 14.6 Sentence类第五版：生成器表达式
 #### 生成器表达式可以简单地理解为是列表推导的惰性版本， 生成器表达式也是生成器的惰性工厂
@@ -185,8 +195,12 @@ class Sentence:
 ```
 #### 生成器表达式完全可以替换成生成器函数，不过有时候使用生成器表达式会更加便利
 
+</br>
+
 ### 14.7 何时使用生成器表达式
 #### 简单说就是 方便用生成器表达式就用表达式，不行就用函数
+
+</br>
 
 ### 14.8 另一个例子： 等差数列生成器
 #### 无穷等差数列生成器 itertools.count(start, step)
@@ -196,6 +210,8 @@ next(it)          # 1
 next(it)          # 2.5
 next(it)          # 4.0
 ```
+</br>
+
 ### 14.9 标准库中的生成器函数
 
 ##### 欧阳老师问我 是不是很恨这个把我丢在这里的人 我有点惊讶 难道大家都觉得我是这样想的吗 我其实一点都不怪他，我就是讨厌他，因为他也讨厌我呀，和他是走是留没有关系
@@ -245,6 +261,8 @@ list(itertools.cycle('ABC'))                                        # 把it产�
 // 还有一些函数 感觉并没有很实用 如果还有要翻查的 再回来看fluent-py好了
 ```
 
+</br>
+
 ### 14.10 python3.3中的新出现的句法： yield from
 #### 如果生成器函数需要产生另一个生成器产生的值，解决的方法通常是使用一个嵌套的for循环
 ```python
@@ -261,6 +279,8 @@ def chain(*iterators):
        yield from iterator
 ```
 
+</br>
+
 ### 14.11 可迭代的归约函数
 #### 接受一个可迭代的对象，然后返回单个结果，这些函数叫做：归约函数、累加函数、合拢函数
 ```python
@@ -271,6 +291,8 @@ min(it, [key=], )
 functools.reduce(func, it, [initial])     
 sum(it, start=0)        # 这个可以用一用
 ```
+
+</br>
 
 ### 14.12 深入分析iter函数
 #### iter还有一个比较少见的用法，iter(必须是可调用的对象， 哨符)
@@ -286,5 +308,7 @@ d6_list = list(d6_iter)          # 不知道会产生几个数字，反正当产
 ```
 #### 现在讲一个更加实用的例子
 ```python
-
+with open('my_txt.txt') as fp:
+    for line in iter(fp.readline, '\n'):
+        print(lins)
 ```
