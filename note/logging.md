@@ -68,11 +68,9 @@ if __name__ == ‘__main__’:
 
 
 ##### 原来这是gunicorn的一个bug... 显示不出来是因为app.logger默认的handler是将日志信息定向到标准输出流中，所以直接执行flask-server.py文件的时候是可以在console看见日志信息的，使用gunicorn托管了以后，只有将日志信息定向到gunicorn errorlog中才能看得见。 所以才要拿到getLogger('gunicorn.error').handler，再扩展到app.logger.handlers上面.....
-##### 真的是 花了老子这么多时间看。
 
 
 #### 相关的链接推荐：
-> 真他妈日了狗了
-[Google](https://github.com/benoitc/gunicorn/issues/1124)
-[Google](https://itweb.me/post/blog/2016-03-31-python-logging)
-[Google](https://medium.com/@trstringer/logging-flask-and-gunicorn-the-manageable-way-2e6f0b8beb2f)
+[想了解原理-必看2](https://github.com/benoitc/gunicorn/issues/1124)  </br>
+[想了解原理-必看1](https://itweb.me/post/blog/2016-03-31-python-logging)   </br>
+[只想解决问题看这个](https://medium.com/@trstringer/logging-flask-and-gunicorn-the-manageable-way-2e6f0b8beb2f)   </br>
