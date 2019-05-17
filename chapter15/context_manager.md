@@ -10,12 +10,12 @@
 >> 仅当while循环因为条件为假值而退出的时候才会执行的语句块，同上，没有被break中止
 > 3. try
 >> 仅当try块中没有异常抛出时才运行else语句块，但是else子句抛出的异常是不会被前面的except进行捕获的
-*在所有情况下，如果异常，或者return,continue,break导致控制权跳到了复合语句的主块之外，else子句也会被跳过*
-*在这里的else可以解释成then的意思，就是做完主语句块里面的事情，然后再说else语句块里的东西*
+**在所有情况下，如果异常，或者return,continue,break导致控制权跳到了复合语句的主块之外，else子句也会被跳过**
+**在这里的else可以解释成then的意思，就是做完主语句块里面的事情，然后再说else语句块里的东西**
 </br>
 
 #### exaple1:
-*这里使用else会方便很多，就不用再设置什么flag进行单独判断*
+**这里使用else会方便很多，就不用再设置什么flag进行单独判断**
 ```python
 import collections
 Item = collections.nametuple('Item', 'flavor')
@@ -30,7 +30,7 @@ else:
 </br>
 
 #### exaple2:
-*try语句中应该只包含可能会超出预期的代码，所以aftercall其实不应该出现在try语句块中*
+**try语句中应该只包含可能会超出预期的代码，所以aftercall其实不应该出现在try语句块中**
 ```python
 try:
     dangrous_call()
@@ -57,7 +57,7 @@ with open('test.txt') as fp:       # fp绑定到打开的文件上，因为文�
 print(fp.closed)
 print(fp.encoding)                 # 在with块末尾，调用了TextIOWrapper.__exit__方法把文件给关闭了
 ```
-*fp这里其实就是一个上下文管理器对象,fp就有__enter__()和__exit__()*
+**fp这里其实就是一个上下文管理器对象,fp就有__enter__()和__exit__()**
 </br>
 ```python
 class LookingGlass:
@@ -71,9 +71,12 @@ class LookingGlass:
         return 'asdfgh'
 
     def reverse_write(self, text):
-        self.origin_write(text[::-1])
+        self.original_write(text[::-1])
 
     def __exit__(self, exc_type, exc_value, traceback):
+        '''
+        分别是异常类，异常实例或者是traceback对象
+        '''
         import sys
         sys.stdout.write = self.original_write
         if exc_type is ZeroDivisionError:
@@ -81,4 +84,53 @@ class LookingGlass:
             return True
 ```
 ##### 重复导入模块并不会消耗太多的资源，因为python会缓存导入的模块
-##### 
+##### __exit__中传入的三个参数是如果发送了异常，这三个参数才会有值，否则为None
+</br>
+
+### 15.3 使用@contextmanager
+#### example
+```python
+import contextlib
+
+@contextlib.contextmanager
+def looking_glass():
+    import sys
+    original_write = sys.stdout.write
+
+    def reverse_write(text):
+        original_write(text[::-1])
+    
+    sys.stdout.write = reverse_write
+    
+    msg = ''       # 记得要在这里捕获异常 不然的话之后标准输出流的内容就会出现错误
+    try:
+        yield 'asdfg'
+    except ZeroDivisionError:
+        msg = 'Please go not divide by zero!'
+    finally:
+        sys.stdout.write = original_write
+        if msg:
+            print(msg)
+```
+##### @contextlib.contextmanager会把函数包装成实现__enter__和__exit__方法的类
+##### __enter__
+> 1. 调用生成器函数，保存生成器对象
+> 2. 调用next(gen),执行到yield关键字所在的位置
+> 3. 返回next(gen)产生的值，以便于把产出的值绑定到with/as语句中的目标变量上
+##### __exit__
+> 1. 检查有没有把异常传给exc_type, 如果有，调用gen.throw(exception)，在生成器函数定义体中包含yield关键字的那一行抛出异常
+> 2. 否则，调用next(gen)，继续执行生成器函数定义题yield语句之后的代码
+> 3. 为了告诉解释器异常已经处理了，__exit__会返回一个True，此时解释器还会压制异常，如果__exit__没有显示返回一个值。那么解释器得到的是None，然后向上冒泡异常（正常情况）
+> 4. 当你使用装饰器的时候，装饰器提供的__exit__会假定发给生成器的所有异常都得到处理了，因此应该压制异常，所以我们应该在代码中显示地抛出异常
+</br>
+
+#### example
+##### 这个包可以直接修改文件 但是并不被推荐使用
+##### 我想起之前王叔问了一个什么问题 然后照哥说可以用上下文管理器来实现 虽然我现在已经记不清楚是什么情境下说的这个
+##### 但是 我的直觉告诉我他当时绝对是乱说的 我感觉他自己也不懂 然后 下面这个例子其实也不是什么上下文管理器的例子，而且我还是不太明白到底什么情况下使用这个上下文管理器，有人知道吗 知道的话可以告诉我
+```python
+import fileinput
+
+for line in fileinput.input('demo.txt', inplace=True):
+    line = 'additional line ' + line.rtrip('\n')
+```
