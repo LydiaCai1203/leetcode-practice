@@ -210,15 +210,25 @@ def grouper(results, key):
     while True:
         results[key] = yield from average()
 
-# 客户端代码 即调用方
-def main(data):
-    results = {}
-    for key, values in data.items():
-        group = grouper(results, key)
-        next(group)
-        for valye in values:
-            group.send(value)
-        group.send(None)
+# usage
+results = {}
+grouper_gen = grouper(results, 'test')
+next(grouper_gen)
+grouper_gen.send(5)
+grouper_gen.send(6)
+grouper_gen.send(None)
+print(results)
 ```
-> 1. grouper发送的每个值都会经由yield from处理，通过管道传给averager实例，grouper会在yield from表达处暂停，等待average实例处理客户端发来的值
-> 2. group是调用grouper函数得到的生成器对象，group.send()会直接把值传给averge()对象。
+> 1. 返回的Result对象会成为grouper函数中yield from的值
+> 2. grouper 是委派生成器
+> 3. grouper中每一次的循环迭代时都会新建一个average的实例，每个实例都是作为协程使用的生成器对象
+> 4. grouper发送的每一个值都会通过管道传给average实例，然后等待实例回传值，while会不断创建更多的实例，处理更多的值
+> 5. 还是有点不太明白 调用方难道不是本来就能给生成器传值的吗 为什么专门要一个委派生成器？？？
+
+**委派生成器相当于管道，可以把任意两个委派生成器连接在一起**
+</br>
+</br>
+
+### 16.8 yield from 的意义
+#### 1. 子生成器产出的值都可以直接传给委派生成器的调用方
+#### 2. 
