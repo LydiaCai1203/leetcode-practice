@@ -199,7 +199,7 @@ def average():
     while True:
         x = yield average
         if not x:
-        break
+            break
         total += x
         count += 1
         average = total/count
@@ -230,5 +230,41 @@ print(results)
 </br>
 
 ### 16.8 yield from 的意义
-#### 1. 子生成器产出的值都可以直接传给委派生成器的调用方
-#### 2. 
+#### 1. 子生成器产出的值可以通过return直接返回给yield from表达式的值，就是本例当中的results[key]的值
+#### 2. 使用send()发给委派生成器的值都会直接传给子生成器。如果send(None)，就会调用子生成器的next()，如果不是None,就会调用子生成器的send()，为了优化所产生的意义。
+#### 3. 生成器退出时，生成器（子生成器）中的return expr表达式会出发StopIteration(expr)异常抛出
+#### 4. yield from表达式产生的值是 子生成器终止时传给StopIteration异常的第一个参数
+</br>
+#### yield from的另外两个特性和异常与终止相关
+#### 5. 传入委派生成器的异常，除了GeneratorExit之外，都传给子生成器的throw()方法，如果调用throw()的时候抛出StopIteration异常，委派生成器会恢复运行，StopIteration之外的异常会向上冒泡，传给委派生成器
+#### 6. 如果把GeneratorExit异常传入委派生成器，或者在委派生成器上调用close()，那么在子生成器上调用close()，如果它有的话。 如果调用close()导致异常抛出，那么异常会向上冒泡，传给委派生成器，否则，委派生成器抛出GeneratorExit异常
+</br>
+##### 还是感觉有点迷糊，但是上述至少解释了为什么抛出StopIteration，但是委派生成器还是在继续运行的现象。
+
+
+**下面是一个关于解释yield from是如何运作的简化版的例子**
+```python
+# 题外话，这本书虽然对于某些人来说并没有让他收获到什么东西，但是我看了以后感觉获益匪浅
+
+_i = iter(EXPR)                 # EXPR是任何可迭代的对象
+try:
+    _y = next(_i)               # 预激生成器，将结果存储在_y中，作为产出的第一个值，_i在这里就是子生成器
+except StopIteration as _e:
+    _r = _e.value               # 如果捕获了异常，就将异常的value属性赋值给_r,也就是最简单的情况下的返回值RESULT
+else:
+    # 预激成功以后
+    while True:                 # 委派生成器将制作为调用方和子生成器之间的通道
+        _s = yield _y           # _y就是子生成器产出的值，_s就是调用方发给委派生成器的值，这个值会转发给子生成器
+        try:
+            _y = _i.send(_s)
+        except StopIteration as _e:
+            _r = _e.value
+            break
+RESULT = _r
+```
+#### 在生成器内部.throw()和.close()都会触发异常抛出，yield from也是要处理这种情况发生的
+#### 下面是完整yield from的实现伪代码
+```python
+_i = iter(EXPR)
+
+```
