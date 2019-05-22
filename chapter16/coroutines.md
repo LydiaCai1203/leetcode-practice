@@ -276,4 +276,6 @@ RESULT = _r
 #### 3. [yield from运行机制详解](http://flupy.org/resources/yield-from.pdf)
 </br>
 </br>
+#### 下面是yield from的运行机制流程示意图：
+##### 比较清晰地解释了异常的走向
 ![GitHub](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/yield_from.jpg "GitHub,Social Coding")
