@@ -263,8 +263,14 @@ else:
 RESULT = _r
 ```
 #### 在生成器内部.throw()和.close()都会触发异常抛出，yield from也是要处理这种情况发生的
-#### 下面是完整yield from的实现伪代码
-```python
-_i = iter(EXPR)
+#### 下面再解释一遍yield from处理异常和终止的时候的机制：
+##### 我感觉还是没有说清楚，所以这个yield from的实现机制还是需要再仔细看看
+> 1. 当出现关闭委派生成器或者是子生成器的时候会抛出GeneratorExit异常，异常在yield from中就会被捕获，首先去关闭子生成器。然后在将异常抛出，即异常会向上冒泡。
+> 2. 如果调用方是通过.throw()进行异常的传入的时候，会尝试使用子生成器的.throw()进行异常的抛出，然后将异常信息进行保存
+> 3. 如果没有异常抛出的话就按照之前的提的优化的部分实现剩下的逻辑。
 
-```
+
+### 小结
+#### 1. 生成器中的return result会抛出StopIteration(result）异常，这样调用方才可以从value属性中获取the result。 但是yield from能够自动处理，666
+#### 2. yield from结构中有三个主要的部分：委派生成器、yield from预激活的子生成器，以及通过委派生成器中的yield from表达式架设起来的通道把值发给子生成器，从而驱动整个过程的客户代码。
+#### 3. [yield from运行机制详解](http://flupy.org/resources/yield-from.pdf)
