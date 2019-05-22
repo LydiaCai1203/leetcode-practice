@@ -274,3 +274,5 @@ RESULT = _r
 #### 1. 生成器中的return result会抛出StopIteration(result）异常，这样调用方才可以从value属性中获取the result。 但是yield from能够自动处理，666
 #### 2. yield from结构中有三个主要的部分：委派生成器、yield from预激活的子生成器，以及通过委派生成器中的yield from表达式架设起来的通道把值发给子生成器，从而驱动整个过程的客户代码。
 #### 3. [yield from运行机制详解](http://flupy.org/resources/yield-from.pdf)
+
+![GitHub](https://avatars2.githubusercontent.com/u/3265208?v=3&s=100 "GitHub,Social Coding")
