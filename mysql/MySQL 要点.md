@@ -146,3 +146,137 @@
 > 5. SELECT COL FROM TABLE WHERE COL REGEXP BINARY 'CQJ .000';
 >
 >    > 使用BINARY即区分大小写
+>
+> 6. REGEXP '1000|2000';    # ''或者''操作符
+>
+> 7. REGEXP '[123]Ton';        # 匹配1Ton，2Ton，3Ton
+>
+> 8. REGEXP '^1234|4567';  # ^就是取反的意思
+>
+> 9. REGEXP '[123456789]'  <==>  REGEXP '[1-9]' OR REGEXP '[A-Z]';
+>
+> 10. 匹配特殊字符的时候使用\\\作为前缀符进行转义
+>     1.  '*' 表示0或者多个匹配； '+' 表示1或者多个匹配；'？'表示0或者1个匹配；'{n}'指定数目的匹配；'{n, }' 表示不少于指定数目的匹配；''{n, m}'' 匹配数目的范围；
+>     2. REGEXP '\\\\([0-9] sticks?\\\\)'            # 可以匹配到(1 sticks) or (2 stick)
+>     3.  REGEXP '[[:digit:]]{4}'.                   # 找到连续四位数字
+>    
+> 11. '^'表示的是文本的开始; '$'表示的是文本的结尾; '[[:<:]]'词的开始; '[[:>:]]'词的结尾; 当'^'在集合中，用来否定该集合。
+>
+> 12. 还可以使用不带数据库查询的语句进行正则的简单测试：
+>
+>     > select 'hello' regex '[0-9]';
+
+###### **创建计算字段** 
+
+> 1. 说些无聊的话：pandas 来导出excel
+> 2. 在数据库服务器上完成(转换和格式化工作)比在客户机中完成要快得多
+> 3. SELECT CONCAT(vend_name, '(', vend_contury, ')') FROM TABLE ORDER BY vend_name;     # 相当于字符串拼接
+> 4. SELECT Concat(RTrim(vend_name), '(', RTrim(vend_country), ')') FROM vendors  ORDER BY vend_name;     # 相当于去掉右边所有的空格 有LTrim\RTrim\Trim
+> 5. 3式和4式得到的拼接以后的列是没有名字的，如果要用到这个结果的话就需要给它用上别名。SELECT CONCAT(vend_name, '(', vend_contury, ')') AS vend_title;
+> 6. SELECT quantity*item_price AS expanded_price;
+> 7. SELECT Now();   # 返回当前的日期数据
+
+###### **使用 数据处理函数**
+> 1. SELECT Upper(COL) AS UP_COL FROM TABLE;      # Lower
+>
+> 2. SELECT Length(COL) FROM TABLE;
+>
+> 3. Located()、Soundex()、SubString();
+>
+> 4. SELECT COL1, COL2 FROM TABLE WHERE COL3='2005-09-01'
+>
+>    > 这样做有一个问题就是COL3含有具体的时间信息的时候，这样写就不会匹配到任何东西。也就是COL3实际上是一个datetime数据类型。
+>
+> 5. SELECT COL1 FROM TABLE WHERE Date(COL2)='2005-09-01';
+>
+>    > AddDate()        Day()                      Now()
+>    >
+>    > AddTime().       Hour()                   DayOfWeek()   # 对于一个日期，返回对应的星期几  
+>    >
+>    > CurDate()         Month()
+>    >
+>    > CurTime()         Minute()
+>    >
+>    > Date()                Second()
+>    >
+>    > Time()                Year()
+>    >
+>    > DateDiff()          # 计算两个日期之差
+>    
+> 6. WHERE Date(COL) BETWEEN '2005-09-01' AND '2005-09-30';
+>
+> 7. 一些数据处理函数
+>
+>    > Abs()        Cos()       Exp()       Mod()        Pi()        Rand()      Sin()       Sqrt()     Tan()
+
+###### **汇总数据**
+> 1. 聚集函数：运行在行组上，计算和返回单个值的函数
+>
+>    > AVG()    COUNT()    MAX()    MIN()     SUM()
+>
+> 2. SELECT AVG(price) AS avg_price; 
+>
+>    > a. 这个函数只适用于单个列，如果要求多个列的平均值，就要使用多次
+>    >
+>    > b. AVG()忽略列值为NULL的行
+>
+> 3. SELECT COUNT(*) AS num_cust;
+>
+>    > a. 对表中行的数目进行计数，不会忽略NULL值
+>    >
+>    > b. COUNT(column) 对特定列中具有值的行进行计数，会忽略NULL值
+>    >
+>    > example: select count(col) from table; 
+>    
+> 4. SELECT MAX(COL) FROM TABLE; 
+>
+>    > MAX() 忽略列值为NULL的行
+>
+> 5. SELECT MIN(COL) FROM TABLE;
+>
+>    > MIN() 忽略列值为NULL的行
+>
+> 6. SELECT SUM(COL) FROM TABLE;
+>
+>    > SUM() 忽略列值为NULL的行
+>
+> 7. **以上几个聚集函数都是默认ALL参数，除非指定DISTINCT**
+>
+> 8. SELECT AVG(DISTINCT price) AS avg_price FROM table;
+>
+>    > DISTINCT 必须使用列名，不能用于计算或表达式；
+>
+> 9. SELECT COUNT(DISTINCT price) FROM table;       # COUNT(DISTINCT)是会报错的
+>
+> 10. SELECT COUNT(*) AS num_items,
+>
+>    ​              MIN(prod_price) AS price_min,
+>
+>    ​			  MAX(prod_price) AS price_max,
+>
+>    ​              AVG(prod_price) AS price_avg
+>
+>    ​       FROM product;
+>
+> 11. 这些函数是高效设计，它们返回结果一般比你在自己的客户机应用程序中计算要快得多;
+
+###### **分组数据**
+> 1. SELECT vend_id, COUNT(*) AS num_prods FROM TABLE GROUP BY vend_id;
+>
+>    > a. 先将每个vend_id分组，然后再对每个分组的数据量进行汇总
+>    >
+>    > b. GROUP BY可以包含任意数目的列
+>    >
+>    > c. GROUP BY列出的每个列都必须是检索列或有效的表达是，但是不能是聚集函数
+>    >
+>    > d. 如果在SELECT中使用表达式，在GROUP BY中也必须使用相同的表达式，但是不能使用别名
+>    >
+>    > e. 除了聚集计算语句之外，SELECT中每个列都必须在GROUP BY子句中给出
+>    >
+>    > f. 如果分组列中具有NULL值，则会将NULL值作为一个分组进行返回
+>    >
+>    > g. GROUP BY必须出现在 WHERE之后，ORDER BY之前
+>
+> 2. where是过滤行，但是having是过滤分组
+>
+> 3. 
