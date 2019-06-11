@@ -61,6 +61,8 @@
 > 7. SHOW ERRORS;    or    SHOW WARNINGS;      # 显示服务器错误和警告消息
 > 8. HELP SHOW                    # 显示出所有跟SHOW有关的命令
 
+
+
 ###### **select/limit**
 
 > 1. SELECT [COLUMN_NAME, ...] FROM TABLE;
@@ -73,6 +75,8 @@
 > 6. SELECT COLUMN FROM TABLE LIMIT NUMBER OFFSET START;
 > 7. SELECT TABLE.COLUMN FROM DB.TABLE;
 > 8. SELECT TABLE.COLUMN FROM TABLE; 
+
+
 
 ###### **order by/is null/not is null/desc** 
 
@@ -98,7 +102,10 @@
 >
 > 10. SELECT COL FROM TABLE WHERE COL IS NULL;    # IS NOT NULL也是存在的
 
+
+
 ###### **where/and/or/in/not** 
+
 > 1. WHERE CONDITION1 AND CONDITION2;
 >
 > 2. WHERE CONDITION1 OR CONDITION2;
@@ -117,7 +124,10 @@
 >    
 > 5. WHERE COL NOT IN (VALUE1, VALUE2);
 
+
+
 ###### **like** 
+
 > 1. SELECT COL FROM TABLE WHERE COL LIKE '%su%'
 >
 > 2. LIKE 's%e' ； LIKE '%se' ；LIKE 'se%' ；
@@ -132,7 +142,9 @@
 >    > 2. 通配符位于搜索模式的开始处，搜索起来是最慢的。
 
 
+
 ###### **正则表达式** 
+
 > 1. WHERE COL REGEXP '1000';
 >
 > 2. 关键字LIKE被REGEXP替代，WHERE COL REGEXP '.000'; '.'是一个特殊字符，表示匹配任意一个字符
@@ -166,6 +178,8 @@
 >
 >     > select 'hello' regex '[0-9]';
 
+
+
 ###### **创建计算字段** 
 
 > 1. 说些无聊的话：pandas 来导出excel
@@ -176,7 +190,10 @@
 > 6. SELECT quantity*item_price AS expanded_price;
 > 7. SELECT Now();   # 返回当前的日期数据
 
+
+
 ###### **使用 数据处理函数**
+
 > 1. SELECT Upper(COL) AS UP_COL FROM TABLE;      # Lower
 >
 > 2. SELECT Length(COL) FROM TABLE;
@@ -209,7 +226,10 @@
 >
 >    > Abs()        Cos()       Exp()       Mod()        Pi()        Rand()      Sin()       Sqrt()     Tan()
 
+
+
 ###### **汇总数据**
+
 > 1. 聚集函数：运行在行组上，计算和返回单个值的函数
 >
 >    > AVG()    COUNT()    MAX()    MIN()     SUM()
@@ -260,7 +280,10 @@
 >
 > 11. 这些函数是高效设计，它们返回结果一般比你在自己的客户机应用程序中计算要快得多;
 
+
+
 ###### **分组数据**
+
 > 1. SELECT vend_id, COUNT(*) AS num_prods FROM TABLE GROUP BY vend_id;
 >
 >    > a. 先将每个vend_id分组，然后再对每个分组的数据量进行汇总
@@ -279,4 +302,257 @@
 >
 > 2. where是过滤行，但是having是过滤分组
 >
-> 3. 
+> 3. SELECT cus_id, COUNT(*) AS orders
+>
+> ​       FROM orders
+>
+> ​       GROUP BY cus_id
+>
+> ​       HAVING COUNT(*) >= 2
+>
+> 4. HAVING在分组以后过滤，WHERE在分组前过滤，WHERE排除的行不包括在分组中
+>
+> 5. SELECT vend_id, COUNT(*) AS num_prods,
+>
+> ​       FROM products
+>
+> ​       WHERE prod_price >= 10
+>
+> ​       GROUP BY vend_id
+>
+> ​       HAVING COUNT(*) >= 2;
+>
+> 6. 一般在使用GROUP BY子句时，应该也给出ORDER BY子句，这是保证数据正确排序的唯一方法，千万不要仅仅依赖GROUP BY排序数据
+>
+> 7. SELECT order_sum, SUM(quantity*item_price) AS ordertotal
+>
+> ​       FROM orderitems
+>
+> ​	   GROUP BY order_num
+>
+> ​       HAVING SUM(quantity*item_price) >= 50;
+>
+> ​       ORDER BY ordertotal;
+
+
+
+###### **联结表**
+
+> 1. 关系表的设计就是要保证把信息分解成多个表，一类数据一个表，各表通过某些常用的值（即关系设计中的关系互相关联）
+>
+> 2. 一个表的外键就是另一个表的主键
+>
+> 3. 笛卡尔积：由没有联结条件的表关系返回的结果为笛卡尔积，检索出的行的数目将是第一个表中的行数乘以第二表中的行数
+>
+> 4. left join(左联接) 返回包括左表中的所有记录和右表中联结字段相等的记录
+>
+>    > from A left join B on A.aID = B.bID
+>
+> 5. right join(右联接) 返回包括右表中的所有记录和左表中联结字段相等的记录
+>
+>    > from A right join B on A.aID = B.bID
+>
+> 6. inner join(等值连接) 只返回两个表中联结字段相等的行
+>
+>    > from A inner join B on A.aID = B.bID
+>
+> 7. 内部联结
+>
+>    > SELECT vend_name, prod_name, prod_price
+>    >
+>    > FROM vendors INNER JOIN products
+>    >
+>    > ON vendors.vend_id = products.vend_id
+>    >
+>    > > **不要联结不必要的表，联结的表越多，性能也就下降地越厉害**
+>    > >
+>    > > inner join = join = ,
+
+
+
+###### **创建高级联结**
+
+> 1. 自联结
+>
+>    > a. 自己和自己表联结
+>    >
+>    > b. SELECT p1.prod_id, p1.prod_name
+>    >
+>    > ​    FROM products as p1, products as p2
+>    >
+>    > ​    WHERE p1.bend_id = p2.vend_id AND p2.prod_id=p1.prod_id
+>    >
+>    > c. 有时候使用联结的时候效率会比子查询要高一些，所以应该尝试一下看看两种方法哪个性能会更高一些
+>
+> 2. 自然联结
+>
+>    > a. 标准的联结会返回所有的数据，但自然联结排除多次出现，使每个列都只返回一次
+>    >
+>    > b.  SELECT  p.*, v.*
+>    >
+>    > ​     FROM productinfo AS p NATURAL  JOIN vendors AS v;
+>
+> 3. 外部联结
+>
+>    > a. 联结包含了那些在相关表中没有关联行的行，这种联结就是外部联结
+>    >
+>    > b. SELECT 
+>    >
+>    > ​    FROM customer LEFT OUTER JOIN orders
+>    >
+>    > ​    ON customers.cust_id = orders.cust_id;
+>    >
+>    > c. 外部联结的话 没有的结果也会被选出来
+
+
+
+###### **组合查询**
+
+> 1. 任何具有多个WHERE子句和SELECT语句都可以作为一个组合查询给出，这两种技术在不同的查询中性能也不同，因此应该试一下这两种技术，以确定哪一种查询的性能会更加优秀。
+>
+> 2. SELECT vend_id, prod_id, prod_price
+>
+> ​       FROM products
+>
+> ​       WHERE prod_price <= 5
+>
+> ​       UNION
+>
+> ​       SELECT vend_id, prod_id, prod_price
+>
+> ​       FROM products
+>
+> ​       WHERE vend_id IN (1001, 1002)
+>
+> 3. 上一个例子中，第一个查询语句返回4行，第二个查询语句返回5行，UNION了以后返回的是8行而不是9行，因为在使用UNION的时候，重复的行会被自动去除。
+> 4. 如果想返回所有的结果，就可以使用UNION ALL;
+> 5. ORDER BY必须放在最后一行，而且是作用于全部的查询结果的
+
+
+
+###### **全文本搜索**
+
+> 1. 并非所有的引擎都支持全文搜索，两个最常用的引擎MyISAM和InnoDB，前者支持全文本搜索，但是后者不支持。
+>
+> 2. 比较使用 通配符和正则表达式匹配 与 全文本搜索：
+>
+>   > a. 通配符和正则表达式匹配通常要求MySQL尝试匹配表中的所有行，这些搜索极少使用表索引，因此，由于被搜索行数不断增加，这些搜索会非常地耗时。
+>   >
+>   > b. 通配符和正则表达式匹配都是明确控制，比较具体。
+>   >
+>   > c. 返回的结果不够智能，并不会区分只匹配了一次的行，和匹配了多次的行。
+>
+> 3. 为了使用全文本搜索，必须索引被搜索的列，而且要随着数据的改变不断地重新索引，在对MySQL进行适当的设计以后，将会自动进行所有索引和重新索引。
+>
+> 4. 一般在创建表的时候创建全文索引：
+>
+>    > CREATE TABLE table_1
+>    >
+>    > (
+>    >
+>    > ​		note_id  int  not null auto_increament,
+>    >
+>    >  	   prod_id  char(10)  not null,
+>    >	
+>    >  	   note_date  datetime  not null,
+>    >
+>    > ​        note_text text  null,
+>    >
+>    > ​        primary key(note_id),
+>    >
+>    > ​        **fulltext(note_text)**
+>    >
+>    > ) engine=MyISAM;
+>
+> 5. Fulltext 可以索引单个列也可以索引多个列，此外在定义之后，会自动维护该索引。
+>
+> 6. SELECT note_text
+>
+> ​       FROM productnotes
+>
+> ​       WHERE Match(note_text) Against('rabbit');
+>
+>   > a. Match()指定要被搜索的列，Against()指定要使用的搜索表达式
+>   >
+>   > b. Match()的值必须与Fulltext()的值相同，包括顺序
+>   >
+>   > c. 除非使用BINARY的方式，否则不被区分大小写
+>
+> 7. 使用全文搜索返回的结果会按照匹配程度等级进行降序排列返回，因此结果更加智能。
+>
+> 8. SELECT note_text
+>
+> ​       Match(note_text)  Against('rabbit') as rank
+>
+> ​       FROM productnotes;
+>
+>   > a. 在select中使用Match()将返回所有的结果
+>   >
+>   > b. 全文搜索会计算出等级值，等级值越高越符合搜索，根据词中的匹配数目，唯一次的数目，整个索引中词的总数，以及包含该词的行的数目。
+>   >
+>   > c. 由于搜索是基于索引的，所以全文搜索极快。
+>   >
+>
+> 9. Boolean mode(slow)
+>
+> SELECT col1
+>
+> FROM table
+>
+> WHERE Match(col1) Against(search_exp, IN BOOLEAN MODE);
+>
+> 10. 匹配heavy 但是排除rope
+>
+>  SELECT col1
+>
+>  FROM table
+>
+>  WHERE Match(col1) Against('heavy -rope*' IN BOOLEAN MODE);
+>
+>  -rope* 就是指明要排除任何以rope开头的词
+>
+> 11. 下面是全文本布尔操作符
+>
+>  '+': 此必须存在； '-':此必须排除；'>':包含，而且增加等级值；'<':包含，而且减少等级值；'～'：取消一个词的排序值；'*': 词尾的通配符；'""':定义一个短语。
+>
+> 12. SELECT col1
+>
+> ​       FROM table
+>
+> ​       WHERE Match(col1) Against('+rabbit +bait' IN BOOLEAN MODE);
+>
+> ​       // 将会搜索所有包含rabbit&bait的行
+>
+> 13. SELECT col1
+>
+>     FROM table
+>
+>     WHERE Match(col1)  Against('rabbit bait' IN BOOLEAN MODE);
+>
+>     // 会匹配至少包含两个词中的一个词的所有行
+>
+> 14. SELECT col1
+>
+>     FROM table
+>
+>     WHERE Match(col1) Against('"rabbit bait"' IN BOOLEAN MODE);
+>
+>     // 会包含含有rabbit bait这个短语的行，这两个单词加上一个空格就是一个简单的短语
+>
+> 15. SELECT col1
+>
+>     FROM table
+>
+>     WHERE Match(col1) Against('>rabbit <carrot' IN BOOLEAN MODE);
+>
+>     // 匹配两个词，但是抬高rabbit的等级，降低carrot的等级
+>
+> 16. SELECT col1
+>
+>     FROM table
+>
+>     WHERE Match(col1) Against('+safe +(<combination)' IN BOOLEAN MODE);
+>
+> 17. 在布尔方式中，返回的结果是不会按照等级值降序排序返回的。
+>
+> 18. 
