@@ -1,0 +1,119 @@
+(一)核心军规
+(1)不在数据库做运算
+   cpu计算务必移至业务层；
+(2)控制单表数据量
+   int型不超过1000w，含char则不超过500w；
+   合理分表；
+   限制单库表数量在300以内；
+(3)控制列数量
+   字段少而精，字段数建议在20以内；
+(4)平衡范式与冗余
+   效率优先；
+   往往牺牲范式；
+(5)拒绝3B
+   拒绝大sql语句：big sql
+   拒绝大事物：big transaction
+   拒绝大批量：big batch
+
+(二)字段类军规
+(6)用好数值类型
+   tinyint(1Byte)
+   smallint(2Byte)
+   mediumint(3Byte)
+   int(4Byte)
+   bigint(8Byte)
+   bad case：int(1)/int(11)
+(7)字符转化为数字
+   用int而不是char(15)存储ip
+(8)优先使用enum或set
+   例如：`sex` enum (‘F’, ‘M’)
+(9)避免使用NULL字段
+   NULL字段很难查询优化；
+   NULL字段的索引需要额外空间；
+   NULL字段的复合索引无效；
+   bad case：
+    `name` char(32) default null
+    `age` int not null
+   good case：
+    `age` int not null default 0
+(10)少用text/blob
+    varchar的性能会比text高很多；
+    实在避免不了blob，请拆表；
+(11)不在数据库里存图片
+    这个我不能理解！
+    但这是赶集网的经验，求detail！
+
+(三)索引类军规
+(12)谨慎合理使用索引
+    改善查询、减慢更新；
+    索引一定不是越多越好(能不加就不加，要加的一定得加)；
+    覆盖记录条数过多不适合建索引，例如“性别”；
+(13)字符字段必须建前缀索引
+(14)不在索引做列运算
+！！！不只是索引，都不能做列运算吧！！！
+    bad case：
+    select id where age +1 = 10;
+(15)innodb主键推荐使用自增列；
+    主键建立聚簇索引；
+    主键不应该被修改；
+    字符串不应该做主键；
+    如果不指定主键，innodb会使用唯一且非空值索引代替；
+(16)不用外键
+    请由程序保证约束；
+
+(四)sql类军规
+(17)sql语句尽可能简单
+    一条sql只能在一个cpu运算；
+    大语句拆小语句，减少锁时间；
+    一条大sql可以堵死整个库；
+(18)简单的事务
+    事务时间尽可能短；
+    bad case：
+    上传图片事务
+(19)避免使用trig/func
+    触发器、函数不用；
+    客户端程序取而代之；
+(20)不用select *
+    消耗cpu，io，内存，带宽；
+    这种程序不具有扩展性；
+(21)OR改写为IN()
+    or的效率是n级别；
+    in的消息时log(n)级别；
+    in的个数建议控制在200以内；
+      select id from t where phone=’159′ or phone=’136′;
+      =>
+      select id from t where phone in (’159′, ’136′);
+(22)OR改写为UNION
+    mysql的索引合并很弱智
+     select id from t where phone = ’159′ or name = ‘john’;
+     =>
+     select id from t where phone=’159′
+     union
+     select id from t where name=’jonh’
+(23)避免负向%
+(24)慎用count(*)
+(25)同上
+(26)limit高效分页
+    limit越大，效率越低
+    select id from t limit 10000, 10;
+    =>
+    select id from t where id > 10000 limit 10;
+(27)使用union all替代union
+    union有去重开销
+(28)少用连接join
+(29)使用group by
+    分组；
+    自动排序；
+(30)请使用同类型比较
+(31)使用load data导数据
+    load data比insert快约20倍；
+(32)打散批量更新
+(33)新能分析工具
+    show profile;
+    mysqlsla;
+    mysqldumpslow;
+    explain;
+    show slow log;
+    show processlist;
+    show query_response_time(percona);
+--本篇文章转自：http://blog.itpub.net/22664653/viewspace-723506/
