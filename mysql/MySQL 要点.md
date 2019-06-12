@@ -495,21 +495,21 @@
 >
 > 9. Boolean mode(slow)
 >
-> SELECT col1
+>    SELECT col1
 >
-> FROM table
+>    FROM table
 >
-> WHERE Match(col1) Against(search_exp, IN BOOLEAN MODE);
+>    WHERE Match(col1) Against(search_exp, IN BOOLEAN MODE);
 >
 > 10. 匹配heavy 但是排除rope
 >
->  SELECT col1
+>      SELECT col1
 >
->  FROM table
+>      FROM table
 >
->  WHERE Match(col1) Against('heavy -rope*' IN BOOLEAN MODE);
+>      WHERE Match(col1) Against('heavy -rope*' IN BOOLEAN MODE);
 >
->  -rope* 就是指明要排除任何以rope开头的词
+>      -rope* 就是指明要排除任何以rope开头的词
 >
 > 11. 下面是全文本布尔操作符
 >
@@ -555,4 +555,391 @@
 >
 > 17. 在布尔方式中，返回的结果是不会按照等级值降序排序返回的。
 >
-> 18. 
+> 18. 如果表中的行数少于3行，全文本搜索不回返回结果。
+>
+> 19. 会忽略词中的单引号，将don't索引为dont
+>
+> 20. 仅在MyISAM数据库引擎中支持全文本搜索
+
+
+
+###### **插入数据**
+
+>1. INSERT INTO table  VALUE(NULL, 'caiqj', 'China', '22', NULL);
+>
+>2. 自增列只需赋值NULL即可；最好是写成下面这种形式，在表名之后标明列名：
+>
+>   > INSERT INTO table(col1, col2, col3)
+>   >
+>   > VALUES(value1, value2, value3);
+>   >
+>   > 这样写的好处是在表的结构发生变化以后，这样的插入语句还是能得到正确的结果的。
+>
+>3. 不管使用哪种方法，如果没有给出列名，就要在插入的时候给出所有列的值，如果给出了列名，就要在插入的时候给出所有给出列名的列的值。
+>
+>4. INSERT可以省略的列必须是可以为NULL，或者在表的定义中给出默认值的。
+>
+>5. INSERT LOW_PRIORITY INTO 可以降低INSERT语句的优先级.
+>
+>6. INSERT INTO table(col1, col2, col3)
+>
+>      VALUE(val11, val12, val13),(val21, val22, val23);
+>
+>   // 一次性插入多条比一次插一条要快
+>
+>7. **INSERT SELECT**
+>
+>   > a. 它可以将一条SELECT语句的结果插入表中,由一条insert和一条select组成
+>   >
+>   > b. INSERT INTO table(col1, col2, col3)
+>   >
+>   > ​    SELECT(col1, col2, col3) 
+>   >
+>   > ​    FROM tabl2;
+
+
+
+###### **更新和删除数据**
+
+> 1. UPDATE table
+>
+>       SET col1=value1
+>
+>       WHERE col1=condition1;
+>
+> 2. UPDATE同样可以使用在子查询当中，上例中如果在更新多行的时候出现错误，整个UPDATE操作就会被取消，所有更新了的行都会恢复到它们原本的值。如果希望即使发生错误，也继续更新的话，就可以使用IGNORE关键字。
+>
+>       UPDATE IGNORE table
+>
+> 3. SET col1=NULL当然也是被允许的
+>
+> 4. DELETE FROM table
+>
+>       WHERE col1=val1;
+>
+>       // 要注意DELETE删除的是表中的行 不是表本身。
+>
+> 5. 可以达到删除所有行的语句还有TRUNCATE TABLE语句，它会完成想相同的工作，但是速度更快。因为它相当于是删除原来的表然后重新创建一个表。
+
+
+
+###### **创建和操纵表**
+
+> 1. CREATE TABLE table_name
+>
+> ​        (   stu_id    int    NOT NULL    AUTO_INCREMENT,
+>
+> ​		    stu_name    char(50)    NOT NULL    DEFAULT    'student_none',
+>
+> ​		    PRIMARY KEY (cost_id)
+>
+> ​        )   ENGINE=InnoDB;
+>
+> 2. 创建一个表的时候有9列，MySQL会忽略空格，语句也可以在一个长行上进行输入。就可以在表名之前添加上IF NOT EXISTS;
+>
+> ​       CREATE TABLE IF NOT EXISTS table_name
+>
+> ​       DROP TABLE IF EXISTS table_name
+>
+> 3. 使用单一列作为主键： PRIMARY KEY (col1)
+>
+> 4. 使用组合列作为主键： PRIMARY KEY (col1, col2)
+>
+> 5. 主键值当然是不允许为NULL的
+>
+> 6. 每个表都只能有一个列被赋予AUTO_INCREMENT，而且它还必须被索引，比如让它成为主键。
+>
+> 7. 如果自己给了一个值，并且这个值是唯一的话，后续的增量将开始使用该手工插入的值。
+>
+> 8. 你可以使用last_insert_id()来获取最后一个AUTO_INCREMENT的值
+>
+> 9. MySQL有一个具体管理和处理数据的内部引擎，在你使用CREATE TABLE的时候，该引擎具体创建表，在你使用SELECT语句或进行其他数据库处理时，该引擎在内部处理你的请求。
+>
+> 10. 三种引擎的优缺点：
+>
+>     > a. InnoDB是一个可靠的事务处理引擎，但是不支持全文搜索
+>     >
+>     > b. MEMORY在功能上等同于MyISAM，但是由于数据存储在内存，而不是磁盘当中，速度很快，适合创建临时表
+>     >
+>     > c. MyISAM是一个性能极高的引擎，它支持全文本搜索，但是不支持事务处理
+>
+> 11. 混用引擎的一大缺陷就是外键无法跨越。
+>
+> 12. 更改表结构可以使用ALERT TABLE:
+>
+>         ALERT  TABLE  table_name
+>
+>         ADD  col_n char(20);
+>
+>         DROP  COLUMN  col_n; 
+>
+> 13. 使用ALERT 来创建外键：
+>
+>         ALERT  TABLE  table1_name
+>
+>         **ADD  CONSTRAINT**  fk_name
+>
+>         FOREIGN  KEY  (col11)  REFERENCES  table_name1  (col21);
+>
+> 14. **使用ALERT之前应该对表进行一个备份，因为数据库表的更改不能撤销**
+>
+> 15. 删除表则使用**DROP** TABLE table_name;
+>
+> 16. 重命名表就是用RENAME TABLE table_name1 TO table_name2, table_name3 TO table_name2, …..;
+
+
+
+###### **使用视图**
+
+> 1. 视图就是虚拟的表，与包含数据的表不一样，视图只包含使用时动态检索数据的查询。就是一个方便查询的临时表。
+>
+> 2. 使用视图的一个好处就是可以给用户授予表的特定部分的访问权限而不是整个表的访问权限。
+>
+> 3. 视图必须唯一命名，创建的数量并没有限制，可以从其它的视图中提取数据来构建另一个视图，可以使用ORDER_BY，视图无法索引，也不能有关联的触发器或者是默认值。
+>
+> 4. **CREATE VIEW** view_name **AS**
+>
+>       SELECT col1, col2, col3
+>
+>       FROM table1, table2, table3
+>
+>       WHERE condition1, condition2
+>
+> 5. 可以对视图使用INSERT UPDATE DELETE, 但是更新一个视图将会更新其基表。
+>
+> 6. 如果MySQL无法正确地确定被更新的基数据，就不允许更新，实际上就意味着，如果视图的定义中有分组、联结、子查询、并、聚集函数、DISTINCT就不能在对它进行更新的动作了。
+
+
+
+###### **使用存储过程**
+
+> 1. 简单来说就是为以后的使用而保存的一条或者是多条MySQL语句的集合，可以将其视为批文件，但是存储过程的作用并不局限于批处理。
+>
+> 2. 使用存储过程会比使用单独的SQL语句要快一点
+>
+> 3. 执行存储过程
+>
+>    CALL producer_name(@return_val1, @return_val2);
+>
+>    会将结果回传出来，然后就可以在select语句中使用@来提取变量值。
+>
+>    存储过程可以显示结果，也可以不显示结果
+>
+> 4. 创建存储过程
+>
+>    CREATE PRODUCER producer_name(arg1, arg2)
+>
+>    BEGIN
+>
+>    ​		SELECT AVG(score) AS score_avg
+>
+>    ​		FROM students;
+>
+>    END;
+>
+> 5. DROP PRODUCER producer_name;
+>
+> 6. DROP PRODUCER producer_name IF EXISTS;
+>
+> 7. CREATE PRODUCER producer_name(
+>
+>    ​		OUT price_low DECIMAL(8, 2),
+>
+>    ​		OUT price_high DECIMAL(8, 2),
+>
+> ​		)
+>
+> ​		BEGIN
+>
+> ​				DECLARE total DECIMAL(8, 2);     // 声明一个变量
+>
+> ​				DECLARE texture INT DEFAULT 6;     // 声明一个变量
+>
+> ​				SELECT MIN(price)
+>
+> ​				INTO price_low
+>
+> ​				FROM table_name;
+>
+> ​        		SELECT MAX(price)
+>
+> ​				INTO price_high
+>
+> ​				FROM table_name;
+>
+> ​		END;
+>
+> 8. IN表示传递给存储过程，OUT表示从存储过程传出，INOUT对存储过程的传入和传出类型的参数，INTO可以帮助我们将相应的值保存到对应的变量中。
+>
+> 9. 所有的MySQL变量都必须以@开始
+>
+> 10. SELECT @price_low; 就可以搜索出其中的变量。
+>
+> 11. 存储过程也有IF THEN;
+>
+> 12. SHOW CREATE PRODUCER producer_name; 
+>
+>     可以显示当时创建该存储过程的语句
+
+
+
+###### **使用游标**
+
+> 1. 游标是一个存储在MySQL-server上的数据库查询，它并不是一条SELECT语句，而是一个检索出来的结果集，存储了游标之后，应用程序可以根据需要来滚动或者是浏览其中的数据。
+>
+> 2. MySQL的游标只能用于存储过程。
+>
+> 3. CREATE PRODUCER producer_name()
+>
+>    BEGIN
+>
+>    ​		DECLARE cursor_name CURSOR
+>
+>    ​		FOR
+>
+>    ​		SELECT col1 FROM table;
+>
+>    END;
+>
+> 4. OPEN cursor_name;  // 存储检索出的数据以供浏览和滚动
+>
+> 5. CLOSE cursor_name; // 释放游标使用的所有内部内存和资源，因此每个游标在不需要的时候都应该关闭。
+>
+> 6. FETCH cursor_name;  // 会指定检索什么数据，检索出来的数据存储在什么地方，它还向前移动游标中的内部指针，使下一条FETCH语句检索下一行。
+
+
+
+###### **使用触发器**
+
+> 1. 保持每个数据库的触发器名是唯一的
+>
+> 2. CREATE TRIGGER trigger_name AFTER INSERT ON table
+>
+>    FOR EACH ROW SELECT 'Product added';
+>
+>    上面的例子将会在insert语句执行成功以后，启动触发器，代码对每个插入行执行，都会显示一次Product added
+>
+> 3. 只有表才支持触发器
+>
+> 4. 每个表最多支持6个触发器，每条insert\update\delete前后可以执行一次
+>
+> 5. DROP TRIGGER trigger_name;
+>
+> 6. 关于INSERT TRIGGER:
+>
+>    > a. 在INSERT触发器代码中，可引用一个名为NEW的虚拟表，访问被插入的行。
+>    >
+>    > b. BEFORE INSERT中，NEW中的值是可以被修改的。
+>    >
+>    > c. 对于自增列，NEW在INSERT执行之前包含0，在INSERT执行之后包含新的自动生成的值。
+>    >
+>    > d. CREATE TRIGGER trigger_name AFTER INSERT ON table_name
+>    >
+>    > ​    FOR EACH ROW SELECT NEW.col1;
+>    >
+>    > e. BEFORE在于数据的验证和精华，目的是为了保证插入表中的数据确实是需要的数据。
+>
+> 7. 关于DELETE TRIGGER:
+>
+>    > a. 在DELETE触发器中，有一个名OLD的虚拟表，来访问被删除的行。
+>    >
+>    > b. OLD表是只读的，不能更新的。
+>    >
+>    > c. CREATE TRIGGER trigger_name BEFORE DELETE ON table_name
+>    >
+>    > ​    FOR EACH ROW
+>    >
+>    > ​    BEGIN
+>    >
+>    > ​		INSERT INTO TABLE_NAME(col1, col2, col3)
+>    >
+>    > ​        VALUES(val1, val2, val3);
+>    >
+>    > ​	END;
+>    >
+>    > d. 在任意订单被删除前都会执行此触发器，他会将OLD中将要被删除的订单保存到另外一张表中。
+>
+> 8. 关于UPDATE TRIGGER：
+>
+>    > a. 在UPDATE触发器中，有一个名OLD的虚拟表来访问以前的值， 有一个名为NEW的虚拟表来访问新的更新的值。
+>    >
+>    > b. CREATE TRIGGER trigger_name BEFORE UPDATE ON table
+>    >
+>    > ​    FOR EACH ROW SET NEW.col1=Upoer(NEW.col1);
+
+
+
+###### **管理事务处理**
+
+> 1. 事务处理可以用来维护数据库的完整性，它可以保证成批的MySQL操作要么完全执行，要么就完全不执行。
+>
+> 2. **事务**：指一组SQL语句
+>
+> 3. **回退**：指撤销指定SQL语句的过程
+>
+> 4. **提交**：指将为存储的SQL语句结果写入数据库表
+>
+> 5. **保留点**： 指事务处理中设置的临时占位符，你可以对它发布回退。
+>
+> 6. 管理事务处理的关键在于将SQL语句分解为逻辑块，并明确规定数据何时应该会退，何时不应该会退。
+>
+> 7. SELECT * FROM table1;
+>
+>    START TRANSACTION;
+>
+>    DELETE FROM table1;
+>
+>    SELECT * FROM table1;
+>
+>    ROLLBACK;    // 只能用在一个事务当中，但是不能会退CREATE和DROP操作
+>
+>    SELECT * FROM table1;
+>
+> 8. **COMMIT**
+>
+>    > START TRANSACTION;
+>    >
+>    > DELETE FROM table1 WHERE condition1;
+>    >
+>    > DELETE FROM table2 where condition2;
+>    >
+>    > COMMIT;
+>
+> 9. 当COMMIT&ROLLBACK执行完毕以后，事务就会自动关闭；
+>
+> 10. 保留点有点游戏存档的意味，savepoint delete1;  rollback delete1;
+>
+> 11. 如果你想要只是MySQL不自动提交更改的话：
+>
+>     SET autocommit=0;
+
+
+
+###### **全球化和本地化**
+
+> **字符集**：字母和符号的集合；
+>
+> **编码**：某个字符集成员的内部表示；
+>
+> **校对**：规定字符如何比较的指令；
+
+> 1. SHOW CHARACTER SET;   // 可以显示所有可用的字符集以及每个字符集的描述和默认校对。
+>
+> 2. CREATE TABLE table_name
+>
+>    (Col1 int, col2 varchar(10))DEFAULT CHARACTER SET hebrew
+>
+>    COLLATE hebrew_general_ci;
+
+
+
+###### **MySQL是一个多用户多线程的DBMS，它经常同时执行多个任务，如果这些任务中的某一个任务执行缓慢，所有的请求都会执行缓慢，所以你可以kill掉某个process**
+
+1. 使用explain语句来让mysql解释它是如何执行的各条语句
+2. 在导入数据的时候，应该关闭自动提交
+3. 必须使用数据库表以改善数据检索的性能。
+4. 使用多条SELECT语句然后用UNION进行连接，代替WHERE中使用多个OR，可以大大提升速度。
+5. like很慢，最好使用fulltext而不是like
+6. MySQL有变长串和定长串，有些变长数据类型具有最大的定长，有些则是完全变长的，不管是哪种，只有指定的数据会得以保存.
+7. MySQL处理定长列比变长列要快，而且变长列不允许进行索引，因为会影响性能。
+8. 其实varchar(n) n<=255
