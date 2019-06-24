@@ -2,25 +2,37 @@
 Implements of Binary Search Tree
 """
 
-class BST(object):
+class Node(object):
+    self.data = data
+    self.left = None
+    self.right_child = Node
+
+
+class Mytree(object):
     
     def __init__(self, node):
+        # self.cur就是指的当前结点所在位置
         self.cur = node
-        self.left_child = None
-        self.right_child = None
 
-    def insert(self, root, node):
-        """
-        if node greater than cur_node.cur, and insert into right node
-        if node less than cur_node.cur and insert into left node
-        """
-        if not :
-            self.cur = BST(node)
-        
-        if node <= self.left_child:
-            self.left_child = self.insert(node)
-        
-        if node > self.right_child:
-            self.right_child = self.insert(node)
-        return node
-        
+    def insert_left(self, node):
+        if not self.left:
+            self.left = node
+        else:
+            cur_node = self.cur
+            parent_node = None
+            while(not cur_node):
+                parent_node = cur_node
+                cur_node = cur_node.left
+            cur_node.left = node
+
+    def insert_right(self, node):
+        if not self.right:
+            self.right = node
+        else:
+            cur_node = self.cur
+            parent_node = None
+            while(not cur_node):
+                parent_node = cur_node
+                cur_node = cur_node.right
+            cur_node.right = node
+    
