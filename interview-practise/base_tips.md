@@ -120,4 +120,33 @@ print(person.__age)   # 这样直接访问是访问不到的
 ----------------------
 ### 7. 可迭代对象、迭代器和生成器
     1. 所有的生成器都是迭代器 因为生成器都实现了迭代器的接口
-    2. 
+    2. 如果一个对象实现了__iter__(), 解释器需要迭代的时候就会使用iter(obj)，返回的就是一个迭代器
+    3. 如果没有__iter__()，但是实现了__getitem__()的话，就会调用__getitem__()返回一个迭代器。
+    4. 标准的迭代器接口需要实现两个函数，分别是__next__()和__iter__()
+```python 
+    mystr = '123456789'
+    myiter = iter(mystr)
+    while True:
+        try:
+            print(next(myiter))
+        except StopIterator as e:
+            del myiter
+            break
+```
+    5. 迭代器模式：就是可以用于顺序访问集合对象的元素，而不需要知道对象的内部表示
+    6. 只要有yield的函数就会返回一个生成器
+    6. for循环会捕捉异常 所以没有异常抛出
+    7. http://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do-in-python
+
+-----------------------
+### 8. *args, **kwargs
+    1. *args 必须在 **kwargs前面
+
+------------------------
+### 9. 面向切面编程AOP和装饰器
+    1. 能把装饰的函数替换成其它的函数
+    2. 能在加载模块的时候就立即执行
+    3， 
+
+------------------------
+### 10.
