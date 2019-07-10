@@ -146,7 +146,63 @@ while True:
 ### 9. 面向切面编程AOP和装饰器
     1. 能把装饰的函数替换成其它的函数
     2. 能在加载模块的时候就立即执行
-    3，面试题：他让我写一个装饰器，可以捕获所装饰的函数所产生的异常，捕获到异常以后继续执行，如果产生三次异常就终止运行这个函数
+```python
+    register = []
+    def record(func):
+        print('enter record and before inner')
+        def inner():
+            print('enter inner func')
+            register.append(func.__name__)
+        return inner
+    
+    @record
+    def func1():
+        print('enter func1')
+        
+    @record
+    def func2():
+        print('enter func2')
+``` 
+    3. 也就是说，装饰器在import的时候就会被执行了 所以是加载模块的时候就会被执行了
+```python
+    class Average(object):
+        def __init__(self):
+            self.items = list()
+        def __call__(self, new_value):
+            self.items.append(new_value)
+            total = sum(self.items)
+            return total/len(self.items)
+```
+    4. items在这里是一个自由变量 闭包就是引用了自由变量的函数
+    5. 其实闭包就是可以通过配置定制不同的函数，大概就是这个意思吧。
+```python
+    def make_average():
+        items = list()
+        def inner(new_value):
+            items.append(new_value)
+            total = sum(items)
+            return total / len(items)
+        return inner
+```
+    6. 这里的变量不能赋值的原因就是因为是不可变的变量 所以才会报异常。有一个nonlocal可以定义自由变量 就可以解决问题了
+```python
+    def make_average():
+        items_count = 0
+        def inner(new_value):
+            items_count += 1
+        return inner
+```
+```python
+    def make_average():
+        items_count = 0
+        def inner(new_value):
+            nonlocal items_count
+            items_count += 1
+            return items_count
+        return inner
+```
+
+    7，面试题：他让我写一个装饰器，可以捕获所装饰的函数所产生的异常，捕获到异常以后继续执行，如果产生三次异常就终止运行这个函数
 ```python
 
 from functools import wraps
