@@ -261,8 +261,77 @@ def func(*args, **kwargs):
     1. __new__是一个静态方法，也就是说和普通的方法其实没有什么区别，但是__init__是一个实例方法
     2. __new__会返回一个已经创建了的实例，但是__init__什么都不会返回
     3. 只有当__new__返回一个cls实例以后，才会调用__init__
-    4. __metaclass__是在创建类的时候起作用，和__new__还有__init__是对创建实例起作用的
+    4. __new__静态方法的第一个参数是要实例化的类
+    5. __metaclass__是在创建类的时候起作用，和__new__还有__init__是对创建实例起作用的
 
 -------------------------
 ### 14. 单例模式
-    1. pass
+```python 
+class BaseClass(object):
+    def add(self, x):
+        return x + 1
+class SubClass(object):
+    def add(self, x):
+        x = super().add(x)
+        return x + 1
+obj = SubClass()
+obj.add(1)               # 在调用的时候回先进入SubClass的add，然后进入BaseClass的add
+```
+    1. 使用__new__方法
+```python 
+class Singleton(object):
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, '_isinstance'):
+            print('还没有创建实例')
+            cls._instance = super().__new__(cls, *args, **kwargs)
+        return cls._instance
+obj = Singleton()
+obj1 = Singleton()
+print(id(obj), id(obj))
+```
+    1.1 这样写 是线程不安全的 所以改进版就是加上双重锁
+    1.1.2 其实 不用加上双重锁也是可以的 只要保证两个线程不会同时进入__new__里面就可以了，但是这样所有实例的时候都需要锁才能进入__new__了
+    所以说，这样的话对于多线程来说，效率太低了。因此使用双重锁，先用if判断一下，如果已经有实例的话，就不用进入同步的状态了。
+```python 
+import threading
+class Singleton:
+    lock = threading.Lock
+    def __new__(cls, *args, **kwargs):
+        if not hasattr(cls, '_instance'):
+            print('还没有创建实例')
+            with cls.Lock:
+                if not hasattr(cls, *args, **kwargs):
+                    cls._instance = object.__new__(cls, *args, **kwargs)
+        return cls._instance
+```
+
+    2. 共享属性，就是在创建实例的时候，将所有的实例的__dict__都指向同一个dict，让他们共享属性
+```python
+class Singleton(object):
+    _state = {}
+    def __new__(cls, *args, **kwargs):
+        obj = super().__new__(cls, *args, **kwargs)
+        obj.__dict__ = cls._state
+        return obj
+```
+    2.1 但是我并不认为这个是真正意义上的单例模式，毕竟实际上确实产生了多个对象，只不过__dict__是共享的
+    
+    3. 装饰器形式 装饰类的装饰器; 网上还有人在getinstance里面return instance这个dict，我真的搞不懂他是想干嘛
+```python 
+from functools import wraps
+def singleton(cls):
+    instance = {}
+    @wraps(cls)
+    def getinstance(*args, **kwargs):
+        if cls not in instance:
+            instance[cls] = cls(*args, **kwargs)
+    return getinstance
+```
+
+    4. import 方法 做为python中的天然的单例模式，在第一次import的时候会产生.pyc文件，就会生成一个实例，第二次import的时候，
+    就直接家在.pyc文件，这就是所谓的import中的单例模式了。
+
+-----------------------
+### 15. python中的作用域
+    当python遇到一个变量的话 会按照这样的顺序在在作用域中进行变量的搜索。
+    
