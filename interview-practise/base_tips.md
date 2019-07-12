@@ -162,7 +162,7 @@ while True:
     @record
     def func2():
         print('enter func2')
-``` 
+```
     3. 也就是说，装饰器在import的时候就会被执行了 所以是加载模块的时候就会被执行了
 ```python
     class Average(object):
@@ -293,13 +293,15 @@ print(id(obj), id(obj))
     1.1.2 其实 不用加上双重锁也是可以的 只要保证两个线程不会同时进入__new__里面就可以了，但是这样所有实例的时候都需要锁才能进入__new__了
     所以说，这样的话对于多线程来说，效率太低了。因此使用双重锁，先用if判断一下，如果已经有实例的话，就不用进入同步的状态了。
 ```python 
+# 要注意写法 Singleton.lock.acquire() 
+# 用完的时候还要释放锁 Singleton.lock.release()
 import threading
 class Singleton:
-    lock = threading.Lock
+    lock = threading.Lock()
     def __new__(cls, *args, **kwargs):
         if not hasattr(cls, '_instance'):
             print('还没有创建实例')
-            with cls.Lock:
+            with cls.lock:
                 if not hasattr(cls, *args, **kwargs):
                     cls._instance = object.__new__(cls, *args, **kwargs)
         return cls._instance
@@ -334,4 +336,16 @@ def singleton(cls):
 -----------------------
 ### 15. python中的作用域
     当python遇到一个变量的话 会按照这样的顺序在在作用域中进行变量的搜索。
+    1. 本地作用域
+    2. 当前作用域被嵌入的本地作用域
+    3. 全局、模块作用域
+    4. 内置作用域
+    
+    Local: 在def创建的语句块中，每当函数被调用的时候都会创建一个新的局部作用域，在函数内部的变量声明，除非特别声明，都默认为是局部变量。如果需要对全局变量进行赋值，就需要使用global进行声明。
+    
+    Enclosing: E也是包含在L中的，表示的是在L的上一层函数中的局部变量域，主要是为了实现python的闭包
+    
+    Global: 在模块层次中定义的变量，每个模块都是一个全局作用域，仅存在于单个的模块文件当中
+    
+    Buildin: 系统内固定模块里定义的变量
     
