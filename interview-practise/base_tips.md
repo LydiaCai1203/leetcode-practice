@@ -1,4 +1,4 @@
-## REVIEW OF PYTHON
+## REVIEW OF PYTHON（阿菜2019年自制面经）
 
 ------------
 ### 1. 在Python中，string、tuiple、number都是不可更改的对象。list和dict和set都是可更改的对象。
@@ -374,7 +374,7 @@ def singleton(cls):
     3. 线程是共享进程中的数据的，使用相同的地址空间，因此CPU切换一个线程的花费远远比进程要小的多。同时创建一个线程的开销比创建一个进程的开销也要小的多。
     4. 线程之间的通信也非常方便，同一个进程下的线程共享全局变量，静态变量等数据。但是进程间的通信需要通过IPC的方式进行。
     5. 多进程程序会更加健壮，多线程程序只要有一个线程死掉了，整个进程也就死掉了，但是一个进程死掉了不会对其它的进程造成影响，因为进程有自己独立的地址空间。
-
+    
     这样的回答我还是觉得很不好 所以还是要回去复习os才行
 
 ----------------------------
@@ -438,3 +438,335 @@ print(a)
 
 -------------------------------
 ### 23. python里的垃圾回收机制
+Python GC主要使用的是引用计数机制来跟踪和回收垃圾，在引用计数的基础上采用”标记-清除“的方式来解决容器对象可能产生的循环引用的问题，通过“分代回收”以空间换时间的方式提高垃圾回收效率。
+#### 23.1 引用计数机制
+    PyObject是每个对象必有的内容，其中ob_refcnt就是做为引用计数。当一个对象有新的引用时，它的ob_refcnt就会增加，当引用它的对象被删除，它的ob_refcnt就会减少.引用计数为0时，该对象生命就结束了。
+    
+    缺点：
+    1. 循环引用计数浪费资源
+    2. 循环引用
+```python
+a = [1, 2]
+b = [3, 4]
+a.append(b)
+b.append(a)
+
+del a
+del b
+```
+    # a所指向的对象 与 b所指向的对象 引用计数都为2，del a 与 del b 以后，两个对象的引用计数还是1，就相当于永远不会被释放删除。
+
+#### 23.2 标记-清除
+    基本思路是先按需分配，等到没有空闲内存的时候从寄存器和程序栈上的引用出发，遍历以对象为节点、以引用为边构成的图，把所有可以访问到的对象打上标记，然后清扫一遍内存空间，把所有没标记的对象释放。
+#### 23.3 分代计数
+    将系统中的所有内存块根据存活时间划分为不同的集合，每个集合就会成为一个“代”。垃圾回收的频率随着“代”存活时间的增大而减小，存活时间通常通过几次垃圾回收来进行衡量。Python默认定义了三代对象集合，索引数越大，对象存活时间越长。
+    
+    例： 
+        当某些内存块M经过了3次垃圾收集的清洗之后还存活时，我们就将内存块M划到一个集合A中去，而新分配的内存都划分到集合B中去。
+        当垃圾收集开始工作时，大多数情况都只对集合B进行垃圾回收，而对集合A进行垃圾回收要隔相当长一段时间后才进行，这就使得垃圾收集机制需要处理的内存少了，效率自然就提高了。
+        在这个过程中，集合B中的某些内存块由于存活时间长而会被转移到集合A中，当然，集合A中实际上也存在一些垃圾，这些垃圾的回收会因为这种分代的机制而被延迟。
+
+------------------------------------
+### 24. python里面如何实现tuple和list的转换
+```python
+a = [1, 2, 3]
+b = tuple(a)
+```
+
+------------------------------------
+### 25. python里面的is和==
+    is比的是地址，==比的是值
+
+------------------------------------
+### 26. read、readline、readlines
+    1. read读取的是整个文件，返回结果是str
+    2. readline使用的是生成器，但是返回结果是str
+    3. 读取整个文件到一个迭代器中供我们访问，返回结果是一个str
+
+------------------------------------
+### 27. 关于os的几个常用的函数
+    1. os.listdir(./)   # 可以列出当前目录下的所有的文件
+    2. os.path.join()   # 函数用于路径拼接文件路径 会从第一个/开始的path开始拼接 之前的全部丢弃
+    3. os.path.isdir()  # 判断某个路径是不是指向的是一个目录
+
+------------------------------------
+### 28. 阅读下面的代码 说出下面各变量的值
+```python
+A0 = dict(zip(('a','b','c','d','e'),(1,2,3,4,5)))
+A1 = range(10)
+A2 = [i for i in A1 if i in A0]
+A3 = [A0[s] for s in A0]
+A4 = [i for i in A1 if i in A3]
+A5 = {i:i**i for i in A1}
+A6 = [[i,i**i] for i in A1]
+
+A0 = {'a': 1, 'b': 2, 'c': 3, 'd': 4, 'e': 5}
+A2 = []
+A3 = [1, 2, 3, 4, 5]
+A4 = [1, 2, 3, 4, 5]
+A5 = {0:0, 1:1, 2:4, 3:9, 4:16, 5:25, 6:36, 7:49, 8:64, 9:81}
+A6 = [[0, 0], [1, 1], [2, 4], [3, 9], ...]    # 别忘记写0
+```
+
+------------------------------------
+### 29. 下面的代码会输出什么
+```python
+def f(x,l=[]):
+    for i in range(x):
+        l.append(i*i)
+        print(l)
+f(2)
+f(3,[3, 2, 1])
+f(3)
+```
+    1. f(2) 和 f(3, [3, 2, 1]) 的输出都不会写错，但是f(3)的输出就要注意了；
+    2. 只要在for前面打印出l的地址 就一目了然了；因为当形参的默认参数是可变对象的时候，只会在定义的时候分配一次内存。之后不管使用几次这个函数，默认值都是一开始定义函数的时候产生的对象。
+    3. 所以说f(2)的时候 这个默认值已经变掉了，之后f(3)的时候就会出问题啦！！！！！
+
+-------------------------------------
+### 30. 猴子补丁指的是什么？这种做法好吗？
+    1. 猴子补丁这种东西充分利用了动态语言的灵活性，可以对现有的语言Api进行追加，替换，修改Bug，甚至性能优化等等。
+```python
+ import datetime
+ datetime.datetime.now = lambda: datetime.datetime(2012, 12, 12) 
+```
+    2. 这种做法并不是很好 因为函数在代码库中的行为最好保持一致（这个回答简直垃圾，讲的不清不楚的，我要是面试官我都不要你）
+
+--------------------------------------
+### 31. 阅读下面的代码 说出输出结果
+```python
+class A(object):
+    def go(self):
+        print("go A go!")
+
+    def stop(self):
+        print("stop A stop!")
+
+    def pause(self):
+        raise Exception("Not Implemented")
+
+class B(A):
+    def go(self):
+        super(B, self).go()
+        print("go B go!")
+
+class C(A):
+    def go(self):
+        super(C, self).go()
+        print("go C go!")
+
+    def stop(self):
+        super(C, self).stop()
+        print("stop C stop!")
+
+class D(B,C):
+    def go(self):
+        super(D, self).go()
+        print("go D go!")
+
+    def stop(self):
+        super(D, self).stop()
+        print("stop D stop!")
+
+    def pause(self):
+        print("wait D wait!")
+
+class E(B,C): pass
+
+a = A()
+b = B()
+c = C()
+d = D()
+e = E()
+```
+    1. d.go() 这里是先调用的C再调用的B,和继承的先后顺序也是有关系的
+```python
+# output
+go A go!
+go C go!
+go B go!
+go D go!
+```
+    2. 感觉例子不是很好 但是让我想到了C++里面构造函数和析构函数的调用顺序，我觉得应该按照那样举例子比较好.
+
+------------------------------
+### 32. 阅读下面的代码 说出输出结果是什么
+```python
+class Node(object):
+    def __init__(self,sName):
+        self._lChildren = []
+        self.sName = sName
+    def __repr__(self):
+        return "<Node '{}'>".format(self.sName)
+    def append(self,*args,**kwargs):
+        self._lChildren.append(*args,**kwargs)
+    def print_all_1(self):
+        print(self)
+        for oChild in self._lChildren:
+            oChild.print_all_1()
+    def print_all_2(self):
+        def gen(o):
+            lAll = [o,]
+            while lAll:
+                oNext = lAll.pop(0)
+                lAll.extend(oNext._lChildren)
+                yield oNext
+        for oNode in gen(self):
+            print(oNode)
+
+oRoot = Node("root")
+oChild1 = Node("child1")
+oChild2 = Node("child2")
+oChild3 = Node("child3")
+oChild4 = Node("child4")
+oChild5 = Node("child5")
+oChild6 = Node("child6")
+oChild7 = Node("child7")
+oChild8 = Node("child8")
+oChild9 = Node("child9")
+oChild10 = Node("child10")
+
+oRoot.append(oChild1)
+oRoot.append(oChild2)
+oRoot.append(oChild3)
+oChild1.append(oChild4)
+oChild1.append(oChild5)
+oChild2.append(oChild6)
+oChild4.append(oChild7)
+oChild3.append(oChild8)
+oChild3.append(oChild9)
+oChild6.append(oChild10)
+
+# 说明下面代码的输出结果
+
+oRoot.print_all_1()
+oRoot.print_all_2()
+```
+
+```python
+oRoot.print_all_1()会打印下面的结果：
+<Node 'root'>
+<Node 'child1'>
+<Node 'child4'>
+<Node 'child7'>
+<Node 'child5'>
+<Node 'child2'>
+<Node 'child6'>
+<Node 'child10'>
+<Node 'child3'>
+<Node 'child8'>
+<Node 'child9'>
+
+oRoot.print_all_2()会打印下面的结果：
+<Node 'root'>
+<Node 'child1'>
+<Node 'child2'>
+<Node 'child3'>
+<Node 'child4'>
+<Node 'child5'>
+<Node 'child6'>
+<Node 'child8'>
+<Node 'child9'>
+<Node 'child7'>
+<Node 'child10'>
+# 一个是深度优先遍历，一个是广度优先遍历
+```
+
+----------------------------------
+### 33. 介绍一下except的用法和作用
+```python 
+try:
+    print('enter try')
+    raise Exception
+except Exception as e:
+    print('enter in except')
+else:
+    print('enter else')
+finally:
+    print('enter finally')
+```
+    1. 上面代码的输出结果
+```python
+enter try
+enter in except
+enter finally
+```
+    2. 注释掉raise这一行以后的输出结果
+```python
+enter try
+enter else
+enter finally
+```
+
+----------------------------------
+### 34. python中的pass语句有什么用处
+    pass语句并不会执行任何操作，一般用作占位程序使用
+
+----------------------------------
+### 35. python里面的match和searc有什么区别
+    match（）函数只检测RE是不是在string的开始位置匹配， search()会扫描整个string查找匹配, 也就是说match（）只有在0位置匹配成功的话才有返回，如果不是开始位置匹配成功的话，match()就返回none
+
+----------------------------------
+### 36. 用Python匹配HTML tag的时候，<.*>和<.*?>有什么区别？
+    第一种写法是，尽可能多的匹配，就是匹配到的字符串尽量长，第二中写法是尽可能少的匹配，就是匹配到的字符串尽量短。
+    比如<tag>tag>tag>end，第一个会匹配<tag>tag>tag>,第二个会匹配<tag>,如果要匹配到二个 >，就只能自己写了。
+    1. .*  连在一起就意味着任意数量的不包含换行的字符
+    2. .*? 匹配任意数量的重复，但是在能使整个匹配成功的前提下使用最少的重复
+
+----------------------------------
+### 37. Python里面如何生成随机数
+    1. 使用random模块，random.randint(start, end, step) 生成随机整数，左闭右开
+    2. random.random(), 会返回0-1之间的浮点数
+    3. random.uniform(start, end), 会返回某个区间的浮点数
+
+----------------------------------
+### 38. 如果想在一个函数里面声明全局变量的话 声明的时候使用global就可以
+
+----------------------------------
+### 39. 单引号，双引号，三引号的区别
+    1. 如果要换行的话 单引号和双引号都需要使用\n换行，但是三引号就可以直接换行
+    2. 如果想在单引号里面使用单引号 需要使用转义字符 'Let\'s go'
+    3. 单引号里面可以使用双引号 单引号和双引号其实是等价的
+
+----------------------------------
+### 40. 将下面的函数按照执行效率高低排序
+```python
+[random.random() for i in range(100000)]
+def f1(lIn):
+    l1 = sorted(lIn)
+    l2 = [i for i in l1 if i<0.5]
+    return [i*i for i in l2]
+
+def f2(lIn):
+    l1 = [i for i in lIn if i<0.5]
+    l2 = sorted(l1)
+    return [i*i for i in l2]
+
+def f3(lIn):
+    l1 = [i*i for i in lIn]
+    l2 = sorted(l1)
+    return [i for i in l1 if i<(0.5)]
+
+f2 > f1 > f3
+```
+    1. python里有一个包帮助分析代码的性能
+```python
+import cProfile
+lIn = [random.random() for i in range(100000)]
+cProfile.run('f1(lIn)')
+cProfile.run('f2(lIn)')
+cProfile.run('f3(lIn)')
+```
+    2. 如果列表较小的话，很明显是先进行排序更快，因此如果你可以在排序前先进行筛选，那通常都是比较好的做法。
+
+-------------------------------------
+### 41. 如何使用python来查询和替换一个字符串
+    1. re.sub(pattern, repl, string, count)
+    2. 其中第二个参数是替换后的字符串
+    3. count不给的话，默认是0，代表每个匹配到的都会替换字符
+
+-------------------------------------
+### 42. range and xrange
+    1. xrange在循环的时候内存性能要比range更加好
+    2. 在python2中，range会在内存中生成一个list, 但是xrange不是，是惰性加载的，循环到的时候才生成。
+
