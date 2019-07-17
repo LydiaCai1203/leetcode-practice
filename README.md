@@ -1,5 +1,22 @@
 # leetcode-practice
 
-### plan
-    1. 我打算在上海最后待一年半 或者两年 在我有两年半的工作经验的时候我的简历就会好看一点
-    2. 复习的时候还是不断想起以前的事情 真的很烦
+### 阿菜的学习笔记 
+##### 这绝对是一份好看的 而且 用心的 学习笔记了
+
+--------------------
+#### 1. [MySQL复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/MySQL%20%E8%A6%81%E7%82%B9.md)
+#### 2. [赶集网36条军规](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/36%E6%9D%A1%E5%86%9B%E8%A7%84.txt)
+
+--------------------
+#### 1. [python基础面试题及答案整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/python_base_tips.md)
+#### 2. [fluent-py的学习之旅 之 正确重载运算符](https://github.com/LydiaCai1203/leetcode-practice/blob/master/flu-py/chapter13/operator_override.md)
+#### 3. [fluent-py的学习之旅 之 可迭代对象、迭代器、生成器](https://github.com/LydiaCai1203/leetcode-practice/blob/master/flu-py/chapter14/iterable_obj.md)
+#### 4. [fluent-py的学习之旅 之 上下文管理器](https://github.com/LydiaCai1203/leetcode-practice/blob/master/flu-py/chapter15/context_manager.md)
+#### 5. [fluent-py的学习之旅 之 协程](https://github.com/LydiaCai1203/leetcode-practice/blob/master/flu-py/chapter16/coroutines.md)
+
+--------------------
+#### 待完成的学习笔记：
+    首先最重要的就是整理一下现在猫头鹰的表结构
+    1. django的复习
+    2. 基础的后端知识复习
+    3. 操作系统的复习
