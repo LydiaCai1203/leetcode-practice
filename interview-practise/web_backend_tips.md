@@ -2,6 +2,8 @@
 
 ------------------
 ### 1. 说一下GET请求和POST请求之间的区别
+    [get和post其实没有区别](https://mp.weixin.qq.com/s?__biz=MzI3NzIzMzg3Mw==&mid=100000054&idx=1&sn=71f6c214f3833d9ca20b9f7dcd9d33e4#rd)
+    
     1. GET请求一般都把请求参数放在url里面，POST请求一般都把请求参数放在请求体里面。
     2. 首先GET和POST实际上都是TCP连接，两者能做的事情都是一样的。实际上GET请求也是可以带有请求体的，而POST请求也是可以把请求参数放在url里面进行传输的。只不过是http协议规定了GET和POST的传输方式。
     3. 由于GET请求是把参数放在请求url里面的，浏览器处理url的长度肯定是有限制的，一般只处理2k长度的url.
