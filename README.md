@@ -24,8 +24,3 @@
 -------------------
 #### 1. [根据个人的简历所进行的一些面试基础整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/resume_tips.md)
 
-
-#### 待完成的学习笔记：
-    1. django的复习
-    2. 基础的后端知识复习
-    3. 操作系统的复习
