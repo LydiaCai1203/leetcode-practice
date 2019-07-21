@@ -8,7 +8,7 @@
 
 ------------------
 ### 2. 说一下cookies和session的区别
-    pass
+    [一篇博文](https://cloud.tencent.com/developer/article/1156268)
 
 ------------------
 ### 3. 你有修改过cookies里面的东西吗
