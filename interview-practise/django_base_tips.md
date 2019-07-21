@@ -20,4 +20,27 @@
 
 -------------
 ### 3. 当发一个请求给Django的时候，Django内部的一个执行流程是什么样子的
-    1. 
+    pass
+
+-------------
+### 4. 说一下发送请求，从服务器本地网卡开始，到Django的一个整体的执行流程是什么样子的
+    pass
+
+-------------
+### 5. 给你一个Model Class，然后把在MySQL中的表结构反推出来
+    pass
+
+-------------
+### 6. 直接用Django的ORM写查询语句
+    pass
+
+-------------
+### 7. 说一下Django的ORM中的class里面metaclass的用处，还有一个什么abstract=True是什么意思
+```python
+class User(object):
+    pass
+
+class Student(User)：
+    pass
+# 这里面的继承我都还没有用到过找时间看
+```

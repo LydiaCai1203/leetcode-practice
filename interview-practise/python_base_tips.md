@@ -143,7 +143,7 @@ while True:
     1. *args 必须在 **kwargs前面
 
 ------------------------
-### 9. 面向切面编程AOP和装饰器
+### 9. 面向切面编程AOP和装饰器(非常极其重要，必须理解透彻)
     1. 能把装饰的函数替换成其它的函数
     2. 能在加载模块的时候就立即执行
 ```python
@@ -237,7 +237,21 @@ def func(*args, **kwargs):
         2. nonlocal； 这道题如果times是一个可变的对象，就不需要nonlocal加持了 
         3. 必包和自由变量 
         4. 在装饰器内调用被装饰的函数
-
+      * 5. 在装饰器里面 调用 所装饰的函数；直接使用func(*args, **kwargs)
+    
+    8. 写一个可以记录执行时间的装饰器，装饰器几乎是面试的必考题
+```python
+import time
+from functools import wraps
+def record_runtime(func):
+    @wraps(func)
+    def inner(*args, **kwargs):
+        from_time = time.time()
+        func(*args, **kwargs)
+        print(time.time() - from_time)
+        return func(*args, **kwargs)
+    return inner
+```
 ------------------------
 ### 10. 鸭子类型
     1. python中的鸭子类型的意思就是，不管它是什么，只要这个东西看上去像鸭子，走起来也像鸭子，就认为这个东西是个鸭子。
@@ -351,7 +365,7 @@ def singleton(cls):
 
 -------------------------
 ### 16. GIL全局锁（全局解释器锁）
-    就是每个线程若是想要执行的话 就要拿到这个GIL, 也就是说一个cpu同时只能有一个线程在执行，所以说python里面的多线程是假的。
+    就是每个线程若是想要执行的话 就要拿到这个GIL, 也就是说一个cpu同时只能有一个线程在执行，所以说python里面的多线程是假的，意思就是因为只有一个GIL。
     
     1. py2的逻辑当中，GIL的释放逻辑就是，当前线程遇到IO操作的时候，或者说ticks的数目达到100的时候，就进行释放。这个东西每次释放以后就会归零。
     
@@ -770,3 +784,27 @@ cProfile.run('f3(lIn)')
     1. xrange在循环的时候内存性能要比range更加好
     2. 在python2中，range会在内存中生成一个list, 但是xrange不是，是惰性加载的，循环到的时候才生成。
 
+-------------------------------------
+### 43. python里的类成员
+    这道题，ztz还在cls的时候，考过我。这一次笔试的时候也还是做到了这道题，其实现在想想，他当初确定要走以后，是想过要在最后的时间里面教我一点东西的。其实这道应该和Python函数里面的default arguments放在一起。
+```python
+class Myclass(object):
+    name = []
+    def func_1():
+        pass
+obj1 = MyClass()
+obj2 = MyClass()
+obj1.name.append('caiqj')
+obj2.name.append('jx')
+print(obj1.name)
+```
+    知识点：
+        1. class的类变量就是独独一份儿的。如果是不可变的对象，就是每个实例都有一份，如果是可变的对象，就要注意了，这里也有一个大坑在的。
+
+--------------------------------------
+### 44. 你知道python2和python3有哪些区别吗
+    1. print
+    2. 新式类和旧式类(这个我已经记得不清楚了，所以我当时就说我没有进一步去了解过)
+    3. 再查 但是我觉得这种问题不知道其实应该也没有什么问题
+
+--------------------------------------
