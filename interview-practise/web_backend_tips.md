@@ -3,6 +3,7 @@
 ------------------
 ### 1. 说一下GET请求和POST请求之间的区别
 [Yahoo 网站性能优化,但是有人说这个get代替post优化网站性能是有问题的，还没有进行考证](https://segmentfault.com/a/1190000000353790)
+
 [与Yahoo结论相悖的一篇博文](https://mp.weixin.qq.com/s?__biz=MzI3NzIzMzg3Mw==&mid=100000054&idx=1&sn=71f6c214f3833d9ca20b9f7dcd9d33e4#rd)
 
     1. GET请求一般都把请求参数放在url里面，POST请求一般都把请求参数放在请求体里面。但是也并不是说GET请求不能有请求体，POST请求不能把参数放在URL里面。
@@ -22,6 +23,7 @@
 ### 2. 说一下浏览器的缓存机制(HTTP缓存机制)
 
 [腾讯前端工程师讲解浏览器缓存，条理清晰，建议阅读](https://juejin.im/entry/5ad86c16f265da505a77dca4)
+
 [理解expires和Cache-Control这里看](https://segmentfault.com/a/1190000016199807)
 
 ##### 浏览器的缓存机制实际上是根据HTTP报文的缓存标识进行的
@@ -58,6 +60,7 @@
     4. 结论2: 查询字符串的编码，用的是操作系统的默认编码
     5. 结论3: GET和POST方法的编码，用的是网页的编码。
 [一个台湾老教授的博客](http://xml-nchu.blogspot.com/search/label/%E5%BF%83%E5%BE%97)
+
 [阮一峰大神的解释](http://www.ruanyifeng.com/blog/2010/02/url_encoding.html)
 ##### 老实说我也不知道这个规则现在还适用不适用了，先放在这里吧，有时间做实验。
 
