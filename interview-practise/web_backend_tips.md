@@ -103,10 +103,11 @@
 ```python
     Set-Cookie:name=Nicholas;path=/blog
 ```
-    4. secure: 
+    4. secure: 只是一个标记，没有值。只有当一个请求是通过SSL和HTTPS创建时，包含secure选项的cookies才能被发送至服务器。
 ```python
     Set-Cookie: name=Nicholas; secure
 ```
+**cookie的整个机制本来就是不安全的，所以机密和敏感的信息不应该在cookie中传输或者是传送。在HTTPS连接上传输的cookie都会被自动加上secure选项**
 
 ------------------
 ### 7. 说一下通常的网络模型有几层，以及各层的意思和协议
