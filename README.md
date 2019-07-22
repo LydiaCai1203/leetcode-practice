@@ -16,7 +16,7 @@
 
 --------------------
 #### 1. [Django基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/django_base_tips.md)
-#### 2. [后端基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/django_base_tips.md)
+#### 2. [后端基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/web_backend_tips.md)
 
 --------------------
 #### 1. [数据结构基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/datastructure_base_tips.md)
