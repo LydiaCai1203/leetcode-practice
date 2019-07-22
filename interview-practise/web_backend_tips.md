@@ -47,6 +47,7 @@
 
 #### 内存缓存和硬盘缓存
     1. 内存缓存：将编译解析以后的文件直接存在该进程的内存文件中，占据该进程一定的内存资源，方便下次运行使用时进行快速地读取。
+
     2. 硬盘缓存：直接将缓存写入硬盘文件中。
     在浏览器中，js和图片等文件解析执行以后直放在内存缓存当中，css文件则会直接存在硬盘缓存中，每次渲染页面都需要从硬盘获取缓存。
      
@@ -63,19 +64,49 @@
 
 ------------------
 ### 4. 说一下cookies和session的区别
+[新浪前端技术专家写的cookie到底是什么](http://tech.sina.com.cn/i/csj/2013-03-18/19428157177.shtml)
+
+    1. Session是放在服务器端的，当浏览器第一次发送请求的时候，服务器会自动生成一个Session和SessionID用来唯一标识这个Session。并将其通过响应发回到浏览器。当浏览器发送第二次请求，会将前一次服务器响应中的SessionID放在请求中一起发到服务器上面。服务器会将headers里的SessionID拿出来，和保存的SessionID进行对比，然后找到这个用户对应的Session。服务器默认保存这个Session的时间是30min。
+
+##### Session的客户端实现形式(SessionID的保存方法)
+    1. 使用Cookie来保存，服务器通过设置Cookie的方式将SessionID发到客户端上。如果我们不设置过期时间，那么这个Cookie将不会存在硬盘上，浏览器关闭以后这个这个Cookie就消失了。
     
-[一篇博文](https://cloud.tencent.com/developer/article/1156268)
+    2. 使用URL附加信息的方式，就像我们经常看见的JSP网站会有的aaa.jsp?JSESSIONID=*是一样的，这种方式就和第一种方式里面不设置过期时间是一样的。
 
-    1. Session是放在服务器端的，当浏览器第一次发送请求的时候，服务器会自动生成一个Session和SessionID用来唯一标识这个Session。并将其通过响应发回到浏览器。当浏览器发送第二次请求，会将前一次服务器响应中的SessionID放在请求中一起发到服务器上面。服务器会将headers里的SessionID拿出来，和保存的SessionID进行对比，然后找到这个用户对应的Session。
+    3. 在页面表单里面增加隐藏域，后者通过POST方式发送数据。
 
-    2. 
-
-------------------
-### 5. 你有修改过cookies里面的东西吗
-    pass
+##### Session和Cookie的区别和联系
+    最大的区别还是一个放在服务器上面，一个放在客户端里。
 
 ------------------
-### 6. 说一下通常的网络模型有几层，以及各层的意思和协议
+### 5. cookie的应用
+    1. cookie里面可能会存放一些用户的基础信息，比如说用户名，这样在切换页面的时候，就能在页面上显示用户的名字。当然还有其他的信息什么的。
+    2. 存放用户浏览的信息，放在cookie里面，给到广告主，帮助广告主精准投放广告。
+
+------------------
+### 6. Response里的headers里的Set-Cookie各个字段的作用
+[详解cookie里面的各个字段的作用](http://bubkoo.com/2014/04/21/http-cookies-explained/)
+
+    1. expires: 指定了浏览器何时删除cookies,如果设置了一个过去的时间，将会马上被删除。
+```python
+    	
+    Set-Cookie: name=Nicholas; expires=Sat, 02 May 2009 23:38:25 GMT
+```
+    2. domain: 指定了cookie将要被发送到哪个/哪些域里面。浏览器会将domain的值去和请求的域名做一个尾部比较。sina可能会有好几个域名，比如说:a.sina.com/b.sina.com, 在cookies里面带上这个字段以后就会匹配到所有的sina.cn的这个字段。所以这就是分布式很多台机器上都可以拿到cookies的原因了。
+```python
+    Set-Cookie: name=Nicholas; domain=nczonline.net
+```
+    3. path: 指定了请求资源的URL里面必须存在指定的路径的时候，才会发送cookies。这个匹配采用的是字符的逐个匹配，所以说下面这个例子也会匹配URL里面有/blogrool的。注意：肯定是先核实的domain。
+```python
+    Set-Cookie:name=Nicholas;path=/blog
+```
+    4. secure: 
+```python
+    Set-Cookie: name=Nicholas; secure
+```
+
+------------------
+### 7. 说一下通常的网络模型有几层，以及各层的意思和协议
     1. OSI七层模型，由下至上有：物理层、数据链路层、网络层、传输层、会话层、表示层、应用层
     2. TCP/IP模型，由下至上有：网络接口层、网络层、传输层、应用层
     3. 教学中的五层模型，由下至上有：物理层、数据链路层、网络层、传输层、应用层
@@ -89,5 +120,5 @@
     7. application layer: 各种应用软件，包括web应用，有：HTTP FTP TELNET。
 
 ------------------
-### 7. 说一下从浏览器输入一个url以后，按下回车以后发生了什么事情
+### 8. 说一下从浏览器输入一个url以后，按下回车以后发生了什么事情
     pass
