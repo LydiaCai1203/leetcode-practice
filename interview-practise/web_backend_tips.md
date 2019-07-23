@@ -99,7 +99,7 @@
 ```python
     Set-Cookie: name=Nicholas; domain=nczonline.net
 ```
-    3. path: 指定了请求资源的URL里面必须存在指定的路径的时候，才会发送cookies。这个匹配采用的是字符的逐个匹配，所以说下面这个例子也会匹配URL里面有/blogrool的。注意：肯定是先核实的domain。
+    3. path: 指定了 请求资源的URL 里面必须存在指定的路径的时候，才会在headers里面发送cookies。这个匹配采用的是字符的逐个匹配，所以说下面这个例子也会匹配URL里面有/blogrool的。注意：肯定是先核实的domain。
 ```python
     Set-Cookie:name=Nicholas;path=/blog
 ```
@@ -110,7 +110,14 @@
 **cookie的整个机制本来就是不安全的，所以机密和敏感的信息不应该在cookie中传输或者是传送。在HTTPS连接上传输的cookie都会被自动加上secure选项**
 
 ------------------
-### 7. 说一下通常的网络模型有几层，以及各层的意思和协议
+### 7. Cookies的覆盖情况
+    1. name:same; expires:diff; domain:same; path:same;     # 覆盖
+    2. name:same; expires:same; domain:same; path:diff;     # 覆盖(如果先/path_1;再/;就不会进行覆盖，但是调换顺序就会覆盖，我也不知道这是为什么。)
+    3. name:diff; expires:same; domain:same; path:same;     # 不覆盖
+    4. 稍微试了一下 也没有把规律试出来 好累啊！！！
+
+------------------
+### 8. 说一下通常的网络模型有几层，以及各层的意思和协议
     1. OSI七层模型，由下至上有：物理层、数据链路层、网络层、传输层、会话层、表示层、应用层
     2. TCP/IP模型，由下至上有：网络接口层、网络层、传输层、应用层
     3. 教学中的五层模型，由下至上有：物理层、数据链路层、网络层、传输层、应用层
@@ -124,5 +131,22 @@
     7. application layer: 各种应用软件，包括web应用，有：HTTP FTP TELNET。
 
 ------------------
-### 8. 说一下从浏览器输入一个url以后，按下回车以后发生了什么事情
-    pass
+### 9. 在浏览器地址栏输入一个URL后回车，背后会进行哪些技术步骤？
+[我靠，竟然找到一个大神的回答，再次感慨，google是真的好用啊！！！！](https://github.com/skyline75489/what-happens-when-zh_CN)
+    
+    1. 浏览器会判断输入的是URL还是关键字，当协议或者主机名不合法的时候，就会当成关键字传给默认的搜索引擎。
+
+    2. 转换非ASCII码的Unicode字符，进行编码（URLEncode）
+    
+    3. 浏览器会检查自带的HSTS(HTTP Strict Transport Protocal)，这个东西里面存的是那些只允许浏览器使用HTTPS协议的网站。即使有些网站不在HSTS中，浏览器第一次发出的请求也是使用的HTTP,网站返回浏览器只能使用HTTPS的请求。
+    
+    4. DNS查询；
+        1. 首先检查域名是否在Chrome的缓存中
+        2. 缓存中没有的话就先去找是不是在自己本地的hosts文件里面
+        3. 如果hosts文件里面没有，就会向DNS服务器发送一条请求进行查询
+            a. 查询本地DNS服务器
+            b. 如果DNS服务器和我们的本机在同一个子网下面，系统会DNS服务器进行ARP查询
+            c. 如果DNS服务器和我们的本机不在同一个子网下，系统会按照一下的ARP过程对默认网关进行查询
+        4. ARP(Address Realize Protocal)过程 这个过程有点复杂了，待我整理一下。
+
+-------------------------
