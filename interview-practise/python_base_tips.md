@@ -803,6 +803,38 @@ print(obj1.name)
 
 --------------------------------------
 ### 44. 你知道python2和python3有哪些区别吗
-    1. print
-    2. 新式类和旧式类(这个我已经记得不清楚了，所以我当时就说我没有进一步去了解过)
-    3. 再查 但是我觉得这种问题不知道其实应该也没有什么问题
+#### 新式类和旧式类
+    Python会计算出一个解析顺序列表，可以使用ClassName.__mro__进行查看；为了实现继承，Python会从左到右开始查找基类。当你使用super()的时候，Python会在mro列表上继续搜索下一个类，只要每个重定义的方法都使用过一次super()，mro列表里面的类就会被遍历一遍。
+#### 所以什么是C3算法
+```python
+class A(object): pass
+class B(object): pass
+class C(object): pass
+
+class E(A, B): pass
+class F(B, C): pass
+class G(E, F): pass
+```
+##### className.__mro__ 就可以查看解析类的顺序
+```python
+# 精髓：所有的[]中，某个在列表中排在第一的，在其他列表中也排在第一的，就merge进来
+mro(A) = [A, O]
+mro(B) = [B, O]
+mro(C) = [C, O]
+
+mro(E) = [E] + merge(mro(A), mro(B), [A, B])
+       = [E] + merge([A, O], [B, O], [A, B])
+       = [E, A] + merge([O], [B, O], [B])
+       = [E, A, B] + merge([O], [O])
+       = [E, A, B, O]
+
+mro(F) = [F] + merge(mro(B), mro(C), [B, C])
+       = [F] + merge([B, O], [C, O], [B, C])
+       = [F, B] + merge([O], [C, O], [C])
+       = [F, B, C] + merge([O], [O])
+       = [F, B, C, O]
+
+mro(G) = [G] + merge(mro(E), mro(F), [E, F])
+       = [G] + merge([E, A, B, O], [F, B, C, O], [E, F])
+       = [G, E, A, F, B, C, O]
+```
