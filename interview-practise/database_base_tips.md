@@ -71,15 +71,27 @@
 -----------------
 ### 10. 能说一下为什么B+树这样的数据结构可以拿来作为索引呢
 [平衡树](https://github.com/AaronXYZ/PersonalBlog/issues/20)
-#### 旋转
-    1. 右旋转 insert以后导致左子树不平衡时进行右旋转
-[*](https://github.com/AaronXYZ/PersonalBlog/issues/20)
-    
-    2. 左旋转
+
+[平衡树可视化构建过程](https://www.cs.usfca.edu/~galles/visualization/AVLtree.html)
+
+[B-Tree和B+Tree比较通俗的解释](https://blog.csdn.net/yin767833376/article/details/81511377)
 
 [数据库索引](https://www.kancloud.cn/kancloud/theory-of-mysql-index/41856)
 
-        1. 
+        1. 首先索引里面存的指针存的是数据库里面数据的物理地址 索引里面还有一个索引键值
+        2. 真实世界的索引并没有使用二叉树或者是红黑树的实现 大部分都是B-Tree或者是B+Tree的实现
+#### B-Tree
+    假如有一本英文字典，单词+详细解释组成了一条记录，现在需要索引单词，就会以单词为key, 单词+详细解释为data。B-Tree就是以这样一个二元组{key, data}来定义一条记录的。如果一个节点有三条记录，那么会有对应的四个指针，用以指向下一个结点。B-Tree是有序而且平衡的，所有的叶子节点都在同一层。
+
++ 搜索：首先从跟节点进行查找，找到了就返回对应节点的data。否则对相应区间指向的指针  
+
+#### B+Tree
+    1. B+Tree非叶子节点都只有key,没有data。
+    2. 所有的叶子节点之间都有一个链指针。
+    3. 数据记录都存放在叶子节点中。
+
+#### 
+
 
 ### ★★☆ 手写 SQL 语句，特别是连接查询与分组查询。
 ### ★★☆ 连接查询与子查询的比较。
