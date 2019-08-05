@@ -70,6 +70,13 @@
 
 -----------------
 ### 10. 能说一下为什么B+树这样的数据结构可以拿来作为索引呢
+[平衡树](https://github.com/AaronXYZ/PersonalBlog/issues/20)
+#### 旋转
+    1. 右旋转 insert以后导致左子树不平衡时进行右旋转
+[*](https://github.com/AaronXYZ/PersonalBlog/issues/20)
+    
+    2. 左旋转
+
 [数据库索引](https://www.kancloud.cn/kancloud/theory-of-mysql-index/41856)
 
         1. 
