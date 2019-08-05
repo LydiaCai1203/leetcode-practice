@@ -1,6 +1,7 @@
 ## REVIEW OF DATASTRUCTURE（阿菜2019年自制面经）
 
 ##### 所以数据结构与算法和设计模式有关的面试题我全都放在这里了
+[笨方法学算法](https://python-data-structures-and-algorithms.readthedocs.io/zh/latest/)
 
 ------------------
 ### 1. 几大排序算法
