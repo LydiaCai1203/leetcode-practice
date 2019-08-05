@@ -46,26 +46,22 @@
     8. 如果引发异常 就循环遍历exception_middleware
     9. 遍历response_middleware，对response进行初始化，然后返回response
 
-[流程图]()
+#### 流程详述
+    1. 用户通过浏览器请求一个页面
+    2. 请求到达request middlewares, 中间件会对request做一些预处理
+    3. URLConf通过urls.py文件和请求的URL找到对应的View
+    4. View Middlewares被访问，它同样可以对request做一些处理或者是直接返回response
+    5. 调用Views中的函数
+    6. Views中的方法可以选择性地通过Models访问底层的数据
+    7. 所有的model-to-db都是通过manager完成的
+    8. 如果需要，Views可以使用一个特殊的Context，Context会被传给Templates用来进行生成页面，输出被返回给Views
+    9. HTTPResponse被发送给response middlewares，用以丰富或者将response补充完整
+    10. Response被返回到浏览器，浏览器对页面进行渲染展现给用户
+
 -------------
 ### 4. 说一下发送请求，从服务器本地网卡开始，到Django的一个整体的执行流程是什么样子的
-    pass
+    这道题也考察了tcp协议 需要去复习计算机网络相关的知识点了。 
 
 -------------
-### 5. 给你一个Model Class，然后把在MySQL中的表结构反推出来
-    pass
-
--------------
-### 6. 直接用Django的ORM写查询语句
-    pass
-
--------------
-### 7. 说一下Django的ORM中的class里面metaclass的用处，还有一个什么abstract=True是什么意思
-```python
-class User(object):
-    pass
-
-class Student(User)：
-    pass
-# 这里面的继承我都还没有用到过找时间看
-```
+### 5. 说一下Django的ORM中的class里面metaclass的用处，还有一个什么abstract=True是什么意思
+    这个是知识盲区 我不知道的部分
