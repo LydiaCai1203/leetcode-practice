@@ -1,7 +1,8 @@
 ## 计算机网络基础
 [直接看大神的github](https://github.com/CyC2018/Backend-Interview-Guide/blob/master/doc/%E4%B8%80%E6%96%87%E5%B8%AE%E4%BD%A0%E7%90%86%E6%B8%85%E9%9D%A2%E8%AF%95%E7%9F%A5%E8%AF%86%E7%82%B9.md)
 
-### ★★★ 各层协议的作用，以及 TCP/IP 协议的特点。
+### 1. ★★★ 各层协议的作用，以及 TCP/IP 协议的特点
++ 
 
 ### ★★☆ 以太网的特点，以及帧结构。
 
