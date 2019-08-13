@@ -1,5 +1,12 @@
-# 第二讲：一条SQL更新语句是如何执行的
-
+# 第二讲：一条SQL更新语句是如何执行的 
+- [重要的日志模块](#重要的日志模块-redo-log)  
+- [Preface](#preface)  
+- [Design idea and innovation point](#design-idea-and-innovation-point)  
+  - [Background](#background) 
+  - [Design inspirations](#design-inspirations) 
+  - [Innovation point](#innovation-point)  
+  - [Developmental vision](#developmental-vision)
+-----------------------
 [TOC]
 
     MySQL可以直接恢复到半个月内的任意一秒内的数据；更新流程还涉及到两个重要的日志模块，redo log(重做日志)和bin log(归档日志)。
