@@ -1,11 +1,14 @@
 # 第二讲：一条SQL更新语句是如何执行的 
-- [重要的日志模块](#重要的日志模块-redo-log)  
-- [Preface](#preface)  
-- [Design idea and innovation point](#design-idea-and-innovation-point)  
-  - [Background](#background) 
-  - [Design inspirations](#design-inspirations) 
-  - [Innovation point](#innovation-point)  
-  - [Developmental vision](#developmental-vision)
+- [重要的日志模块 redo log](#重要的日志模块-redo-log)
+    - [WAL(Write-Ahead Logging)](#WAL(Write-Ahead-Logging))
+    - [redo log 结构分析](#redo-log-结构分析)
+        - [write pos](#write-pos)
+        - [checkpoint](#checkpoint)
+- [重要的日志模块 bin log](#重要的日志模块-bin-log)  
+- [redo log和bin log的三点不同](#redo-log和bin-log的三点不同)
+- [一条更新语句在MySQL里面是怎么进行的](#一条更新语句在MySQL里面是怎么进行的)
+- [两阶段提交](#两阶段提交)
+- [小结](#小结)
 -----------------------
 [TOC]
 
