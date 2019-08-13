@@ -13,7 +13,7 @@
 
 + [极客时间-MySQL45讲整理]
     + [第一讲 mysql的逻辑架构](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%B8%80%E6%9D%A1sql%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84.md)
-    + [redo log 和 binlog](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%B8%80%E6%9D%A1sql%E6%9B%B4%E6%96%B0%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84.md#WAL(Write-Ahead-Logging))
+    + [第二讲 redo log 和 binlog](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%B8%80%E6%9D%A1sql%E6%9B%B4%E6%96%B0%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84.md#WAL(Write-Ahead-Logging))
 
 
 ## Python基础
