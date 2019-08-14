@@ -47,17 +47,17 @@
 ```MySQL
 update T set c=c+1 where id=2;
 ```
-    + 1. 执行器会调用存储引擎的接口来检索id=2的行数据
-    + 2. 存储引擎会检索id=2这一行，看是否在内存中，如果在内存中，就直接返回数据页；否则 set data from dist to memory, 然后在返回数据页
-    + 3. 执行器拿到行数据以后，会对其进行c=c+1的操作
-    + 4. 调用存储引擎接口，将更新后的行数据写入内存
-    + *5. 于此同时更新的动作会写入redo log中 然后redo log处于prepare的状态，告诉存储引擎现在可以提交事务
-    + 6. 执行器会生成这个操作的bin log，并把bin log写入磁盘当中
-    + *7. 执行器会调用存储引擎的事务提交接口，引擎则会把刚刚redo log里的状态改成commit, 更新完成
++ 1. 执行器会调用存储引擎的接口来检索id=2的行数据
++ 2. 存储引擎会检索id=2这一行，看是否在内存中，如果在内存中，就直接返回数据页；否则 set data from dist to memory, 然后在返回数据页
++ 3. 执行器拿到行数据以后，会对其进行c=c+1的操作
++ 4. 调用存储引擎接口，将更新后的行数据写入内存
++ *5. 于此同时更新的动作会写入redo log中 然后redo log处于prepare的状态，告诉存储引擎现在可以提交事务
++ 6. 执行器会生成这个操作的bin log，并把bin log写入磁盘当中
++ *7. 执行器会调用存储引擎的事务提交接口，引擎则会把刚刚redo log里的状态改成commit, 更新完成
 
 ## 两阶段提交
     是为了让两个日志之间保持逻辑一致。保持一致的原因是为了当发生crash-safe的时候，保持数据一致。
 ## 小结
-    + innodb_flush_log_at_trx_commit=1的时候，每次事务的redo log都会持久化到磁盘，这样MySQL异常重启以后不会丢失数据。
-    + sync_binlog=1的时候，每次事务的bin log都会持久化到磁盘。
-    + Binlog有两种模式，statement 格式的话是记sql语句， row格式会记录行的内容，记两条，更新前和更新后都有。
++ innodb_flush_log_at_trx_commit=1的时候，每次事务的redo log都会持久化到磁盘，这样MySQL异常重启以后不会丢失数据。
++ sync_binlog=1的时候，每次事务的bin log都会持久化到磁盘。
++ Binlog有两种模式，statement 格式的话是记sql语句， row格式会记录行的内容，记两条，更新前和更新后都有。
