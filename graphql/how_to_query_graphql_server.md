@@ -24,6 +24,7 @@
 }
 ```
 
+-----------------------------
 ### fields refer to Objects
 
 #### query example
@@ -52,6 +53,7 @@
 }
 ```
 
+-----------------------------
 ### pass arguments to fields
 
 **GraqhQL中，每一个field 和 object，都可以接受一个arguments集合**
@@ -77,6 +79,7 @@
 }
 ```
 
+-----------------------------
 ### pass arguments into scalar fields
 
 #### query example
@@ -102,6 +105,7 @@
 }
 ```
 
+-----------------------------
 ### rename the result of a field to anything you want
 + when the two hero fields would have **conflicted**
 #### query example
@@ -129,6 +133,7 @@
 }
 ```
 
+-----------------------------
 ### reusable units（fragments）
 + Fragments let you construct sets of fields, and then include them in queries where you need to
 + fragments is frequently used to split complicated application data requirements into smaller chunks
@@ -200,6 +205,7 @@ fragment comparisonFields on Character {
 }
 ```
 
+-----------------------------
 ### Using variables inside fragments
 
 #### query example
@@ -280,6 +286,7 @@ fragment comparisonFields on Character {
 }
 ```
 
+-----------------------------
 ### operatoration name
 + the keyword query as operation type and HeroNameAndFriends as operation name
 + The operation type **is required** 
@@ -319,6 +326,7 @@ query HeroNameAndFriends {
 }
 ```
 
+-----------------------------
 ### variables 
 + pass these dynamic arguments directly in the query string
 + Replace the static value in the query with $variableName
@@ -363,6 +371,7 @@ query HeroNameAndFriends($episode: Episode) {
 }
 ```
 
+-----------------------------
 ### Variable definitions
 + All declared variables must be either scalars, enums, or input object types
 
@@ -379,6 +388,7 @@ query HeroNameAndFriends($episode: Episode = JEDI) {
 }
 ```
 
+-----------------------------
 ### Directives
 + withFriends can not be none
 + dynamically change the structure and shape of our queries using variables
@@ -434,6 +444,7 @@ query Hero($episode: Episode, $withFriends: Boolean!) {
 }
 ```
 
+-----------------------------
 ### Mutations
 + any operations that cause writes should be sent explicitly via a mutation.
 
@@ -469,6 +480,7 @@ mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
 ##### Multiple fields in mutations
 + While query fields are executed in parallel, mutation fields run in series
 
+-----------------------------
 ### Inline Fragments
 + If you are querying a field that returns an interface or a union type, you will need to use inline fragments to access data on the underlying concrete type
 + the first fragment is labeled as `... on Droid`, the `primaryFunction` field will only be executed if the Character returned from hero is of the Droid type. 
@@ -503,6 +515,7 @@ query HeroForEpisode($ep: Episode!) {
 }
 ```
 
+-----------------------------
 ### Meta fields
 + GraphQL allows you to request __typename, a meta field, at any point in a query to get the name of the object type at that point.
 

@@ -17,6 +17,7 @@ type User{
 }
 ```
 
+-----------------------------
 ### function for each field on each type
 ```python
 function Query_me(request){
@@ -28,6 +29,7 @@ function User_name(user){
 }
 ```
 
+-----------------------------
 ### query example
 ```python
 {
@@ -37,6 +39,7 @@ function User_name(user){
 }
 ```
 
+-----------------------------
 ### query result example
 ```python
 {
