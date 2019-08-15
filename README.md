@@ -33,6 +33,11 @@
 
 + [后端基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/web_backend_tips.md)
 
+## 初识GraphQL
++ [介绍](https://github.com/LydiaCai1203/leetcode-practice/blob/master/graphql/introduction_of_graphql.md)
++ [查询](https://github.com/LydiaCai1203/leetcode-practice/blob/master/graphql/how_to_query_graphql_server.md)
++ [schema and type](https://github.com/LydiaCai1203/leetcode-practice/blob/master/graphql/shemas_and_types.md)
++ [验证](https://github.com/LydiaCai1203/leetcode-practice/blob/master/graphql/validation.md)
 
 ## 数据结构
 + [数据结构基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/datastructure_base_tips.md)
