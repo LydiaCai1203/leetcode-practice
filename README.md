@@ -41,7 +41,7 @@
 
 ## 数据结构
 + [数据结构基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/datastructure_base_tips.md)
-+ [leetcode]()
++ [leetcode](https://github.com/LydiaCai1203/leetcode-practice/tree/master/microsoft_leetcode)
 
 ## 操作系统
 + [操作系统基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/os_base_tips.md)
