@@ -15,8 +15,9 @@
     + [第一讲 mysql的逻辑架构](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%B8%80%E6%9D%A1sql%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84.md)
     + [第二讲 redo log 和 binlog](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%B8%80%E6%9D%A1sql%E6%9B%B4%E6%96%B0%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84.md#WAL(Write-Ahead-Logging))
     + [第三讲 事务隔离级别以及实现](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB.md#%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E5%86%8D%E8%A7%A3%E9%87%8A)
-    + [第四讲 深入浅出索引(上)]()
-    + [第五讲 深入浅出索引(下)]()
+    + [第四讲 深入浅出索引(上)](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95(%E4%B8%8A).md)
+    + [第五讲 深入浅出索引(下)](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95(%E4%B8%8B).md)
+    + [第六讲 全局锁和表锁，给表加个字段为什么这么难]()
 
 ## Python基础
 + [python基础面试题及答案整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/python_base_tips.md)
