@@ -744,3 +744,255 @@ class Solution:
                 isPrimes[i * i: n: i] = [0] * len(isPrimes[i * i: n: i])
         return sum(isPrimes)
 ```
+
+--------------------------
+### 232. 用栈实现队列
+    push(x) -- 将一个元素放入队列的尾部。
+    pop() -- 从队列首部移除元素。
+    peek() -- 返回队列首部的元素。
+    empty() -- 返回队列是否为空。
+
+#### 示例 1:
+```python
+MyQueue queue = new MyQueue();
+queue.push(1);
+queue.push(2);  
+queue.peek();  // 返回 1
+queue.pop();   // 返回 1
+queue.empty(); // 返回 false
+```
+
+#### solution:
+```python
+    class MyQueue:
+
+    def __init__(self):
+        """
+        Initialize your data structure here.
+        """
+        self.l = []
+        
+    def push(self, x: int) -> None:
+        """
+        Push element x to the back of queue.
+        """
+        self.l.append(x)
+        
+    def pop(self) -> int:
+        """
+        Removes the element from in front of queue and returns that element.
+        """
+        return self.l.pop(0)
+        
+    def peek(self) -> int:
+        """
+        Get the front element.
+        """
+        return self.l[0]
+        
+    def empty(self) -> bool:
+        """
+        Returns whether the queue is empty.
+        """
+        return len(self.l)==0
+        
+# Your MyQueue object will be instantiated and called as such:
+# obj = MyQueue()
+# obj.push(x)
+# param_2 = obj.pop()
+# param_3 = obj.peek()
+# param_4 = obj.empty()
+```
+
+--------------------------
+### 237. 删除链表中的节点
+    请编写一个函数，使其可以删除某个链表中给定的（非末尾）节点，你将只被给定要求被删除的节点。
+    现有一个链表 -- head = [4,5,1,9]，它可以表示为:
+    4->5->1->9
+    其实传入的node参数是 链表里面的某个结点，所以可以直接在上面进行操作
+#### 示例 1
+    输入: head = [4,5,1,9], node = 5
+    输出: [4,1,9]
+    解释: 给定你链表中值为 5 的第二个节点，那么在调用了你的函数之后，该链表应变为 4 -> 1 -> 9.
+#### 示例 2
+    输入: head = [4,5,1,9], node = 1
+    输出: [4,5,9]
+    解释: 给定你链表中值为 1 的第三个节点，那么在调用了你的函数之后，该链表应变为 4 -> 5 -> 9.
+#### 说明
+    链表至少包含两个节点。
+    链表中所有节点的值都是唯一的。
+    给定的节点为非末尾节点并且一定是链表中的一个有效节点。
+    不要从你的函数中返回任何结果。
+#### solution：
+```python
+# Definition for singly-linked list.
+# class ListNode:
+#     def __init__(self, x):
+#         self.val = x
+#         self.next = None
+
+class Solution:
+    def deleteNode(self, node):
+        """
+        :type node: ListNode
+        :rtype: void Do not return anything, modify node in-place instead.
+        """
+        node.val = node.next.val
+        node.next = node.next.next
+```
+
+--------------------------
+### 258. 各位相加
+    给定一个非负整数 num，反复将各个位上的数字相加，直到结果为一位数。
+    你可以不使用循环或者递归，且在 O(1) 时间复杂度内解决这个问题吗？
+#### 示例 1
+    输入: 38
+    输出: 2 
+    解释: 各位相加的过程为：3 + 8 = 11, 1 + 1 = 2。 由于 2 是一位数，所以返回 2。
+
+#### solution
+```python
+class Solution:
+    def addDigits(self, num: int) -> int:
+        
+        while num // 10:
+            num = num % 10 + num // 10
+            
+        return num
+```
+
+#### best solution:
++ 1. 比如4399 假设现在有一个字符串'4399' 相当于abcd
++ 2. old_value = 1000 * a + 100 * b + 10 * c + d
++ 3. new_value = a + b + c + d
++ 4. old_value - new_value = 999a + 99b+ 9c = 9(111a+11b+c)
++ 5. 所以说每次都是减去一个9的倍数的值
++ 6. 9*value1 + 9*value2 + ... + nums(<9) = old_value
++ 7. 所以说只有取9的模就是最后的结果了
+
+```python
+class Solution:
+    def addDigits(self, num: int) -> int:
+        return num if num == 0 else num % 9 or 9
+```
+
+--------------------------
+### 270. 最接近的二叉搜索树值(注意是搜索树)
+    给定一个不为空的二叉搜索树和一个目标值 target，请在该二叉搜索树中找到最接近目标值 target 的数值。
+    注意：
+    给定的目标值 target 是一个浮点数
+    题目保证在该二叉搜索树中只会存在一个最接近目标值的数
+#### 示例 1:
+```python
+输入: root = [4,2,5,1,3]，目标值 target = 3.714286
+
+    4
+   / \
+  2   5
+ / \
+1   3
+
+输出: 4
+```
+#### 准备活动：
+```python
+# Definition for a binary tree node.
+class TreeNode:
+    def __init__(self, x):
+        self.val = x
+        self.left = None
+        self.right = None
+
+# 测试数据
+root = TreeNode(4)
+root_left = TreeNode(2)
+root_right = TreeNode(5)
+left_left = TreeNode(1)
+left_right = TreeNode(3)
+root.left = root_left
+root.right = root_right
+root_left.left = left_left
+root_left.right = left_right
+```
+
+#### 前序遍历
+```python
+def preorder(root):
+    if not root:
+        return
+    print(root.val)
+    preorder(root.left)
+    preorder(root.right)
+```
+
+#### 中序遍历
+```python
+def midorder(root):
+    if not root:
+        return
+    midorder(root.left)
+    print(root.val)
+    midorder(root.right)
+```
+
+#### 后序遍历
+```python
+def postorder(root):
+    if not root:
+        return
+    postorder(root.left)
+    postorder(root.right)
+    print(root.val)
+```
+
+#### solution：
+```python
+class Solution:
+    def closestValue(self, root: TreeNode, target: float) -> int:
+        
+        #if (target > root.val and not root.right) or \ 
+        #   (target < root.val and not root.left) or (not root.right and not root.left):
+        #    return root.val
+        values = {}
+    
+        def inner(root, target):
+            if not root:
+                min_key = min(values.keys())
+                return values[min_key]
+    
+            values[abs(target-root.val)] = root.val
+            
+            if target == root.val:
+                return root.val
+            
+            if target > root.val:
+                a = inner(root.right, target)
+                return a
+            if target < root.val:
+                b = inner(root.left, target)
+                return b
+            
+        return inner(root, target)
+```
+
+--------------------------
+### 387. 字符串中的第一个唯一字符
+    给定一个字符串，找到它的第一个不重复的字符，并返回它的索引。如果不存在，则返回 -1。
+#### 示例 1：
+    s = "leetcode"
+    返回 0.
+
+    s = "loveleetcode"
+    返回 2.
+#### solution：
+```python
+    class Solution:
+    def firstUniqChar(self, s: str) -> int:
+        import collections
+        a = collections.Counter(s)    # 这个也要算时间复杂度才对啊
+        for key in a:
+            if a[key] == 1:
+                return s.index(key)
+                break
+        return -1
+```
