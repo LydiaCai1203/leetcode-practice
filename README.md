@@ -17,7 +17,8 @@
     + [第三讲 事务隔离级别以及实现](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%BA%8B%E5%8A%A1%E9%9A%94%E7%A6%BB.md#%E9%9A%94%E7%A6%BB%E7%BA%A7%E5%88%AB%E5%86%8D%E8%A7%A3%E9%87%8A)
     + [第四讲 深入浅出索引(上)](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95(%E4%B8%8A).md)
     + [第五讲 深入浅出索引(下)](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95(%E4%B8%8B).md)
-    + [第六讲 全局锁和表锁，给表加个字段为什么这么难]()
+    + [第六讲 全局锁和表锁，给表加个字段为什么这么难](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E5%85%A8%E5%B1%80%E9%94%81%E5%92%8C%E8%A1%A8%E9%94%81.md)
+    + [第七讲 行锁功过，如何减少行锁对性能的影响]()
 
 ## Python基础
 + [python基础面试题及答案整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/python_base_tips.md)
