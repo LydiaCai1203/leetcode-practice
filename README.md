@@ -18,7 +18,8 @@
     + [第四讲 深入浅出索引(上)](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95(%E4%B8%8A).md)
     + [第五讲 深入浅出索引(下)](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E6%B7%B1%E5%85%A5%E6%B5%85%E5%87%BA%E7%B4%A2%E5%BC%95(%E4%B8%8B).md)
     + [第六讲 全局锁和表锁，给表加个字段为什么这么难](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E5%85%A8%E5%B1%80%E9%94%81%E5%92%8C%E8%A1%A8%E9%94%81.md)
-    + [第七讲 行锁功过，如何减少行锁对性能的影响]()
+    + [第七讲 行锁功过，如何减少行锁对性能的影响](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E8%A1%8C%E9%94%81%E5%8A%9F%E8%BF%87%EF%BC%9A%E5%A6%82%E4%BD%95%E5%87%8F%E5%B0%91%E8%A1%8C%E9%94%81%E5%AF%B9%E6%80%A7%E8%83%BD%E7%9A%84%E5%BD%B1%E5%93%8D%EF%BC%9F.md)
+    + [第八讲 事务到底是隔离的还是不隔离的]() 
 
 ## Python基础
 + [python基础面试题及答案整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/python_base_tips.md)
