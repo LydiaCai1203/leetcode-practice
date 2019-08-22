@@ -1,0 +1,1 @@
+(window["nojMonomainWebpackJsonpproduction"]=window["nojMonomainWebpackJsonpproduction"]||[]).push([[35],{pnSG:function(n,o,t){"use strict";t.d(o,"a",function(){return c});var i=t("X4a2");function c(n){return""+"https://leetcode-cn.com"+i["b"].questionDetail.solutionDetail(n)}}}]);
