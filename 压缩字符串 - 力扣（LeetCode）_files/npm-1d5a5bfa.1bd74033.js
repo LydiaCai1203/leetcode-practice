@@ -1,2 +1,0 @@
-/*! For license information please see npm-1d5a5bfa.1bd74033.js.LICENSE */
-(window["nojMonomainWebpackJsonpproduction"]=window["nojMonomainWebpackJsonpproduction"]||[]).push([[68],{uPah:function(o,t,i){var d;(function(){"use strict";var n=!!(typeof window!=="undefined"&&window.document&&window.document.createElement);var e={canUseDOM:n,canUseWorkers:typeof Worker!=="undefined",canUseEventListeners:n&&!!(window.addEventListener||window.attachEvent),canUseViewport:n&&!!window.screen};if(true){!(d=function(){return e}.call(t,i,t,o),d!==undefined&&(o.exports=d))}else{}})()}}]);
