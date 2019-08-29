@@ -40,7 +40,7 @@ class Student(object):
 ```
     1. 在python中有类方法一共有三种，分别是实例方法。静态方法和类方法
     2. 实例方法中的self, 表示的是具体的实例本身; 类方法中的cls表示的是这个类本身；self和cls都是，可以取别的名字，但是第一个位置就是self和cls的。
-    3. 实例方法的调用离不开实例，类方法离不开类；student.func3(arg1, arg2)；Student.func1(arg1, arg2); 静态方法其实和普通的方法一样并没有什么区别，只不过在调用的时候需要使用student.func3(arg1, arg2)。
+    3. 实例方法的调用离不开实例，类方法离不开类；student.func3(arg1, arg2)；Student.func1(arg1, arg2); 静态方法其实和普通的方法一样并没有什么区别，只不过在调用的时候需要使用obj.func3(arg1, arg2) or classname.func3(arg1, arg2).
 
 -----------------------
 ### 3. 类变量和实例变量
