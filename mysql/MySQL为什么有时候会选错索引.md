@@ -128,3 +128,10 @@ mysql> select *
 ### 思考题
     通过sessionA的配合，让sessionB删除数据以后又重新插入一遍数据，然后就发现explain的结果中，rows的结果从10000 变成了 37000
     但是如果没有sessionA的配合，使用sessionA进行delete、callidata、explain 会发现rows还是正确的结果。这是为什么呢？
+
+#### 回答：
+    sessionA 开启的事务并没有提交，所以在sessionA的一致性视图中之前的十万行数据是不能删除的。这样的话，之前的十万行数据每一行数据都有两个版本，就版本就是delete之前的数据，新版本就是delete之后的数据。
+
+    所以索引a上的数据就有两份。但为什么使用explain查看的时候行数并没有翻倍，就是因为优化器用的是show table status的值。这个行数是按照表有的行数来计算的。
+
+    算了这里其实还是没有懂。
