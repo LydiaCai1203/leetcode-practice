@@ -40,7 +40,7 @@ class Student(object):
 ```
     1. 在python中有类方法一共有三种，分别是实例方法。静态方法和类方法
     2. 实例方法中的self, 表示的是具体的实例本身; 类方法中的cls表示的是这个类本身；self和cls都是，可以取别的名字，但是第一个位置就是self和cls的。
-    3. 实例方法的调用离不开实例，类方法离不开类；student.func3(arg1, arg2)；Student.func1(arg1, arg2); 静态方法其实和普通的方法一样并没有什么区别，只不过在调用的时候需要使用student.func3(arg1, arg2)。
+    3. 实例方法的调用离不开实例，类方法离不开类；student.func3(arg1, arg2)；Student.func1(arg1, arg2); 静态方法其实和普通的方法一样并没有什么区别，只不过在调用的时候需要使用obj.func3(arg1, arg2) or classname.func3(arg1, arg2).
 
 -----------------------
 ### 3. 类变量和实例变量
@@ -124,7 +124,11 @@ print(person.__age)   # 这样直接访问是访问不到的
     1. 所有的生成器都是迭代器 因为生成器都实现了迭代器的接口
     2. 如果一个对象实现了__iter__(), 解释器需要迭代的时候就会使用iter(obj)，返回的就是一个迭代器
     3. 如果没有__iter__()，但是实现了__getitem__()的话，就会调用__getitem__()返回一个迭代器。
-    4. 标准的迭代器接口需要实现两个函数，分别是__next__()和__iter__()
+    4. 实现了__iter__() 但是没有实现 __next__()的就是 可迭代对象
+    5. 实现了__iter__() 且实现了__next__()的 就是迭代器
+    6. 生成器就是迭代器，生成器里面又yield;
+    7. str list set dict 都是可迭代对象
+    
 ```python 
 mystr = '123456789'
 myiter = iter(mystr)
@@ -136,8 +140,7 @@ while True:
         break
 ```
     5. 迭代器模式：就是可以用于顺序访问集合对象的元素，而不需要知道对象的内部表示
-    6. 只要有yield的函数就会返回一个生成器
-    6. for循环会捕捉异常 所以没有异常抛出
+    6. for循环会捕捉异常 所以没有异常抛出 而且for循环自动调用iter(obj)
     7. http://stackoverflow.com/questions/231767/what-does-the-yield-keyword-do-in-python
 
 -----------------------
