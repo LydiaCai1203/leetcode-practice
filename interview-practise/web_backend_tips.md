@@ -69,7 +69,12 @@
 ### 4. 说一下cookies和session的区别
 [新浪前端技术专家写的cookie到底是什么](http://tech.sina.com.cn/i/csj/2013-03-18/19428157177.shtml)
 
-    1. Session是放在服务器端的，当浏览器第一次发送请求的时候，服务器会自动生成一个Session和SessionID用来唯一标识这个Session。并将其通过响应发回到浏览器。当浏览器发送第二次请求，会将前一次服务器响应中的SessionID放在请求中一起发到服务器上面。服务器会将headers里的SessionID拿出来，和保存的SessionID进行对比，然后找到这个用户对应的Session。服务器默认保存这个Session的时间是30min。
++ 重点
+    + 原本session是一个抽象的概念，开发者为了实现中断和继续等操作，将user-agent和server之间一对一的交互，抽象为”会话“。进而衍生出会话状态，
+    也就是session的概念。
+        + 1. cookie是一个实际存在的东西，http协议定义在header中的字段，可以认为是session的一种后端无状态实现。
+        + 2. 而我们今天常说的session是为了绕开cookies的各种限制，通常借助cookie本身和后端存储实现的，一种更高级的会话状态的实现，
+        + 3. session是因为sessionid的存在，需要借助cookie实现，但是这并非必要，只是通用性较好的一种实现。
 
 ##### Session的客户端实现形式(SessionID的保存方法)
     1. 使用Cookie来保存，服务器通过设置Cookie的方式将SessionID发到客户端上。如果我们不设置过期时间，那么这个Cookie将不会存在硬盘上，浏览器关闭以后这个这个Cookie就消失了。
