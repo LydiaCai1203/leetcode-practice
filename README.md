@@ -25,8 +25,11 @@
     + [第十一讲 怎么给字符串字段添加索引](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E6%80%8E%E4%B9%88%E7%BB%99%E5%AD%97%E7%AC%A6%E4%B8%B2%E5%AD%97%E6%AE%B5%E5%8A%A0%E7%B4%A2%E5%BC%95.md)
     + [第十二讲 为什么我的MySQL会抖一下?](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%B8%BA%E4%BB%80%E4%B9%88%E6%88%91%E7%9A%84MySQL%E4%BC%9A%E6%8A%96%E4%B8%80%E4%B8%8B.md)
     + [第十三讲 为什么表数据删掉一半，表文件大小不变？](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A1%A8%E6%96%87%E4%BB%B6%E5%88%A0%E6%8E%89%E4%B8%80%E5%8D%8A%EF%BC%8C%E8%A1%A8%E5%A4%A7%E5%B0%8F%E4%B8%8D%E5%8F%98.md)
-    + [第十四讲 count(*)这么慢，应该怎么解决]()
-    + [第十五讲 日志和索引相关的问题]()
+    + [第十四讲 count(*)这么慢，应该怎么解决](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/count(*)%E5%A4%AA%E6%85%A2%E6%98%AF%E6%80%8E%E4%B9%88%E5%9B%9E%E4%BA%8B.md)
+    + [第十五讲 日志和索引相关的问题](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E6%97%A5%E5%BF%97%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E7%9A%84%E9%97%AE%E9%A2%98.md)
+    + [第十六讲 orderby 是怎么工作的](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/orderby%E6%98%AF%E6%80%8E%E4%B9%88%E5%B7%A5%E4%BD%9C%E7%9A%84.md)
+    + [第十七讲 如何正确地显示随机消息]()
+    + [第十八讲 为什么SQL逻辑相同 性能差距却很大]()
 
 ## Python基础
 + [python基础面试题及答案整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/python_base_tips.md)
