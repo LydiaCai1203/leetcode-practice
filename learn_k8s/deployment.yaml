@@ -1,0 +1,26 @@
+# apiVersion: apps/v1beta1
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: learn-k8s
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: learn-k8s
+    spec:
+      containers:
+        - name: learn-k8s
+          image: 100.125.17.64:20202/lanjing/learn-k8s:1.1.0
+          ports:
+          - containerPort: 80
+          env:
+          - name: PAW_ENV
+            value: develop
+          resources:
+            requests:
+              memory: "2048Mi"
+              cpu: "2"
+      imagePullSecrets:
+        - name: default-secret
