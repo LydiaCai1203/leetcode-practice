@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: learn-k8s
+data:
+  var1: value1
+  var2: value2
