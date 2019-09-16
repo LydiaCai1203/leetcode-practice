@@ -28,8 +28,8 @@
     + [第十四讲 count(*)这么慢，应该怎么解决](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/count(*)%E5%A4%AA%E6%85%A2%E6%98%AF%E6%80%8E%E4%B9%88%E5%9B%9E%E4%BA%8B.md)
     + [第十五讲 日志和索引相关的问题](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E6%97%A5%E5%BF%97%E7%B4%A2%E5%BC%95%E7%9B%B8%E5%85%B3%E7%9A%84%E9%97%AE%E9%A2%98.md)
     + [第十六讲 orderby 是怎么工作的](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/orderby%E6%98%AF%E6%80%8E%E4%B9%88%E5%B7%A5%E4%BD%9C%E7%9A%84.md)
-    + [第十七讲 如何正确地显示随机消息]()
-    + [第十八讲 为什么SQL逻辑相同 性能差距却很大]()
+    + [第十七讲 如何正确地显示随机消息](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E5%A6%82%E4%BD%95%E6%AD%A3%E7%A1%AE%E5%9C%B0%E6%98%BE%E7%A4%BA%E9%9A%8F%E6%9C%BA%E6%B6%88%E6%81%AF.md)
+    + [第十八讲 为什么SQL逻辑相同 性能差距却很大](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%B8%BA%E4%BB%80%E4%B9%88%E7%9B%B8%E4%BC%BC%E9%80%BB%E8%BE%91%E7%9A%84SQL%E8%AF%AD%E5%8F%A5%E6%80%A7%E8%83%BD%E5%B7%AE%E5%BC%82%E5%B7%A8%E5%A4%A7.md)
 
 ## Python基础
 + [python基础面试题及答案整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/python_base_tips.md)
@@ -65,6 +65,11 @@
 
 ## 计算机网络
 + [计算级网络基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/network_base_tips.md)
+
+
+## k8s部署demo概念
++ [第一章：基础概念+对k8s结构的一个整体把握](https://github.com/LydiaCai1203/leetcode-practice/blob/master/learn_k8s/partone.md)
++ [第二章：基础节点部分更高级一点的理解和应用](https://github.com/LydiaCai1203/leetcode-practice/blob/master/learn_k8s/parttwo.md)
 
 ----------------------------
 + [根据个人的简历所进行的一些基础整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/resume_tips.md)
