@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: learn-k8s
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      nodePort: 30010
+  selector:
+    app: learn-k8s
