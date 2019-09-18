@@ -179,7 +179,7 @@
 
 -------------------------
 ### 12. 说一下RESTful规范
-![阮一峰的博客](http://www.ruanyifeng.com/blog/2014/05/restful_api.html)
+[阮一峰的博客](http://www.ruanyifeng.com/blog/2014/05/restful_api.html)
 + 1. 协议：API与用户的通信协议应总是使用HTTPS协议
 + 2. 域名：应该尽量将API部署在专用域名之下`https://api.example.com`如果说API比较简单可以放在主域名之下`https://example.com/api/`
 + 3. 版本：应该将API的版本号放入URL`https://api.example.com/v1/`
@@ -204,8 +204,29 @@
 ```
 + 7. 状态码
     + 200(ok)--[GET]:服务器成功返回用户请求的数据，该操作是幂等的。
-    + 201(created)--[POST/PUT/PATCH]: 用户新建或者是创建数据成功。
-    + 204(deleted)--[DELETE]：用户删除数据成功。
-    + 400(INVALID REQUEST)
+    + 201(created)--[POST/PUT/PATCH]:用户新建或者是创建数据成功。
+    + 204(deleted)--[DELETE]:用户删除数据成功。
+    + 400(invalid request)--[POST/PUT/PATCH]:用户发出的请求有错误，服务器没有进行新建或修改数据的操作。
+    + 401[unauthorized]--[*]:表示用户没有权限(令牌、用户名、密码错误等等)
+    + 403[forbidden]--[*]:表示用户虽然得到授权，但是访问是禁止的
+    + 404[not found]--[*]:用户发出的请求针对的是不存在的资源，服务器没有进行操作
+    + 406[not accepted]--[GET]:用户请求的格式不可得(比如用户请求的是json格式的，但是只有xml格式的)
+    + 410[gone]--[GET]:用户请求的资源被永远删除而且不会再得到
+    + 422[unprocessable entity]--[POST/PUT/PATCH]:当创建一个对象的时候发生验证错误
+    + 500[internal server error]--[*]:当服务器发生错误，用户将无法判断发出的请求是否成功
++ 8. 错误处理
+    如果状态码是4**，就应该给用户返回错误信息，返回的信息中用error作为键名，出错信息为键值即可。
++ 9. 返回结果
+    针对不同操作，服务器向用户返回的结果应该返回一下规范。
++ GET /collection: 返回资源对象的列表
++ GET /collection/resources: 返回单个资源对象
++ POST /collection: 返回新生成的资源对象
++ PUT /collection/resources: 返回完整的资源对象
++ PATCH /collection/resources: 返回完整的资源对象
++ DELETE /collection/resources: 返回一个空文档
++ 10. HypermediaAPI:
+    在返回的结果中提供API, 使得用户不查文档也知道下一步应该做什么。
++ 11. 服务器返回的数据格式应该尽量使用json,避免使用xml。
 -------------------------
-### 13. 你觉得HTTP和HTTPS的区别在哪里
+### 13. HTTP和HTTPS的区别在哪里
+    HTTPS=HTTP+SSL, 即在HTTP下一层加上SSL层，
