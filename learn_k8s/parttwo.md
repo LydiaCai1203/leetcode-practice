@@ -145,3 +145,6 @@ data:
 + 1. `kubectl get configmap configmap_name -o yaml`   # 以yaml的方式显示配置文件，当然也可以写成json
 + 2. `kubectl create -f configmap_filename`           # 创建都还是一样的方法
 + 3. `kubectl describe configmap configmap_name`      # 查看这个configmap的详细信息
+
+#### ConfigMap的创建：kubectl命令行方式
+    不使用yaml文件，直接通过kubectl create configmap也可以创建ConfigMap，可以使用参数 --from-file 或者是 --from-literal 指定内容。
