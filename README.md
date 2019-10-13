@@ -70,7 +70,7 @@
 ## k8s部署demo概念
 + [第一章：基础概念+对k8s结构的一个整体把握](https://github.com/LydiaCai1203/leetcode-practice/blob/master/learn_k8s/partone.md)
 + [第二章：基础节点部分更高级一点的理解和应用](https://github.com/LydiaCai1203/leetcode-practice/blob/master/learn_k8s/parttwo.md)
-
++ [CI/CD](https://github.com/LydiaCai1203/leetcode-practice/blob/master/learn_k8s/what_cicd.md)
 ----------------------------
 + [根据个人的简历所进行的一些基础整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/resume_tips.md)
 

@@ -104,13 +104,19 @@
 
 ### 16. how are multiple versions of artifacts stored and accessed?
 
-&emsp;&emsp;
+&emsp;&emsp;从源代码构建的版本化工件可以通过管理工件仓库artifact repository的应用程序进行存储。工件仓库就像构建工件的版本控制工具一样。像 Artifactory 或 Nexus 这类应用可以接受版本化工件，存储和跟踪它们，并提供检索的方法。管道用户可以指定他们想要使用的版本，并在这些版本中使用管道。
 
+### 17. what is continous deployment?
 
+&emsp;&emsp;是指能够自动提交持续交付管道中发布版本给最终用户使用的想法。这里有一个重点是，仅仅因为可以进行持续部署并不意味着始终部署来自管道的每组交付成果。它指的是，通过管道每套可交付成果都被证明是“可部署的”。这在很大程度上是由持续测试的连续级别完成的。管道构建的发布成果是否被部署是可由人工决策的。
 
+### 18. What are some ways to test out deployments before fully deploying to all users?
+&emsp;&emsp;由于必须回滚/撤销对所有用户的部署可能是一种代价高昂的情况。
+#### 18.1 Blue/green testing/deployments
 
+&emsp;&emsp;在这种部署软件的方法中，维护了两个相同的主机环境，一个是生产环境，一个是预发布环境。
 
-
+#### 18.2 Canary testing/deployment
 
 
 
