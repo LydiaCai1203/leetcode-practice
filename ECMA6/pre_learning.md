@@ -1176,3 +1176,119 @@ function f() {
     对于优先级别相同的运算符，大多数情况，计算顺序总是从左到右，这叫做运算符的“左结合”（left-to-right associativity），即从左边开始计算。
 
     但是少数运算符的计算顺序是从右到左，即从右边开始计算，这叫做运算符的“右结合”（right-to-left associativity）。其中，最主要的是赋值运算符（=）和三元条件运算符（?:）。
+
+## 14. 数据类型的转换
+
+### 14.1 强制转换
+    强制转换主要指使用Number()、String()和Boolean()三个函数，手动将各种类型的值，分别转换成数字、字符串或者布尔值。
+
+    Number函数将字符串转为数值，要比parseInt函数严格很多。基本上，只要有一个字符无法转成数值，整个字符串就会被转为NaN。
+```javascript
+parseInt('42 cats') // 42
+Number('42 cats') // NaN
+
+// but
+parseInt('\t\v\r12.34\n') // 12
+Number('\t\v\r12.34\n') // 12.34
+
+Number({a: 1}) // NaN
+Number([1, 2, 3]) // NaN
+Number([5]) // 5
+```
++ **要转换的是对象时**：
+    + **第一步**，调用对象自身的valueOf方法。如果返回原始类型的值，则直接对该值使用Number函数，不再进行后续步骤。
+    + **第二步**，如果valueOf方法返回的还是对象，则改为调用对象自身的toString方法。如果toString方法返回原始类型的值，则对该值使用Number函数，不再进行后续步骤。
+    + **第三步**，如果toString方法返回的是对象，就报错。
+    + **默认情况下**，对象的valueOf方法返回对象本身，所以一般总是会调用toString方法，而toString方法返回对象的类型字符串（比如[object Object]）。所以，会有下面的结果。
+    + 如果toString方法返回的不是原始类型的值，结果就会报错
+```javascript
+Number({
+  toString: function () {
+    return 3;
+  }
+})
+// 3
+```
+
+### 14.2 String()
+```javascript
+String(123) // "123"
+String('abc') // "abc"
+String(true) // "true"
+String(undefined) // "undefined"
+String(null) // "null"
+String({a: 1}) // "[object Object]"
+String([1, 2, 3]) // "1,2,3"
+```
++ **要转换的是对象时**：
+    + **第一步**，先调用对象自身的toString方法。如果返回原始类型的值，则对该值使用String函数，不再进行以下步骤。
+    + **第二步**，如果toString方法返回的是对象，再调用原对象的valueOf方法。如果valueOf方法返回原始类型的值，则对该值使用String函数，不再进行以下步骤。
+    + **第三步**，如果valueOf方法返回的是对象，就报错。
+    + 如果toString法和valueOf方法，返回的都是对象，就会报错。
+
+### 14.3 Boolean()
+    所有对象的布尔值都是true，这是因为 JavaScript 语言设计的时候，出于性能的考虑，如果对象需要计算才能得到布尔值，对于obj1 && obj2这样的场景，可能会需要较多的计算。为了保证性能，就统一规定，对象的布尔值为true
+```javascript
+Boolean(undefined) // false
+Boolean(null) // false
+Boolean(0) // false
+Boolean(NaN) // false
+Boolean('') // false
+Boolean(true) // true
+Boolean(false) // false
+Boolean({}) // true
+Boolean([]) // true
+Boolean(new Boolean(false)) // true
+```
+
+### 14.4 自动转换
+    预期什么类型的值，就调用该类型的转换函数。比如，某个位置预期为字符串，就调用String函数进行转换。如果该位置即可以是字符串，也可能是数值，那么默认转为数值。
+
++ 第一种情况，不同类型的数据互相运算。
++ 第二种情况，对非布尔值类型的数据求布尔值。
++ 第三种情况，对非数值类型的值使用一元运算符（即+和-）。
+```javascript
++ {foo: 'bar'} // NaN
+- [1, 2, 3] // NaN
+```
+
+### 14.4.1 自动转换为布尔值
+    JavaScript 遇到预期为布尔值的地方（比如if语句的条件部分），就会将非布尔值的参数自动转换为布尔值。系统内部会自动调用Boolean函数。因此除了以下五个值，其他都是自动转为true。`undefined`, `null`, `+0或-0`, `NaN`, `''（空字符串）`
++ 下面两种写法，有时也用于将一个表达式转为布尔值。它们内部调用的也是Boolean函数。
+```javascript
+// 写法一
+expression ? true : false
+
+// 写法二
+!! expression
+```
+
+### 14.4.2 自动转换为字符串
+    JavaScript 遇到预期为字符串的地方，就会将非字符串的值自动转为字符串。具体规则是，先将复合类型的值转为原始类型的值，再将原始类型的值转为字符串。做加法运算的时候就是转换成字符串的。
+
+### 14.4.3 自动转换为数值
+    遇到预期为数值的地方，就会将参数值自动转换为数值。系统内部会自动调用Number函数。除了加法运算符（+）有可能把运算子转为字符串，其他运算符都会把运算子自动转成数值。
+```javascript
+'5' - '2' // 3
+'5' * '2' // 10
+true - 1  // 0
+false - 1 // -1
+'1' - 1   // 0
+'5' * []    // 0
+false / '5' // 0
+'abc' - 1   // NaN
+null + 1 // 1
+undefined + 1 // NaN
++'abc' // NaN
+-'abc' // NaN
++true // 1
+-false // 0
+```
+
+## 15. 错误处理机制
+    throw, try/catch, finally
+
+## 16. 编程风格
+    pass, 随便看了以下先不记了。
+
+## 17. 
