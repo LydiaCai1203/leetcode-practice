@@ -898,4 +898,281 @@ window.eval('...')
 ```
 
 ## 8. 数组
-### 8.1 
+### 8.1 概念
++ 任何类型的数据，都可以放入数组。`var arr = [{a: 1}, [1, 2, 3], function() {return true;}];`
++ `var a = [[1, 2], [3, 4]];`
+
+### 8.2 数组的本质
++ `typeof [1, 2, 3]`    // "object"
++ 数组的特殊性体现在，它的键名是按次序排列的一组整数（0，1，2...）。
+```javascript
+var arr = ['a', 'b', 'c'];
+Object.keys(arr)
+// ["0", "1", "2"]
+```
++ 同样，非字符串的键名会被转为字符串。这点不论是在赋值的时候 还是在 取值的时候，都是成立的。
++ 当然，由于是数字键名的缘故，所以不能使用点运算符进行取值。
+
+### 8.3 length 属性
++ `['a', 'b', 'c'].length`    // 3 返回数组的成员数量
++ 该属性是一个动态的值，等于键名中的最大整数加上1。也就意味着数组的数字键不需要连续。
++ `length`属性是可写的。如果人为设置一个小于当前成员个数的值，该数组的成员会自动减少到`length`设置的值。
++ 清空数组的一个有效方法，就是将length属性设为0。
++ 当length属性设为大于数组个数时，读取新增的位置都会返回undefined。如果人为设置length为不合法的值，JavaScript 会报错。比如设置length=-1
++ **由于数组本质上是一种对象，所以可以为数组添加属性，但是这不影响length属性的值。**将数组的键分别设为字符串和小数，结果都不影响length属性。因为，length属性的值就是等于最大的数字键加1，而这个数组没有整数键，所以length属性保持为0
+```javascript
+var a = [];
+
+a['p'] = 'abc';
+a.length // 0
+
+a[2.1] = 'abc';
+a.length // 0
+```
++ 如果数组的键名是添加超出范围的数值，该键名会自动转为字符串。
+
+### 8.4 in 运算符 
++ 检查某个键名是否存在的运算符in，适用于对象，也适用于数组。
+
+### 8.5 for...in 循环和数组的遍历
++ for...in不仅会遍历数组所有的数字键，还会遍历非数字键。
+```javascript
+var a = [1, 2, 3];
+a.foo = true;
+
+for (var key in a) {
+  console.log(key);
+}
+// 0
+// 1
+// 2
+// foo
+```
++ 数组的遍历可以考虑使用for循环或while循环。
+```javascript
+var a = [1, 2, 3];
+
+// for循环
+for(var i = 0; i < a.length; i++) {
+  console.log(a[i]);
+}
+
+// while循环
+var i = 0;
+while (i < a.length) {
+  console.log(a[i]);
+  i++;
+}
+
+var l = a.length;
+while (l--) {
+  console.log(a[l]);
+}
+```
++ 还可以使用forEach来遍历数组
+```javascript
+var colors = ['red', 'green', 'blue'];
+colors.forEach(function (color) {
+  console.log(color);
+});
+// red
+// green
+// blue
+```
+
+### 8.6 数组的空位
+```javascript
+var a = [1, , 1];
+a.length // 3
+
+var a = [1, 2, 3,];     // 即使有这个逗号也不会多一个数组空位
+a.length // 3
+```
++ 数组的空位是可以读取的，返回undefined。
++ 使用delete命令删除一个数组成员，会形成空位，并且不会影响length属性。就真的很坑爹，不论是你有没有把整数值最大的key,length 就不会变化。
+
+### 8.7 类似数组的对象
++ “类似数组的对象”的**根本特征**，就是具有length属性。只要有length属性，就可以认为这个对象类似于数组。
+```javascript
+var obj = {
+  0: 'a',
+  1: 'b',
+  2: 'c',
+  length: 3
+};
+
+obj[0] // 'a'
+obj[1] // 'b'
+obj.length // 3
+obj.push('d') // TypeError: obj.push is not a function
+```
++ 典型的“类似数组的对象”是函数的arguments对象，以及大多数 DOM 元素集，还有字符串
++ 数组的slice方法可以将“类似数组的对象”变成真正的数组。
+```javascript
+var arr = Array.prototype.slice.call(arrayLike);
+```
++ 除了转为真正的数组，“类似数组的对象”还有一个办法可以使用数组的方法，就是通过call()把数组的方法放到对象上面。
+```javascript
+function print(value, index) {
+  console.log(index + ' : ' + value);
+}
+Array.prototype.forEach.call(arrayLike, print);
+```
++ 如果要遍历的话最好还是用以下方式
+```javascript
+var arr = Array.prototype.slice.call('abc');
+arr.forEach(function (chr) {
+  console.log(chr);
+});
+```
+
+## 9. 算数运算符
+### 9.1 对象相加
+```javascript
+var obj = { p: 1 };
+obj + 2 // "[object Object]2"
+```
++ 1. `bj.valueOf().toString()` // "[object Object]"
++ 2. `obj.valueOf()` // { p: 1 }
++ 3. 所以只要重写valueOf()就可以返回正确的值了;并且如果valueOf返回的是一个基本类型，也就不会调用toString了。
+```javascript
+var obj = {
+  valueOf: function () {
+    return 1;
+  }
+};
+obj + 2 // 3
+```
+```javascript
+var obj = {
+  toString: function () {
+    return 'hello';
+  }
+};
+obj + 2 // "hello2"
+```
++ 4. 特例需要注意：这里toString优先于valueOf执行
+```javascript
+var obj = new Date();
+obj.valueOf = function () { return 1 };
+obj.toString = function () { return 'hello' };
+
+obj + 2 // "hello2"
+```
+### 9.2 余数运算符
++ 1. `-1 % 2 // -1` 和 `1 % -2 // 1` 计算结果是不对的。
++ 2. 正确示范如下
+```javascript
+// 错误的写法
+function isOdd(n) {
+  return n % 2 === 1;
+}
+isOdd(-5) // false
+isOdd(-4) // false
+
+// 正确的写法
+function isOdd(n) {
+  return Math.abs(n % 2) === 1;
+}
+isOdd(-5) // true
+isOdd(-4) // false
+```
+### 9.3 自增和自减运算符（和c++一样 没啥好说的）
+### 9.4 数值运算符，负数值运算符
++ 数值运算符 `+true` or `+[] // 0` or `+{} // NaN`
+    + 数值运算符的作用在于可以将任何值转为数值（与Number函数的作用相同）
++ 负数值运算符
+    + 也同样具有将一个值转为数值的功能，只不过得到的值正负相反。连用两个负数值运算符，等同于数值运算符。
++ 数值运算符号和负数值运算符，都会返回一个新的值，而不会改变原始变量的值。
+### 9.5 指数运算符
++ `2 ** 4 // 16`
++ 是从右向左开始计算的
+```javascript
+// 相当于 2 ** (3 ** 2)
+2 ** 3 ** 2
+// 512
+```
+### 9.6 赋值运算符
+    没啥好说的 就先这样吧。
+
+## 10. 比较运算符
+### 10.1 概述
+    一共有八个比较运算符，可以分成两大类，对于非相等的比较，算法是先看两个运算子是否都是字符串，如果是的，就按照字典顺序比较（实际上是比较 Unicode 码点）；否则，将两个运算子都转成数值，再比较数值的大小。
+### 10.1 非相等运算符：字符串的比较
+    由于所有字符都有 Unicode 码点，因此汉字也可以比较。
+### 10.2 非相等运算符：非字符串的比较 
++ 原始类型值
+    + 如果两个运算子都是原始类型的值，则是先转成数值再比较。
++ 对象
+    + 对象转换成原始类型的值，算法是先调用valueOf方法；如果返回的还是对象，再接着调用toString方法。
+### 10.3 严格相等运算符
+    简单说，它们的区别是相等运算符（==）比较两个值是否相等，严格相等运算符（===）比较它们是否为“同一个值”。如果两个值不是同一类型，严格相等运算符（===）直接返回false，而相等运算符（==）会将它们转换成同一个类型，再用严格相等运算符进行比较。
++ 复合类型值
+
+            原因是对于复合类型的值，严格相等运算比较的是，它们是否引用同一个内存地址，而运算符两边的空对象、空数组、空函数的值，都存放在不同的内存地址
+
+```javascript
+{} === {} // false
+[] === [] // false
+(function () {} === function () {}) // false
+```
++ undefined 和 null
+```javascript
+undefined === undefined // true
+null === null // true
+```
+### 10.4 严格不相等运算符
+    严格相等运算符有一个对应的“严格不相等运算符”（!==），它的算法就是先求严格相等运算符的结果，然后返回相反值。
+### 10.5 相等运算符 尽量不要使用这个 而是使用严格比较运算符
++ 原始类型值
++ 对象与原始类型值比较
+    + 对象（这里指广义的对象，包括数组和函数）与原始类型的值比较时，对象转换成原始类型的值，再进行比较。
++ undefined 和 null
+    + undefined和null与其他类型的值比较时，结果都为false，它们互相比较时结果为true。
++ 相等运算符的缺点
+    + 相等运算符隐藏的类型转换，会带来一些违反直觉的结果。
+### 10.6 不相等运算符
+    相等运算符有一个对应的“不相等运算符”（!=），它的算法就是先求相等运算符的结果，然后返回相反值。
+
+## 11. 布尔运算符
+    暂时也都不管了，（取反运算符：!）and（且运算符：&&）and (或运算符：||）and (三元运算符：?)
+
+## 12. 二进制位运算符
+    这个也都暂时先不说了，不常用。
+
+## 13. 其他运算符，运算顺序
+### 13.1 void 运算符
+    void运算符的作用是执行一个表达式，然后不返回任何值，或者说返回undefined。
++ `void(0) // undefined` 
++ 这个运算符的主要用途是浏览器的书签工具（Bookmarklet），以及在超级链接中插入代码防止网页跳转。
+```javascript
+<script>
+function f() {
+  console.log('Hello World');
+}
+</script>
+<a href="http://example.com" onclick="f(); return false;">点击</a>
+
+<a href="javascript: void(f())">文字</a> // 下面的写法和上面等价
+```
++ 用户点击链接提交表单，但是不产生页面跳转
+```javascript
+<a href="javascript: void(document.form.submit())">
+  提交
+</a>
+```
+
+### 13.2 逗号运算符
++ 逗号运算符用于对两个表达式求值，并返回后一个表达式的值。逗号运算符的一个用途是，在返回一个值之前，进行一些辅助操作。
+    + `var value = (console.log('Hi!'), true);`
+
+### 13.3 运算顺序
+    根据语言规格，这五个运算符的优先级从高到低依次为：小于等于（<=)、严格相等（===）、或（||）、三元（?:）、等号（=）。因此上面的表达式，实际的运算顺序如下。
+
+### 13.4 圆括号的作用
+    圆括号（()）可以用来提高运算的优先级，因为它的优先级是最高的，即圆括号中的表达式会第一个运算。函数放在圆括号中，会返回函数本身。如果圆括号紧跟在函数的后面，就表示调用函数。圆括号之中，只能放置表达式，如果将语句放在圆括号之中，就会报错。
+
+### 13.5 左结合与右结合
+    对于优先级别相同的运算符，大多数情况，计算顺序总是从左到右，这叫做运算符的“左结合”（left-to-right associativity），即从左边开始计算。
+
+    但是少数运算符的计算顺序是从右到左，即从右边开始计算，这叫做运算符的“右结合”（right-to-left associativity）。其中，最主要的是赋值运算符（=）和三元条件运算符（?:）。
