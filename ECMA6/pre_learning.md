@@ -1291,4 +1291,83 @@ undefined + 1 // NaN
 ## 16. 编程风格
     pass, 随便看了以下先不记了。
 
-## 17. 
+## 17. console 对象与控制台
+    console对象是 JavaScript 的原生对象，它有点像 Unix 系统的标准输出stdout和标准错误stderr，可以输出各种信息到控制台，并且还提供了很多有用的辅助方法
++ console的常见用途有两个。
+    + 调试程序，显示网页代码运行时的错误信息。
+    + 提供了一个命令行接口，用来与网页代码互动。
+### 17.1 console对象的一些属性
++ console.count()    // 可以计算被调用的次数 这样就知道阅读数量这么计算了
++ console.table()    // 将某些复合类型的对象以表格的形式输出
++ console.warn()，console.error()    // 控制台输出的内容不一样
++ console.dir()，console.dirxml()    // 用来对一个对象进行检查（inspect），并以易于阅读和打印的格式显示
++ console.assert()   // 方法主要用于程序运行过程中，进行条件判断，如果不满足条件，就显示一个错误，但不会中断程序执行。这样就相当于提示用户，内部状态不正确。
+    + console.assert(false, '判断条件不成立')
++ console.time()，console.timeEnd()    // 计算某一堆操作的执行时间
++ console.trace()，console.clear()   // console.trace方法显示当前执行的代码在堆栈中的调用路径。
+
+### 17.2 浏览器自带的一些命令
++ debugger
+    + Chrome 浏览器中，当代码运行到debugger语句时，就会暂停运行，自动打开脚本源码界面。
+```javascript
+for(var i = 0; i < 5; i++){
+  console.log(i);
+  if (i === 2) debugger;
+}
+```
++ clear()：清除控制台的历史。
++ copy(object)：复制特定 DOM 元素到剪贴板。
++ dir(object)：显示特定对象的所有属性，是console.dir方法的别名。
++ dirxml(object)：显示特定对象的 XML 形式，是console.dirxml方法的别名
++ keys(object)，values(object)   // 返回对象的所有属性 和 属性值
++ getEventListeners(object)   // 该对象的成员为object登记了回调函数的各种事件（比如click或keydown），每个事件对应一个数组，数组的成员为该事件的回调函数。
++ monitorEvents(object[, events]) ，unmonitorEvents(object[, events])   // 方法监听特定对象上发生的特定事件。事件发生时，会返回一个Event对象，包含该事件的相关信息。unmonitorEvents方法用于停止监听。
+
+## 18. 标准库
+    暂时不看了
+
+## 19. 面向对象编程
+### 19.1 实例对象与 new 命令
++ 所谓的构造函数
+    + 函数体内部使用了this关键字，代表了所要生成的对象实例。
+    + 生成对象的时候，必须使用new命令。
+```javascript
+var Vehicle = function () {
+  this.price = 1000;
+};
+```
++ new 命令
+    + new命令的作用，就是执行构造函数，返回一个实例对象。
+    + 如果忘了使用new命令，直接调用构造函数会发生什么事？ 相当于调用的是一个普通的函数。
+    + 为了保证构造函数必须与new命令一起使用，一个解决办法是，构造函数内部使用严格模式，即第一行加上use strict。这样的话，一旦忘了使用new命令，直接调用构造函数就会报错。
+    + 或者直接在函数内部判断有没有使用New
+```javascript
+var Vehicle = function () {
+  this.price = 1000;
+};
+
+var v = new Vehicle();
+v.price // 1000
+
+//-----------------------
+function Fubar(foo, bar) {
+  if (!(this instanceof Fubar)) {
+    return new Fubar(foo, bar);
+  }
+
+  this._foo = foo;
+  this._bar = bar;
+}
+
+Fubar(1, 2)._foo // 1
+(new Fubar(1, 2))._foo // 1
+```
++ new 命令的原理
+    + 建一个空对象，作为将要返回的对象实例。
+    + 将这个空对象的原型，指向构造函数的prototype属性。
+    + 将这个空对象赋值给函数内部的this关键字。
+    + 开始执行构造函数内部的代码。
+
++ 如果构造函数内部有return语句，而且return后面跟着一个对象，new命令会返回return语句指定的对象；否则，就会不管return语句，返回this对象。也就是说如果返回的是一个基本类型，那么构造函数就不会管return后面的东西，直接返回的就是this.
+
++ 
