@@ -3,7 +3,9 @@
 [直接看大佬的github](https://github.com/CyC2018/Backend-Interview-Guide/blob/master/doc/%E4%B8%80%E6%96%87%E5%B8%AE%E4%BD%A0%E7%90%86%E6%B8%85%E9%9D%A2%E8%AF%95%E7%9F%A5%E8%AF%86%E7%82%B9.md)
 
 #### 分布式与系统设计部分对于大厂面试来说至关重要，但是小厂面试考察的会少一点。
+
 #### 语言基础部分，阿里喜欢问 Java、腾讯喜欢问 C++，其它大厂面试考察会少一些，小厂面试会考察多一些。
+
 #### 数据库、中间件和框架部分对于大厂面试来说不是那么重要，但是对于小厂面试会重要一些。
 
 ##### 站在巨人的肩膀上，借鉴大佬的经验，整理自己的答案。
@@ -11,6 +13,7 @@
 --------------------
 
 ### 1. ★★★ 进程与线程的本质区别、以及各自的使用场景。
+
     1. 拥有资源
        进程是资源分配的基本单位，进程拥有代码和打开的文件资源、数据资源、独立的内存空间。但是线程不拥有资源，线程可以访问隶属进程的资源。
     
@@ -24,20 +27,29 @@
        线程之间可以通过直接读写同一进程中的数据进行通信，但是进程间通信需要借助IPC
 
 ---------------------
+
 ### 2. ★☆☆ 进程状态。
+
     就绪状态：等待被调度
     运行状态
     阻塞状态：等待资源
+
 [进程的五状态图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/static/ProcessState.png)
+
 ##### 要点解读：
+
       1. 就绪状态的进程通过调度算法来获得CPU的运行时间，转为运行状态；而运行状态的进程，在分配给它的CPU时间片用完了以后就会回到就绪状态。等待下一次的调度。
     
       2. 阻塞状态是缺少需要的资源而从运行状态转换而来的，但是该资源不包括CPU时间，因为缺少CPU时间的话，会从运行状态变为就绪状态。
 
 ----------------------
+
 ### 3. ★★★ 进程调度算法的特点以及使用场景。
+
 **不同环境的调度算法目标不同，所以要针对不同的环境来讨论算法**
+
 #### 批处理系统
+
       1. 先来先服务(FCFS) 
       非抢占式的调度算法，按照请求的顺序进行调度。有利于长作业，但是不利于短作业，因为如果长作业排在短作业前面，短作业就要等待长作业执行完以后才得以执行，对于短作业来说，等待时间太长了。
     
@@ -48,8 +60,9 @@
       短作业优先的抢占式版本，按照剩余运行时间的顺序进行调度。当一个作业到达时，它的整个运行时间会和当前进程的剩余时间进行比较，如果总的运行时间要小，os就会挂起当前进程，运行新的进程。
 
 #### 交互式系统
+
 **交互式系统因为有大量用户的交互操作，在该系统中的调度算法的目标就是用户操作能够得到较为快速的响应**
-      
+
       1. 时间片轮转 
          将所有的进程以FCFS的顺序排成一个队列，每次调度的时候，会把CPU的时间分给队首进程，当时间片用完的时候，由计时器发出时钟中断，调度程序就会停止该进程的执行。然后把该进程发送至队尾，再重新进行时间片轮转。
          因为进程的切换会保存现有进程的信息和载入新的进程的信息，如果时间片太小了，进程切换就有较大的开销。
@@ -58,23 +71,31 @@
          为每一个进程都分配一个优先级，按照优秀级来调度进程。为了防止优先级低的进程得不到调度，可以随着时间的推移增加进程的优先级。
       3. 多级反馈队列 
          如果按照时间片轮转调度算法来看的话，如果一个进程需要100个时间片，那就需要切换100次。它设计了多个队列，每个队列的时间片大小都不同，进程在第一个队列没有执行完，就会被移到下一个队列里面去，这样就不需要切换100次了。
+
 #### 实时系统
+
       要求一个请求在一个确定的时间范围内被及时响应。实时系统又分为硬实时和软实时。前者必须满足绝对的截止时间，后者可以容忍一定的超时。
 
 ----------------------
+
 ### 4. ★☆☆ 线程实现的方式。
+
       1. 用户级线程：由应用程序所支持的线程实现，对内核是不可见的
       2. 内核级线程：建立和销毁都是在内核的支持下运行的，由操作系统负责管理，通过系统调用完成的。
       3. 组合级线程：在一些系统中，使用组合方式的多线程实现, 线程创建完全在用户空间中完成，线程的调度和同步也在应用程序中进行。一个应用程序中的多个用户级线程被映射到一些（小于或等于用户级线程的数目）内核级线程上。
 
 ----------------------
+
 ### 5. ★★☆ 协程的作用。
+
 [一文带你了解协程](https://www.itcodemonkey.com/article/4620.html)
 
       协程并不是由操作系统内核所管理的，完全由用户程序所控制。这样做的好处就是可以不用像线程切换那样耗费资源。协程的暂停是由程序控制的，但是线程的阻塞是由操作系统内核进行切换的。
 
 ----------------------
+
 ### 6. ★★☆ 常见进程同步问题。
+
 **对于临界资源进行访问的那段代码成为临界区，为了互斥访问临界资源，每个进程在进入临界区的时候，都要进行检查。**
 
       1. 同步和互斥：同步是指多个进程因为合作产生制约关系，使得进程之间有先后顺序。互斥是指，多个进程的时候，只有一个进程可以进入临界区。
@@ -83,46 +104,122 @@
       4. 哲学家进餐问题。
 
 ----------------------
+
 ### 7. ★★★ 进程通信方法的特点以及使用场景。
+
 **进程通信是一种手段，因为要达到进程同步的目的，所以需要让进程之间进行通信，传输一些进程同步所需要的信息。**
 
 ##### 管道
+
       pipe()函数会在内核中开辟出一个缓冲区用来进行进程间通信。这个缓冲区就是管道，有一个读端，还有一个写端。
       限制： 1. 只能单向通信，半双工。
             2.只能在有血缘关系的进程间进行通信。 
+
 ##### FIFO（命名管道）
+
       pass
+
 ##### 消息队列
+
       pass
+
 ##### 信号量
+
       pass
+
 ##### 共享存储
+
       pass
-##### 套接字 
+
+##### 套接字
+
       pass
 
 ----------------------
+
 ### 8. ★★★ 死锁必要条件、解决死锁策略，能写出和分析死锁的代码，能说明在数据库管理系统或者 Java 中如何解决死锁。
 
 ----------------------
+
 ### 9. ★★★ 虚拟内存的作用，分页系统实现虚拟内存原理。
 
 ----------------------
+
 ### 10. ★★★ 页面置换算法的原理，特别是 LRU 的实现原理，最好能手写，再说明它在 Redis 等作为缓存置换算法。
 
 ----------------------
+
 ### 11. ★★★ 比较分页与分段的区别。
 
 ----------------------
+
 ### 12. ★★★ 分析静态链接的不足，以及动态链接的特点
 
 ---------------------
+
+### 13. I/O 多路复用机制：select、poll、epoll 之间的区别
+
+[参考链接](http://www.masterraghu.com/subjects/np/introduction/unix_network_programming_v1.3/ch06lev1sec2.html)
+
+#### 1. I/O - 同步、异步、阻塞、非阻塞
+
+```markdown
+  一般来说，一次网络I/O读操作会设计两个系统对象：1）用户进程/线程 2）kernel对象
+  以及两个处理阶段：1）waiting for the data to be ready 2）copying the data from the kernel to the process
+  而I/O模型的异同点就是区分在这两个系统对象、两个处理阶段的不同上。
+  For an input operation on a socket, the first step normally invovles waiting for data to arrive on the network. When the packet arrives, it is copied into a buffer within the kernel. The second step is copying this data from kernel's buffer into our application buffer.
+```
+
+##### 1.1 同步I/O 之 Blocking I/O
+
+```markdown
+  This is the most prevalent model for I/O is the blocking I/O model, which we have used for all our examples so far in the text. By default, all sockets are blocking.
+```
+
+![](../statics/blocking_io.png)
+
+```markdown
+  当你调用*read()*的时候，如果没有数据收到，那么线程或者是进程就会被挂起，直到接收到数据。当服务器需要处理1000个连接的时候，而且只有很少是连接忙碌的，那么就会需要1000个线程或进程来处理1000个连接，而1000个线程大部分是被阻塞起来的。由于CPU的核数或是超线程数一般都不大，如果四个核要跑1000个线程，每个线程的时间片就会很短，线程却换非常频繁，不管是内存开销还是上下文切换时候的开销都很大。这样分配给真正的CPU操作就会少很多。
+```
+
+##### 1.2 同步I/O 之 nonBlocking I/O
+
+```markdown
+   When we set the socket to be nonblocking, we are telling the kernel "When the I/O operation that I request cannot be completed without putting the process to sleep, do not put the process to sleep, but return an error instead."
+```
+
+![](../statics/nonblocking_io.png)
+
+```markdown
+  The first three times that we call *recvfrom*, there is no data to return, so the kernel immediately returns an error of *EWOULDBLOCK* instead. The Forth time we call *recvfrom*, a datagram is ready, it is copied into our application buffer, and *recvfrom* returns sucessfully. We then process data.
+  When an application sits in a loop calling *recvfrom* on a nonblocking descriptor like this. It is called *polling*. The application is continually polling the kernel to see if some operation is ready. This is often a waste of CPU time, but this model is occasionally encountered.
+```
+
+##### 1.3 同步I/O 之 I/O Multiplexing
+
+![](../statics/multiplex_io.png)
+
+```markdown
+  We block in a call to select, waiting for the datagram socket to be readable.When select returns that socket is readable, we then call *recvfrom* to copy the datagram into our application buffer.
+  多路复用是指使用一个线程来检查多个文件描述符Socket的就需状态，比如调用select和 poll函数，传入多个文件描述符，如果有一个文件描述符就绪，则返回，否则就阻塞直到超时。得到就绪状态后进行真正的操作可以在同一个线程里面执行，也可以启动线程执行。
+```
+
+##### 1.4 异步I/O
+
+Aother closely related I/O model is to use multithreading with blocking I/O. That model very closely resembles the model describe above, except that instead of using *select* to block on multiple file descriptors, the program uses multiple threads()
+
+### 2. Linux 的 Socket 事件 wakeup callback 机制
+
+---------------------
+
 ### 1. ★★☆ 文件系统的原理，特别是 inode 和 block。数据恢复原理。
 
 ### 2. ★★★ 硬链接与软链接的区别。
 
 ### 3. ★★☆ 能够使用常用的命令，比如 cat 文件内容查看、find 搜索文件，以及 cut、sort 等管线命令。了解 grep 和 awk 的作用。
+
       find: find . -name '*.py'
       cut: 用来显示行中指定的部分，删除文件中指定的字段，经常被用来显示文件内容。
       grep: grep pattern filename 可以搜索文件中的符合pattern 的关键字
+
 ### 4. ★★★ 僵尸进程与孤儿进程的区别，从 SIGCHLD 分析产生僵尸进程的原因。
