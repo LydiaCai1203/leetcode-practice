@@ -206,7 +206,7 @@
 
 ##### 1.4 异步I/O
 
-Aother closely related I/O model is to use multithreading with blocking I/O. That model very closely resembles the model describe above, except that instead of using *select* to block on multiple file descriptors, the program uses multiple threads()
+Aother closely related I/O model is to use multithreading with blocking I/O. That model very closely resembles the model describe above, except that instead of using *select* to block on multiple file descriptors, the program uses multiple threads.
 
 ### 2. Linux 的 Socket 事件 wakeup callback 机制
 
