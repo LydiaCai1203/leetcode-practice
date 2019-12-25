@@ -30,4 +30,3 @@ if __name__ == '__main__':
     server.server_bind()
     server.server_activate()
     server.serve_forever()
-
