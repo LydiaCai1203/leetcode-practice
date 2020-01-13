@@ -430,12 +430,12 @@ def singleton(cls):
 ### 16. GIL全局锁（全局解释器锁）
 
 + The GIL is a mutex (or a lock) that allows only one thread to hlod the control of the Python Interpreter.This means that only one thread can be in a state of execution at any point in time. performance overhead.
-
-    1. py2的逻辑当中，GIL的释放逻辑就是，当前线程遇到IO操作的时候，或者说ticks的数目达到100的时候，就进行释放。这个东西每次释放以后就会归零。
-    
-    2. py3的逻辑当中，GIL不再使用计数器，而是使用计时器，执行时间达到阈值以后，GIL就会释放锁，这样对CPU密集型的程序会更加的友好。
-    
-    3. 当GIL释放以后，线程都会进行锁竞争，切换线程，会消耗资源。
+  
+  1. py2的逻辑当中，GIL的释放逻辑就是，当前线程遇到IO操作的时候，或者说ticks的数目达到100的时候，就进行释放。这个东西每次释放以后就会归零。
+  
+  2. py3的逻辑当中，GIL不再使用计数器，而是使用计时器，执行时间达到阈值以后，GIL就会释放锁，这样对CPU密集型的程序会更加的友好。
+  
+  3. 当GIL释放以后，线程都会进行锁竞争，切换线程，会消耗资源。
 
 #### 16.1. 那么是不是python的多线程就一点用处都没有了呢？
 
