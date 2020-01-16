@@ -82,6 +82,8 @@ echo `Hello` World      # `Hello` command not found
 
 #### 4. Varaibles P1
 
+##### what is vars  & basic usage of vars
+
 `variables` - a symbolic name for a chunk of memory to which we can assign values, read and manipulate its contents. 
 
 + there must be no spaces around the "=" sign: VAR=value works, VAR = value doesn't work. **In firt case**, the shell sees the "=" symbol and treats the command as a variable assignment.**In second case**, the shell assumes that VAR must be the name of a command and tries to execute it.
@@ -94,9 +96,63 @@ MY_MESSAGE_VAR=Hello World
 ehco $MY_MESSAGE_VAR
 ```
 
-the difference between line2 to line3 and line 4 to line5 is that MY_MESSAGE_STRING
+the difference between line2 to line3 and line 4 to line5 is that `MY_MESSAGE_STRING` is a string, and the shell will try to execute the command `World` after assigning  `MY_MESSAGE_VAR = Hello`.
 
++ the shell dose not care types of vars, they may store strings, integers, real numbers , anything u like.
 
+```shell
+# Linux command
+# expr [expression] 
+# expr evaluates an expression and writes the result on standard output.
+expr 2 + 3
+expr 'Hello World' : 'Hell\(.*\)rld'
+expr index 'hello' 'lo'
+```
+
++ Mac OS X is use BSD(伯克利发行版) expr, but Linux is generally uses GNU expr.
+
+```shell
+#!/bin/sh
+echo What is ur name?
+# read a line from std input into a var supplied
+# if not input "caiqingjing", read command will automatically places quotes around its input.
+read MY_NAME
+echo "Hello $MY_NAME - hole u're well"
+# do not use single quote, it's useless，will print Hello $MY_NAME....
+```
+
+##### Scope of vars
+
++ vars in Bourne Shell do not have to be declared.
+
++ if u read an undeclared var, u get no warning, and the result is an empty string.
+
++ ./start.sh be equal to source start.sh   # factly "."(dot) is a command. and u can receive environment changes back from the script.
+
++ touch `${USER_NAME}_file` , and u can create file named caiqingjing_file, just like Python fstring.
+
+#### 5. Wildcards(通配符)
+
+```shell
+# copy
+cp /tmp/a/* /tmp/b/
+cp /tmp/a/*.txt /tmp/b/
+cp /tmp/a/*.html /tmp/b/
+# rename
+mv *.txt *.bak
+# ls
+ls *.py
+# echo 
+echo *txt   # means that echo all files end with "txt"
+```
+
+#### 6. Escape Charachters
+
++ `*`  在字符串中不再起作用
+
++ `\`  在字符串中起转义作用
+
++ 
 
 
 
