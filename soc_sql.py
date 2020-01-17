@@ -1,5 +1,5 @@
 # INSERT DATA INTO dev_soc.
-INSERT INTO `
+INSERT INTO `country` (`code`, `name`) VALUES
 ('CHN', '中国'),
 ('JPN', '日本'),
 ('KOR', '韩国'),
@@ -7,7 +7,7 @@ INSERT INTO `
 
 
 # INSERT DATA INTO dev.soc.state
-INSERT INTO `state` (`
+INSERT INTO `state` (`state_code`, `code`, `name`) VALUES
 // 中国
 ('CHN', 'CHN011', '北京'),
 ('CHN', 'CHN012', '天津'),
@@ -159,4 +159,5 @@ INSERT INTO `state` (`
 ('USA', 'USA0WA', '华盛顿'),
 ('USA', 'USA0WI', '威斯康星'),
 ('USA', 'USA0WV', '西佛吉尼亚'),
-('USA', 'USA0WY', '怀俄明'),
+('USA', 'USA0WY', '怀俄明');
+
