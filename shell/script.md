@@ -152,7 +152,193 @@ echo *txt   # means that echo all files end with "txt"
 
 + `\`  在字符串中起转义作用
 
-+ 
++ `echo "hello  "world""` 解释器将会echo 后面的解释成三个参数, `"hello "`、`world`、`""` 。
+
++ shell 中有三种字符会被解释器解释，分别是*, `, $, 只有他们被双引号包裹的时候，才不会被解释。
+
+#### 7. Loops
+
++ we have `while` and `for` in Bourne Shell.
+
+##### for loops
+
+```shell
+#!/bin/sh
+for i in 1 2 3 4 5
+do
+  echo "Looping ... number $i"
+done
+```
+
+```shell
+#!/bin/sh
+for i in hello 1 * 2 goodbye
+do
+  echo "Loop ... i is set to $i"
+done
+```
+
+```shell
+#!/bin/sh
+for i in *
+do
+  echo "Loop ... i is set to $i"
+done
+
+# * is mean that all files in current path
+
+i=*
+echo "$i"
+# u just have TEXT "*"
+```
+
+##### while loops
+
+```shell
+#!/bin/sh
+INPUT_STRING=hello
+while ["$INPUT_STRING" != "bye"]
+do
+  echo "Please type something in (bye to quit)"
+  read INPUT_SRTING
+  echo "You typed: $INPUT_STRING"
+done  
+```
+
+```shell
+#!/bin/sh
+while
+do
+  echo "Please type something in (^C to quit)"
+  read INPUT_STRING
+  echo "You typed: $INPUT_STRING"
+done
+```
+
+###### case
+
+```shell
+#!/bin/sh
+while read f
+do
+  case $f in
+       hello)                echo English           ;;
+       howdy)                echo American          ;;
+       gday)                 echo Australian        ;;
+       bonjour)              echo French            ;;
+       "guten tag")          echo German            ;; 
+       *)                    echo Unknown Language: $f
+                       ;;
+  esac
+done < myfile
+```
+
++ read from `myfile` and for each line, tells you what language it is.
+
++ each line must end with LF(newline), if `myfile` doesn't end with blank line, that final line will not be processed.
+
+```shell
+#!/bin/sh
+# on many Unix system, u also can use that
+while f=`line`
+do
+  process line
+done < myfile
+# zsh 里不行
+```
+
+##### mkdir
+
+```shell
+mkdir rc{0,1,2,3,4,5,6,S}.d
+# result is rc0.d ~ rcS.d
+mkdir rc{S}.d
+# result is rc{S}.d
+```
+
+##### command `{}`
+
+```shell
+echo {1,2,3}{a,b,c}   # result is: 1a,1b,1c,2a,2b,2c,3a,3b,3c
+ls -ld {,usr,usr/local}{bin,sbin,lib}    # -d 列出目录信息，将会尝试列出/bin, /sbin, /lib, /usr/bin, /usr/sbin, /usr/lib, /usr/local/bin, /usr/local/sbin, /usr/local/lib 这几种目录信息
+```
+
+#### Test
+
+**用于检查某个条件是否成立，可以在数值、字符、文件三个方面进行测试**
+
+`test` is more frequently called as `[`
+
++ `type test` <=> `type [`    # [ or test is a shell builtin
+
++ `[` is a symbolic `test` , just to make shell programs more readable.
+
+`test` is actually a **program**, just like `ls`  and other programs, so it must be surrounded by space.
+
++ `if [$foo = 'bar' ]` is not work, cause it will be interpreted as `if test$foo = 'bar' ]`, which `]` without a beginning `[`. 
+
++ correct format should be: `if [ "$foo" = "bar" ]` 
+
+#### if...fi
+
+```shell
+if [ ... ]
+then
+    # if-code
+else
+    # else-code
+fi
+```
+
+```shell
+if [ ... ]; then
+  echo "Something"
+  elif [ something_else ]; then
+    echo "Something else"
+  else
+    echo "None if the above"
+fi
+```
+
++ `;`  to join two lines together. This is often done to save a bit of space in simple if statements.
+
++ ```shell
+  #!/bin/sh
+  if [ "$X" -lt "0" ]
+  then
+    echo "X is less than zero"
+  fi
+  if [ "$X" -gt "0" ]; then
+    echo "X is more than zero"
+  fi
+  [ "$X" -le "0" ] && \
+        echo "X is less than or equal to  zero"
+  [ "$X" -ge "0" ] && \
+        echo "X is more than or equal to zero"
+  [ "$X" = "0" ] && \
+        echo "X is the string or number \"0\""
+  [ "$X" = "hello" ] && \
+        echo "X matches the string \"hello\""
+  [ "$X" != "hello" ] && \
+        echo "X is not the string \"hello\""
+  [ -n "$X" ] && \
+        echo "X is of nonzero length"
+  [ -f "$X" ] && \
+        echo "X is the path of a real file" || \
+        echo "No such file: $X"
+  [ -x "$X" ] && \
+        echo "X is the path of an executable file"
+  [ "$X" -nt "/etc/passwd" ] && \
+        echo "X is a file which is newer than /etc/passwd"
+  ```
+
+```shell
+x=''
+[ -n $x ] && echo "-${x}-"                   # 输出
+[ -n '' ] && echo "-hello world-"            # 不输出
+```
+
+
 
 
 
