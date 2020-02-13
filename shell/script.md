@@ -197,7 +197,7 @@ echo "$i"
 ```shell
 #!/bin/sh
 INPUT_STRING=hello
-while ["$INPUT_STRING" != "bye"]
+while [ "$INPUT_STRING" != "bye" ]
 do
   echo "Please type something in (bye to quit)"
   read INPUT_SRTING
@@ -263,7 +263,7 @@ echo {1,2,3}{a,b,c}   # result is: 1a,1b,1c,2a,2b,2c,3a,3b,3c
 ls -ld {,usr,usr/local}{bin,sbin,lib}    # -d 列出目录信息，将会尝试列出/bin, /sbin, /lib, /usr/bin, /usr/sbin, /usr/lib, /usr/local/bin, /usr/local/sbin, /usr/local/lib 这几种目录信息
 ```
 
-#### Test
+#### 8. Test
 
 **用于检查某个条件是否成立，可以在数值、字符、文件三个方面进行测试**
 
@@ -279,7 +279,7 @@ ls -ld {,usr,usr/local}{bin,sbin,lib}    # -d 列出目录信息，将会尝试�
 
 + correct format should be: `if [ "$foo" = "bar" ]` 
 
-#### if...fi
+#### 9. if...fi
 
 ```shell
 if [ ... ]
@@ -337,6 +337,288 @@ x=''
 [ -n $x ] && echo "-${x}-"                   # 输出
 [ -n '' ] && echo "-hello world-"            # 不输出
 ```
+
++ `-lt` `-gt` `-le` `-ge` comparisions are only designed for integers, and do not work on strings. 
+
++ check the content of the variable before u test it -.
+  
+  ```shell
+  echo -en "Please guess the magic number: "
+  read X
+  echo $X | grep "[^0-9]" > /dev/null 2>&1
+  if [ "$?" -eq "0" ]; then
+    echo "Sorry, wanted a number"
+  else
+    if [ "$X" -eq "7" ]; then
+      echo "You entered the magic number"
+    fi
+  fi
+  ```
+
++ `$?` 是最后运行的命令的结束代码(返回值)
+
++ `grep` 
+  
+  + `grep "[0-9]"` find lines of text which contain digits(0-9) and possibly other characters
+  
+  + `grep "[^0-9]"` find only those lines which don't consist only of numbers
+
++ `/dev/null`
+  
+  + virtual device file, treat it just like real files.
+  
+  + data written to the `/dev/null` and `/dev/zero` special files is discarded.
+  
+  + read from `/dev/null` always return end of file; read from `/dev/zero` always return bytes containing zero.
+  
+  + `cmd > /dev/null` 通常用于忽略掉输出
+
++ `cmd >/dev/null 2>&1` 
+  
+  + **0**: stdin; **1**: stdout; **2**: stderr
+  
+  + 使用`>`或`>>`时，默认为`1>file`，简写为`>file` ;
+    
+    + `ls -l > a.txt` == `ls -l 1> a.txt`
+    
+    + `2>&1` 表示把 标准错误输出 重定向到 标准输出。
+    
+    + `&` 意味着 `&1` 中的 1 是文件描述符，而不是文件名。
+  
+  + cmd 产生的输出 由标准输出 重定向到 空设备文件，标准错误输出 重定向到 标准输出，所以标准错误输出 也同样重定向到 空设备文件。所以 cmd 执行完不会在屏幕上打印出任何东西。
+
++ `grep -v "[0-9]"`  参数 `-v` 的结果和上一条一样。这样写更加简洁。
+
++ test2.sh
+  
+  ```shell
+  #!/bin/sh
+  X=0
+  # while [ ! -n "$X" ] !取反
+  while [ -n "$X" ]
+  do
+    echo "Enter some text (RETURN to quit)"
+    read X
+    echo "U said: $X"
+  done
+  ```
+  
+  + 如果输入''，实际上变量X的值为"''"，按下回车才是空
+
+#### 10. Case
+
+不常用，就写一个用例。
+
+```shell
+#!/bin/sh
+
+echo "Please talk to me ..."
+while :
+do
+  read INPUT_STRING
+  case $INPUT_STRING in
+    hello)
+        echo "Hello yourself!"
+        ;;
+    bye)
+        echo "See you again!"
+        break
+        ;;
+    *)
+        echo "Sorry, I don't understand"
+        ;;
+  esac
+done
+echo 
+echo "That's all folks!"
+```
+
+#### 11. Variables - Part 2
+
++ `$0 .. $9` and `$#` and `$@`
+  
+  + `$0`: the basename of the program as it was called. output is: -zsh
+  
+  + `$1 .. $9`: the first additional parameters the script was called with; `$@ and $*` is all parameters `$1 .. whatever`, use `$@` and avoid `$*`
+  
+  + `$#` is the number of parameters the script was called with
+  
+  ```shell
+  #!/bin/sh
+  echo "I was called with $# parameters"
+  echo "My name is $0"
+  echo "My first parameter is $1"
+  echo "My second parameter is $2"
+  echo "All parameters are $@"
+  
+  $ ./var3.sh hello world earth
+  I was called with 3 parameters
+  My name is ./var3.sh
+  My first parameter is hello
+  My second parameter is world
+  All parameters are hello world earth
+  ```
+
++ **`shift`** command
+  
+  ```shell
+  #!/bin/sh
+  while [ "$#" -gt "0" ]
+  do
+    echo "\$1 is $1"
+    shift
+  done
+  ```
+  
+  + `./test.sh hello world caiqj hahah`
+    
+    ```shell
+    $1 is hello
+    $1 is world
+    $1 is caiqj
+    $1 is hahahah
+    ```
+
++ `$?` contains the exit value of the last run command.
+  
+  ```shell
+  #!/bin/sh
+  /user/local/bin/my-command
+  if [ "$?" -ne "0" ];then
+    echo "Sorry, we had a problem there!"
+  fi
+  ```
+  
+  + exit with a value of zero if all went well;
+  
+  + `$$` is the PID of the currently running shell. This can be useful for creating temporary files.
+  
+  + `$!` is the PID of the last run background process. This is useful to keep track of the process as it gets on with its job.
+  
+  + `IFS` is the *Internal Field Separator*，the default value is `SPACE TAB NEWLINE`
+    
+    ```shell
+    #!/bin/sh
+    old_IFS="$IFS"
+    IFS=:
+    echo "Please input some data separated by colons ..."
+    read x
+    IFS=$old_IFS
+    echo "x is $x y is $y z is $z"
+    ```
+    
+    + `IFS=:` 指定分隔符是一个冒号
+    
+    + $IFS 是 shell 的环境变量，zsh 会根据 IFS 存储的值，来解析输入和输出的变量值
+      
+      ```shell
+      # 这里要注意其实是不应该这样直接修改IFS系统级的变量的
+      # 否则程序会出现不可预料的奇怪的问题
+      IFS='|'
+      text='a a a a|b b b b|c c c c'
+      for i in $text
+      do 
+        echo "i=$i"
+      done
+      ```
+
+#### 12. Variables - Part 3
+
++ In the shell, there's not much difference between `undefined` and `null` 
+
++ **Using Default Values**
+  
+  + 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
