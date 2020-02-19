@@ -1,5 +1,9 @@
 ### Shell-Script
 
+[https://net2.com/category/linux/ubuntu_tips_and_tricks/](https://net2.com/category/linux/ubuntu_tips_and_tricks/)
+
+
+
 #### 1. $PS1 bash custom prompt in Linux
 
 By default most Linux distro displays hostname and current working dir. U can easily customize your prompt ro display information important to you. Prompt is control via a special shell variable. U need to set PS1, PS2, PS3, PS4 variable.
@@ -528,7 +532,188 @@ echo "That's all folks!"
 
 + **Using Default Values**
   
-  + 
+  + ```shell
+    #!/bin/sh
+    echo -en "What is your name [ `whoami` ]"    # -n 不换行输出 -e 处理特殊字符(\n直接输出`\n`而不是换行)
+    read myname
+    if [ -z "$myname" ];then
+      myname=`whoami`
+    fi
+    echo "Your name is: $myname"
+    ```
+  + `-en` tell bash or csh not to add a linebreak;（`\c` at the end of line in Dash Bourne）
+  + this could be done better using a shell variable feature.
+    
+    ```shell
+    # whoami command which prints your login name(UID)
+    echo "Your name is: ${myname:-`whoami`}"
+    ```
+  + there is another syntax ":=", which sets the variable to the default if it is undefined.
+    
+    ```shell
+    echo "Your name is : ${myname:=John Doe}"
+    ```
+
+#### 13. External Porgrams
+
++ there are a few builtin commands(`echo`,`which`,`test` are commonly builtin), but many useful commands are actually Unix utilities, such as `tr`,`grep`,`expr`,`cut`.
+
++ the backtick (`) is used to indicated that the enclosed text is to be executed as a command.
+
++ use an interactive shell to read your full name from `/etc/passwd`
+
+```shell
+$ grep "^${USER}:" /etc/passwd | cut -d: -f5
+# 等价于
+$ MYNAME=`grep "^${USER}:" /etc/passwd | cut -d: -f5`
+$ echo $MYNAME
+Steve Parker
+```
+
++ so we see that the backtick simply catches the stantard output from any command or set of commands we choose to run.
+
+```shell
+#!/bin/sh
+find / -name "*.html" -print | grep "index.html$"
+find / -name "*.html" -print | grep "/contents.html$"
+```
+
+```shell
+#!/bin/sh
+HTML_FILES=`find / -name "*.html" -print`
+echo "$HTML_FILES" | grep "/index.html$"
+echo "$HTML_FILES" | grep "/contents.html$"
+```
+
++ `grep` will see one huge long line of text, and not one line per file.
+
+#### 15. grep
+
++ `grep 'single_world'  first_file_name  second_file_name`
+
++ `grep -i "Domain" index.html` #  use -i to ignore word case
+
++ `cat index.html | grep -i 'Domain'`  
+
++ `dpkg --list | grep -i 'sql'` #  dpkg 是 Debian 系统用来安装用的
+
++ `cat index.html | grep -A 1 "/head"`  #  显示有/head在的那行的后一行
+
++ `cat index.html | grep -B 1"/head"` #  显示有/head在的那行的前一行
+
+#### 16. functions
+
+   传统上，函数的定义是返回单个值，并且不会输出任何内容。过程不返回值，但可以产生输出。Shell 函数可能不会执行任何操作，过着两者都执行。通常，在 Shell 脚本中将它们成为函数。
+
+##### 16.1 函数可以通过以下方式返回值
+
++ Change the state of a variable or variables
+
++ Use the `exit` command tp end the Shell Script
+
++ Use the `return` command to end the function, and return the supplied value to the calling section of the shell script
+
++ Echo output to stdout, which will be caught by the caller just as c=`expr $a+$b` is caught
+
+Shell function cannot change its params, though it can change global params.
+
+##### 16.2 Example
+
+```shell
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
