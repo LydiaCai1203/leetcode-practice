@@ -2,8 +2,6 @@
 
 [https://net2.com/category/linux/ubuntu_tips_and_tricks/](https://net2.com/category/linux/ubuntu_tips_and_tricks/)
 
-
-
 #### 1. $PS1 bash custom prompt in Linux
 
 By default most Linux distro displays hostname and current working dir. U can easily customize your prompt ro display information important to you. Prompt is control via a special shell variable. U need to set PS1, PS2, PS3, PS4 variable.
@@ -541,13 +539,16 @@ echo "That's all folks!"
     fi
     echo "Your name is: $myname"
     ```
+  
   + `-en` tell bash or csh not to add a linebreak;（`\c` at the end of line in Dash Bourne）
+  
   + this could be done better using a shell variable feature.
     
     ```shell
     # whoami command which prints your login name(UID)
     echo "Your name is: ${myname:-`whoami`}"
     ```
+  
   + there is another syntax ":=", which sets the variable to the default if it is undefined.
     
     ```shell
@@ -620,25 +621,252 @@ Shell function cannot change its params, though it can change global params.
 ##### 16.2 Example
 
 ```shell
+#!/bin/sh
+# A simple script with a function
+
+add_user()
+{
+    USER=$1
+    PASSWORD=$2
+    shift; shift;
+    echo "Adding user $USER ..."
+    echo useradd -c "$COMMENTS" $USER
+    echo passwd $USER $PASSWORD
+    echo "Added user $USER ($COMMENTS) with pass $PASSWORD"    
+}
+
+###
+# Main body of script starts here
+###
+echo "Start of script..."echo 
+add_a_user bob letmein Bob Holness the presenter
+add_a_user fred badpassword Fred Durst the singer
+add_a_user bilko worsepassword Sgt. Bilko the role model
+echo "End of script..."
+```
+
++ `useradd` 用于创建或更新用户信息。
++ `/etc/passwd` 文件中，每行的第四个字段指定的就是用户的初始群组。
+  + `root:x:0:0:root:/root:/bin/bash` 用户名:口令:用户标识号:注释性描述:主目录:登录shell
+  + 口令：真正加密后的用户口令放在 `/etc/shadow` 文件中，而在 `/etc/passwd` 中的口令字段只存放一个特殊的字符。例如'x'或者'*'
+  + 用户标识号：一般情况下和用户名是一一对应的。但如果有几个用户名对应的用户标识号是一样的话，系统内部会将它们视作同一个用户。但是他们可以有不同的口令，主目录，以及不同的登录shell等。0是root。1-99由系统保留，作为管理账号。普通用户从100开始。
+  + `caiqingjing:x:1005:1005::/home/caiqingjing:/bin/bash` username:pwd:uid:gid:注释性描述:主目录:shell
+
+#### 17. Scope of variable
+
+```shell
+#!/bin/sh
+myfunc()
+{
+	echo "I was called as : $@"
+	x=2
+}
+echo "Script was called with $@"
+x=1
+echo "x is $x"
+myfunc 1 2 3
+echo "x is $x"
+
+```
+
++ `$@` was changed within the function to reflect how the function was called.
+
++ the variable `x` is a global variable. 作用域是这个脚本从开始到结束
+
++ a function will be called in a sub-shell if its output is piped somewhere else-that is `myfunc 1 2 3 | tee out.log` will still say `x is 1` 
+
+  + `tee` command reads the standard input and writes it to both the standard output and one or more files.
+
+  + Cause a new shell process is called to pipe `myfunc()` 
+
+```shell
+#!/bin/sh
+
+myfunc()
+{
+  echo "\$1 is $1"
+  echo "\$2 is $2"
+  # cannot change $1 - we'd have to say:
+  # 1="Goodbye Cruel"
+  # which is not a valid syntax. However, we can
+  # change $a:
+  a="Goodbye Cruel"
+}
+
+### Main script starts here 
+
+a=Hello
+b=World
+myfunc $a $b
+echo "a is $a"
+echo "b is $b"
+```
+
++ 传进来的$1这种变量是不能更改的
+
+#### 18.Recursion
+
+```shell
+#!/bin/sh
+
+factorial()
+{
+  if [ "$1" -gt "1" ]; then
+    i=`expr $1 - 1`
+    j=`factorial $i`
+    k=`expr $1 \* $j`
+    echo $k
+  else
+    echo 1
+  fi
+}
 
 
+while :
+do
+  echo "Enter a number:"
+  read x
+  factorial $x
+done 
+```
 
+```shell
+# common.lib
+# Note no #!/bin/sh as this should not spawn 
+# an extra shell. It's not the end of the world 
+# to have one, but clearer not to.
+#
+STD_MSG="About to rename some files..."
 
+rename()
+{
+  # expects to be called as: rename .txt .bak 
+  FROM=$1
+  TO=$2
 
+  for i in *$FROM
+  do
+    j=`basename $i $FROM`
+    mv $i ${j}$TO
+  done
+}
+```
 
++ `basename`  可以从一个路径里面取出文件名 
++ `dirname` 可以生成这个文件的相对路径
 
+```shell
+#!/bin/sh
+# how to use that
+. ./common.lib
+echo #STD_MSG
+rename .txt .bak
+```
 
+#### 19. Return Codes
 
+```shell
+#!/bin/sh
 
+adduser()
+{
+  USER=$1
+  PASSWORD=$2
+  shift ; shift
+  COMMENTS=$@
+  useradd -c "${COMMENTS}" $USER
+  if [ "$?" -ne "0" ]; then
+    echo "Useradd failed"
+    return 1
+  fi
+  passwd $USER $PASSWORD
+  if [ "$?" -ne "0" ]; then
+    echo "Setting password failed"
+    return 2
+  fi
+  echo "Added user $USER ($COMMENTS) with pass $PASSWORD"
+}
 
+## Main script starts here
 
+adduser bob letmein Bob Holness from Blockbusters
+ADDUSER_RETURN_CODE=$?
+if [ "$ADDUSER_RETURN_CODE" -eq "1" ]; then
+  echo "Something went wrong with useradd"
+elif [ "$ADDUSER_RETURN_CODE" -eq "2" ]; then 
+   echo "Something went wrong with passwd"
+else
+  echo "Bob Holness added to the system."
+fi
 
+```
 
+#### 20. Hints and Tips
 
+```shell
+#!/bin/sh
+steves=`grep -i steve /etc/passwd | cut -d: -f1`
+# grep -i 忽略大小写
+# cut -d 指定字段的分隔符，默认的字段分隔符是 TAB
+# cut -f 选取指定的是第几个域，如果是 cut -f1 意思就是显示第一个域
+```
 
+```shell
+# \r\n 什么要先回车再换行呢，先把指向当前的坐标转到行首，然后再换行。因为这个是以前用来控制打印机针头的。
+echo 'steves' | tr 'e' '\012'   #\012 就是 \n 的八进制形式
+# tr 是 replace 的意思
+tr '[a-z]' '[A-Z]'   # 转成大写
+```
 
+#### 21. Cheating
 
++ `awk` 
 
+  + `wc` counts the number of characters, lines, and words in a text file.
+
+  + ```shell
+    wc example.txt
+        4       5      99 example.txt
+    ```
+
+  + if we want to get the number of lines into a variables, using that
+
+  + ```shell
+    NO_LINES=`wc -l file`
+    # awk 的默认域分隔符是whitespace或是tab，$1、$2 表示第几个域，$0表示所有域
+    a=`wc -l example.txt | awk '{ print $1 }'`
+    ```
+
++ `sed`
+
+  + Means that stream editor; Perl is very good at dealing with regular expressions, the shell isn't. So we can quickly use the `s/from/to/g` construct by invoking `sed` .
+
+  + ```shell
+    # change every instance of eth0 in file1 to eth1 and write into file2
+    sed s/eth0/eth1/g file1 > file2
+    # if we were only changing a single character, tr would be the tool to use.
+    echo ${SOMETHING} | sed s/"bad word"//g
+    # grep 也可以替换字符，但是替换的是文件中的字符。sed 替换的是缓冲区中的字符，并不修改文件中的内容。
+    ```
+
+#### 21. Telnet hint
+
++ telnet命令通常用来远程登录。telnet程序是基于TELNET协议的远程登录客户端程序。Telnet协议是TCP/IP协议族中的一员，是Internet远程登陆服务的标准协议和主要方式。它为用户提供了在本地计算机上完成远程主机工作的 能力。在终端使用者的电脑上使用telnet程序，用它连接到服务器。终端使用者可以在telnet程序中输入命令，这些命令会在服务器上运行，就像直接在服务器的控制台上输入一样。可以在本地就能控制服务器。要开始一个 telnet会话，必须输入用户名和密码来登录服务器。Telnet是常用的远程控制Web服务器的方法。
++ 但是，telnet因为采用明文传送报文，安全性不好，很多Linux服务器都不开放telnet服务，而改用更安全的ssh方式了。
+
+#### 22. Quick Reference
+
+|   command   |                       description                       |            example             |
+| :---------: | :-----------------------------------------------------: | :----------------------------: |
+|      &      |                     在后台运行命令                      |              ls &              |
+| && and \|\| |                    逻辑与 和 逻辑或                     |          If [] && []           |
+|   ^ and $   |                       行首和行尾                        |   grep "^foo" 和 grep "foo$"   |
+|  = and !=   |             等于和不等于(用于字符串的比较)              |     if [ "$foo" != "bar" ]     |
+|  $$ and $!  |          当前shell的PID和最后执行的后台进程PID          |       echo "my PID = $$"       |
+|     $?      |                  最后一条命令的返回码                   | ls ; echo "ls returned code $? |
+|     $0      |                     当前shell的name                     |         echo "I am $0"         |
+|     $@      | 执行当前脚本所传入的所有参数(保留whitesapce 和 quoting) |   echo "My arguments are $@"   |
+|     $*      |           同上，但不保留whitespace 和 quoting           |   echo "My arguments are $@"   |
 
 
 
