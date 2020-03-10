@@ -66,19 +66,19 @@ IP 192.168.10.1 用于连接本地系统 192.168.10.2
 
 ps: Internet 指的是因特网/外网；Intranet 指的是内部/内网
 
- ![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-1.jpg)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-1.jpg)
 
 ​    Given below image is describing the network configuration for **SSH server** where it is showing two IP 192.168.1.104 and another 192.168.10.1
 
 ​    下图给出 SSH server 上的网络配置。
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunnrling-2.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunnrling-2.png)
 
 ​    Another image given below is describing network configuration for **SSH client** which is showing IP 192.168.10.2
 
 ​    以下这张图给出了 SSH client 上的网络配置
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-3.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-3.png)
 
 ### **Dynamic SSH Tunneling through Windows**
 
@@ -88,13 +88,13 @@ ps: Internet 指的是因特网/外网；Intranet 指的是内部/内网
 
 ​    远程PC 尝试通过 22端口 连接 SSH 服务端，这里我们用PuTTY来建立 SSH服务端(ubuntu) 和 远程PC(Windows) 之间的连接。
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-4.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-4.png)
 
 ​    Similarly now Remote PC trying to connect with **Client PC** (**192.168.10.2**) via **port 22**, since they belong to the different network, therefore, he receives network error.
 
 ​    远程PC 尝试通过22端口连接 本地PC(192.168.10.2)，因为它们处于不同的网络，所以远程PC会收到错误连接信息。
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-5.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-5.png)
 
 ### **Dynamic SSH Tunneling through Kali Linux on Port 80**
 
@@ -114,7 +114,7 @@ ps: Internet 指的是因特网/外网；Intranet 指的是内部/内网
 
 ​    输入使用者的密码登录以获取 SSH服务器 访问权。
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-6.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-6.png)
 
 Install tsocks through apt repository using the command:
 
@@ -126,7 +126,7 @@ Install tsocks through apt repository using the command:
 
 也就是说，stocks 可以让本机上的任何软件通过 socks 代理上网的工具，它是一个透明的 socks 代理软件，只要你电脑有一个连接到国外服务器的ssh隧道，你就能让任何软件翻墙。shadowsocks 内部也是使用的socks5协议。
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-7.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-7.png)
 
 Open the **tsocks.conf** file for editing socks server IP and port, in our case we need to mention below two lines and then save it.
 
@@ -138,7 +138,7 @@ Server_port = 7000
 
 Ps: 我看过很多教程，对server这行的注释都是"远程服务器的地址", 如果你搭建的是ssh隧道，server应该填的是127.0.0.1；tsocks将数据发到本地7000端口，ssh隧道监听本地7000端口，然后将数据加密，传输到远程服务器，远程服务器解密数据以后将数据转发到正确的目标地址，从而实现翻墙。
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-8.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-8.png)
 
 Now connect to SSH client with the help tsocks using given below command.
 
@@ -162,9 +162,9 @@ Now again we switch into Kali Linux for local tunneling which is quite easy as c
 
 `ssh -L 7000:192.168.10.2:22 ignite@192.168.1.104`
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-9.jpg)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-9.jpg)
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-10.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-10.png)
 
 ps: 这里我摘取了阮一峰老师博文里面的一段话解释一下本地端口转发是什么：有时候绑定本地端口还不够，还必须指定数据传送的目标主机，从而形成点对点的“端口转发”。这里我们把这种情况称为本地端口转发。指定host1是本地主机，host2是远程主机，另外有一台host3可以同时连通前面两台机器。host1通过host3连上host2。
 
@@ -180,7 +180,7 @@ Now open a new terminal and type below command for connecting to SSH client.
 
 太棒了，现在我们能通过登录本机的7000端口连上192.168.10.2。
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-11.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-11.png)
 
 ### **Remote SSH Tunneling through Ubuntu**
 
@@ -196,7 +196,7 @@ Here 192.168.1.10.2 is our local client (raj) IP and 192.168.1.108 is our remote
 
 这里 192.168.10.2 是本地客户端，192.168.1.108 是远程系统的IP.
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-12.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-12.png)
 
 Come back to the remote system and enter the following command to with SSH client machine.
 
@@ -208,7 +208,7 @@ From given below image you can observe that we had successfully connected with S
 
 从下面的图像中可以看到，我们已经通过端口7000成功连接到了 SSH 客户端计算机。
 
-![](https://github.com/LydiaCai1203/leetcode-practice/statics/ssh-tunneling-13.png)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/ssh-tunneling-13.png)
 
 Ps: 这里再引用一下阮一峰老师博客里的话来解释一下上面的命令，远程端口转发指的是绑定远程端口的转发。host1与host2之间无法连通，必须借助host3转发，但是特殊情况出现了，host3是一台内网机器，它可以连接外网的host1，反过来不行。外网的host1连不上内网的host3。这时本地端口转发就不能用了。
 
@@ -217,6 +217,3 @@ Ps: 这里再引用一下阮一峰老师博客里的话来解释一下上面的�
 `ssh -R 2121:host2:21 host1` 
 
 让host1监听它自己的2121端口，然后将所有的数据经由host3，转发至host2的21端口。这样绑定以后，我们就可以在host1连接host2了。这里必须指出，"远程端口转发"的前提条件是，host1和host3两台主机都有sshD和ssh客户端。
-
-
-
