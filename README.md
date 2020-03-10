@@ -63,6 +63,8 @@
 
 ## 操作系统
 + [操作系统基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/os_base_tips.md)
++ [shell-script program](https://github.com/LydiaCai1203/leetcode-practice/blob/master/shell/script.md)
++ [shell-tunneling](https://github.com/LydiaCai1203/leetcode-practice/blob/master/shell/ssh-tunneling.md)
 
 
 ## 计算机网络
