@@ -856,185 +856,57 @@ tr '[a-z]' '[A-Z]'   # 转成大写
 
 #### 22. Quick Reference
 
-|   command   |                       description                       |            example             |
-| :---------: | :-----------------------------------------------------: | :----------------------------: |
-|      &      |                     在后台运行命令                      |              ls &              |
-| && and \|\| |                    逻辑与 和 逻辑或                     |          If [] && []           |
-|   ^ and $   |                       行首和行尾                        |   grep "^foo" 和 grep "foo$"   |
-|  = and !=   |             等于和不等于(用于字符串的比较)              |     if [ "$foo" != "bar" ]     |
-|  $$ and $!  |          当前shell的PID和最后执行的后台进程PID          |       echo "my PID = $$"       |
-|     $?      |                  最后一条命令的返回码                   | ls ; echo "ls returned code $? |
-|     $0      |                     当前shell的name                     |         echo "I am $0"         |
-|     $@      | 执行当前脚本所传入的所有参数(保留whitesapce 和 quoting) |   echo "My arguments are $@"   |
-|     $*      |           同上，但不保留whitespace 和 quoting           |   echo "My arguments are $@"   |
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+|   command   |                       description                       |             example              |
+| :---------: | :-----------------------------------------------------: | :------------------------------: |
+|      &      |                     在后台运行命令                      |               ls &               |
+| && and \|\| |                    逻辑与 和 逻辑或                     |           If [] && []            |
+|   ^ and $   |                       行首和行尾                        |    grep "^foo" 和 grep "foo$"    |
+|  = and !=   |             等于和不等于(用于字符串的比较)              |      if [ "$foo" != "bar" ]      |
+|  $$ and $!  |          当前shell的PID和最后执行的后台进程PID          |        echo "my PID = $$"        |
+|     $?      |                  最后一条命令的返回码                   |  ls ; echo "ls returned code $?  |
+|     $0      |                     当前shell的name                     |          echo "I am $0"          |
+|     $@      | 执行当前脚本所传入的所有参数(保留whitesapce 和 quoting) |    echo "My arguments are $@"    |
+|     $*      |           同上，但不保留whitespace 和 quoting           |    echo "My arguments are $@"    |
+|     -eq     |                    Numeric equality                     |      If [."$foo" -eq "9" ]       |
+|     -ne     |                   Numeric Inequality                    |      If [."$foo" -ne "9" ]       |
+|     -lt     |                        less than                        |      if [ "$foo" -lt "9" ]       |
+|     -le     |                   Less than or equal                    |      if [ "$foo" -le "9" ]       |
+|     -gt     |                      Greater than                       |      if [ "$foo" -gt "9" ]       |
+|     -ge     |                  Greater than or equal                  |      if [ "$foo" -ge "9" ]       |
+|     -z      |                  string is zero length                  |         if [ -z "$foo" ]         |
+|     -n      |                String is not zero length                |         if [ -n "$foo" ]         |
+|     -nt     |                       Newer than                        |  if [ \"$file1" -nt "$file2" ]   |
+|     -d      |                     Is a directory                      |          if [ -d /bin ]          |
+|     -f      |                        Is a file                        |        if [ -f /bin/ls ]         |
+|     -r      |                   is a readable file                    |        if [ -r /bin/ls ]         |
+|     -w      |                   Is a writable file                    |        if [ -w /bin/ls ]         |
+|     -x      |                  is a executable file                   |        if [ -x /bin/ls ]         |
+|     ()      |                   function definition                   | function myfunc() { echo hello } |
+
+#### 24. Interactive Shell
+
+However the root shell should always be `/bin/sh`, whether that points to bash or Bourne shell. `ctrl+r` 可以反向搜索历史命令使用。
+
++ press `ctrl+r`. 
++ if u want search cut, just enter 'cut'.
++ If current command in shell is not ur want, press`ctrl+r` some times.
+
+##### bash
+
+if u want to repeat a command u ran before, and u know what characters it started with, 你就可以输入`!g`, if the result is not u want, 你可以按上下键翻页。
+
+```shell
+bash$ ls /tmp
+(list of files in /tmp)
+bash$ touch /tmp/foo
+bash$ !l
+ls /tmp
+(list of files in /tmp, now including /tmp/foo)
+```
+
++ `cd -` + `TAB` 可以显示出最近跳转过的路径
+
+#### zsh
+
+[zsh的一些使用技巧](https://www.zhihu.com/question/21418449)
 
