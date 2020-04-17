@@ -40,7 +40,18 @@ choose the strategy to update the attributes on objects in the session.
 
 *evaluate* - Evaluate the Query's criteria in Python straight on the objects in the session. If evaluation of the criteria isn't implemented, an exception is raised.
 会评估在 Python 中这些直接作用在会话中的对象上的查询条件是否有被实现，如果没有就会抛出异常。
+```
 
+## 3. sqlalchemy insert
+
+```markdown
+# 这段时间写插入的时候学到在 sqlalchemy 中插入有很多方法可以实现
+# session.add()
+place an object in the Session, its state will be persisted to the database on the next flush operation.Repeat calls to `add()` will be ignored.The opposite of `add()` is `expunge()`.
+把一个对象放进会话里，当你在 `add()` 之后使用了 `flush()` 它的状态会被持久更新到数据库中，重复调用 `add()` 不会起作用。`expunge()` 可以将某个对象从会话中删除。
+
+# session.bulk_insert_mappings(mapper, mappings, return, default=False, render_nulls=False)
+Perform a bulk insert of the given list of mapping dictonaries. The bulk insert feature allows plain Python dictionaries to be used as the source of simple `INSERT` operations which can be more 
 ```
 
 

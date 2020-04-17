@@ -345,64 +345,34 @@
 
 + CAS (Central Authentication Service) 是耶鲁大学的一个开源项目，旨在为 web 应用系统提供一种可靠的单点登录解决方案。采用 CAS 最大的原因是从安全性考虑，用户在 CAS 录入用户名和密码以后通过 tiket 进行认证，不会通过网络传输密码，保证其安全性。
 
-#### 17.3 专业词解释
+#### 18. appid, appkey, appsecret, accesstoken 的区别和应用场景
 
-+ CAS 的核心就是其 Ticket, 以及其在 Ticket 之上的一系列操作。CAS 的主要票据有 TGT、ST、PGT、PGTIOU、PT
+1. appid 是用来标记你的开发者账号的，是你的用户 id, 这个 id 在数据库添加索引，方便快速查找。
 
-+ **TGT**
+2. appkey 和 appsecret 是成对出现的，同一个 appid 可以对应多对 (appkey, appsecret)，这样平台就可以分配给用户不一样的权限，比如 (app_key1, app_secret1) 代表的是只读权限。一般也会将 appkey 添加索引，方便快速查找。
 
-+ 
+3. 为什么 appkey 和 appsecret 是成对出现的？
+   
+   通常在首次验证的时候，你需要用 appkey(标记要申请的权限) + appsecret(密码，表示你真的拥有这个权限) 来申请一个 token。之后只要提供这个 token 即可。
 
+#### 19.操作日志主要记录的要包括五点
 
+    who, when, why, how, what
 
+#### 20.主流的通信安全
 
+[微信支付签名生成基本步骤介绍]([https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=4_3](https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=4_3))
 
++ 首先需要考虑以下几个问题
+  
+  + **请求参数是否被篡改**
+  
+  + **请求来源是否合法**
+  
+  + **请求是否具有唯一性**
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
++ 生成签名的基本步骤
+  
+  + 设所有发送或接收到的数据为集合 M，将集合 M 内的非空参数值的参数按照参数名的 ASCII 码， 
 
 
