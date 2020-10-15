@@ -20,7 +20,7 @@ Clare Churcher 的 《Beginning Database Design》帮助学习数据库设计。
 
 + **尽量避免 NULL**
 
-  通常情况下最好指定列为 NOT NULL，除非真的有必要存 NULL。可为 NULL 的列使得索引、索引统计、值比较，都**更复杂**。并且会使用**更多的存储空间**，在 MySQL 里也**需要特殊处理**。通常将可为  NULL 的列都变为 NOT NULL 带来的性能提升比较小。**InnoDB 使用 bit 来存储 NULL 值，对于稀疏数据(很多为 NULL, 很少为 NOT NULL)有很好的空间效率。** 另外，MySQL 为了兼容还支持很多的别名，如 INTEGER、BOOL、NUMERIC。
+  通常情况下最好指定列为 NOT NULL，除非真的有必要存 NULL。*可为 NULL 的列* 使得索引、索引统计、值比较，都**更复杂**。并且会使用**更多的存储空间**，在 MySQL 里也**需要特殊处理**。通常将可为  NULL 的列都变为 NOT NULL 带来的性能提升比较小。**InnoDB 使用 bit 来存储 NULL 值，对于稀疏数据(很多为 NULL, 很少为 NOT NULL)有很好的空间效率。** 另外，MySQL 为了兼容还支持很多的别名，如 INTEGER、BOOL、NUMERIC。
 
   + 当可为 NULL 的列被索引时，每个索引记录需要一个额外的字节。
   + 在 MyISAM 里甚至还可能导致固定大小的索引变成可变大小的索引。
