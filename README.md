@@ -5,6 +5,13 @@
 
 
 ## 数据库
+
++ 高性能 MySQL 笔记
+    + [第一章 MySQL 的架构和历史](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql_performance/chapter1.md)
+    + [第四章 Schema 与数据类型优化](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql_performance/chapter4.md)
+    + [第五章 创建高性能的索引](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql_performance/chapter5.md)
+    + [第六章 查询性能优化](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql_performance/chapter6.md)
+
 + [MySQL复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/MySQL%20%E8%A6%81%E7%82%B9.md)
 
 + [赶集网36条军规](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/36%E6%9D%A1%E5%86%9B%E8%A7%84.txt)
