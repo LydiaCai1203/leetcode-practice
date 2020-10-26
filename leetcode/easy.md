@@ -168,7 +168,7 @@ class Solution:
 
 ---------------------------------------
 ### 169. 求众数
-    
+
     给定一个大小为 n 的数组，找到其中的众数。众数是指在数组中出现次数大于 ⌊ n/2 ⌋ 的元素。
     你可以假设数组是非空的，并且给定的数组总是存在众数。
 
@@ -239,7 +239,7 @@ having count(id) > 1;
 + 状态转移方程： F(i) = F(i-1) + F(i-2)
 + 初始状态：F(1) = 1; F(2) = 2; F(3) = F(1) + F(2) = 3
 + 返回值： F(i)
-    
+  
 ```python
 class Solution:
     def climbStairs(self, n: int) -> int:
@@ -981,7 +981,7 @@ class Solution:
 #### 示例 1：
     s = "leetcode"
     返回 0.
-
+    
     s = "loveleetcode"
     返回 2.
 #### solution：
@@ -1000,7 +1000,7 @@ class Solution:
 --------------------------
 ### 443. 压缩字符串
     给定一组字符，使用原地算法将其压缩。压缩后的长度必须始终小于或等于原数组长度。数组的每个元素应该是长度为1 的字符（不是 int 整数类型）。在完成原地修改输入数组后，返回数组的新长度。
-
+    
     注意: 所有字符都有一个ASCII值在[35, 126]区间内。1 <= len(chars) <= 1000。
 #### 示例 1：
 ```python
@@ -1042,4 +1042,89 @@ class Solution:
 ```
 
 --------------------------
-### . 压缩字符串
+### 20. 有效的括号
+    给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串，判断字符串是否有效。
+    
+    有效字符串需满足：
+
+        左括号必须用相同类型的右括号闭合。
+        左括号必须以正确的顺序闭合。
+        注意空字符串可被认为是有效字符串。
+
+#### 示例1:
+```python
+输入: "()"
+输出: true
+```
+
+#### 示例2:
+```python
+输入: "()[]{}"
+输出: true
+```
+
+#### 示例3:
+```python
+输入: "(]"
+输出: false
+```
+
+#### 示例4:
+```python
+输入: "([)]"
+输出: false
+```
+
+#### 示例5:
+```python
+输入: "{[]}"
+输出: true
+```
+
+#### Solution - v1
+```python
+class Solution:
+    def isValid(self, s: str) -> bool:
+        mapping = {'(': 1, ')': -1, '[': 2, ']': -2, '{': 3, '}': -3}
+        stack = []
+        for char in s:
+            if char == ' ':
+                continue
+
+            if not stack:
+                stack.append(char)
+                continue
+
+            prev_char = stack.pop()
+            if (mapping[prev_char] > mapping[char]) and (mapping[prev_char] + mapping[char]) == 0:
+                continue
+            else:
+                stack.append(prev_char)
+                stack.append(char)
+        return False if stack else True
+```
+
+#### Solution - official
+```python
+class Solution:
+    def isValid(self, s: str) -> bool:
+        if len(s) % 2 == 1:
+            return False
+        
+        pairs = {
+            ")": "(",
+            "]": "[",
+            "}": "{",
+        }
+        stack = list()
+        for ch in s:
+            if ch in pairs:
+                if not stack or stack[-1] != pairs[ch]:
+                    return False
+                stack.pop()
+            else:
+                stack.append(ch)
+        
+        return not stack
+```
+
