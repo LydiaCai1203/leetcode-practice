@@ -118,3 +118,137 @@
 
 `docker network disconnect my-net my-nginx`
 
+#### host 网络教程
+
+本教程处理 独立容器直接绑定 docker 宿主机的主机网络，不存在网络隔离。
+
+**目标**
+
+开启一个直接绑定宿主机 80 端口的 nginx container，从网络的角度看，这个和 nginx 直接跑在宿主机上是一样的，不一样的是 存储、命名空间、nginx 进程和主机进程的隔离。host mode network 在容器需要处理大量端口时很有用，因为她不需要网络地址转换，并且也不会为每个端口创建 userland-proxy。
+
+**前提准备**
+
++ host 网络驱动器只支持 Linux 主机。
++ 需要主机 80 端口可用。让 nginx 监听其它端口。
+
+**过程**
+
+1. `docker rm --rm -d --network host --name nginx nginx` --rm 表示一旦 container 退出或停止就删除容器
+2. 访问  [http://localhost:80/](http://localhost/) 以访问 nginx
+3. 检视你的 network stack
+   + `ip addr show`  检查所有网络接口确保没有新的网络接口生成
+   + `sudo netstat -tulnp | grep 80` 确认 nginx 绑定的是 80 端口
+4. `docker container stop my_nginx`
+
+#### 覆盖网络（我猜 k8s 用的就是覆盖网络了）
+
+**前提准备**
+
+需要你至少有一个节点的集群，意味着你先要在主机上执行 `docker swarm init` 。
+
+**使用默认的覆盖网络**
+
+本教程需要三台可以互相访问的物理或虚拟的 Docker 主机。假定现在这三台主机在同一网络运行，并且不涉及防火墙。这三台主机分别是 worker-1, worker-2, manager, 其中 manager 即可以充当 manager, 也可以充当 worker, 也就是说既可以运行服务任务，又可以管理集群。三台 docker 主机在一个集群，它们会通过一个名为 ingress 的覆盖网络来连接彼此。
+
+**演练**
+
++ 创建一个集群
+
+  1. 在 manager 上，初始化一个集群。如果 host 只有一个网络接口，则 --advertise-addr 可有可无. 记录下下面这条命令结束所打印的文本。其中包含用于将 worker-1 和 worker-2 加入集群中的令牌。最好将令牌存储在密码管理器中。
+
+     ```shell
+     docker swarm init --advertise-addr=<IP-ADDRESS-OF-MANAGER>
+     ```
+
+  2. 让 worker-1 加入集群，如果 host 只有一个网络接口，则 --advertise-addr 可有可无
+
+     ```shell
+     docker swarm join --token <TOKEN> \
+     --advertise-addr<IP-ADDRESS-OF-WORKER-1> \
+     <IP-ADDRESS-OF-MANAGER>:2377
+     ```
+
+  3. 让 worker-2 假如集群，如果 host 只有一个网络接口，则 --advertise-addr 可有可无
+
+     ```SHELL
+     docker swarm join --token <TOKEN> \
+     --advertise-addr<IP-ADDRESS-OF-WORKER-2> \
+     <IP-ADDRESS-OF-MANAGER>:2377
+     ```
+
+  4. 在 manager 上，罗列出所有的节点
+
+     ```shell
+     docker node ls
+     ```
+
+     ```shell
+     docker node ls --filter role=manager
+     docker node ls --filter role=worker
+     ```
+
+  5. 现在三个节点每个节点上都有一个覆盖网络称为 ingress 还有一个桥接网络称为 docker_gwbridge. docker_gwbridge 将 ingress 网络连接到 docker 主机的网络接口，以便与流量可以往返于 manager 和 worker.
+
+     ```shell
+     # 在 manager 上执行下列语句 
+     docker network ls
+     ```
+
+  **创建 services**
+
+  1. 在 manager 上，创建一个新的覆盖网络 - nginx-net。无须在其它节点上再创建覆盖网络了，因为当其中一个节点开始运行需要该服务的服务任务时，该网络会自动创建。
+
+     ```shell
+     docker network create -d overlay nginx-net
+     ```
+
+  2. 在 manager 上，创建具有 5 个副本的 nginx 服务，并连接到 nginx-net 上。这个服务会开放 80 端口给外部，所有的服务任务容器都可以彼此通信，无须开发任何端口。这意味着如果访问 manager、worker-1、worker-2 上的 80 端口，你会连接到 5 个 服务中的一个 80 端口上，即使现在没有任务运行在你浏览的这个节点上。
+
+     ```shell
+     docker service create \
+     --name my-nginx \
+     --publish taiget=80, published=80 \
+     --repicas=5 \
+     --network nginx-net \
+     nginx
+     ```
+
+  3. `docker service ls` 
+
+  4. 检视在 manager、worker-1、worker-2 上的 nginx-net 网络，这个输出会很长，需要关注 Containers 和 Peers 部分，Containers 部分会列出所有的从主机连到覆盖网络上的所有服务任务。
+
+  5. `docker service inspect my-nginx` 可以找到服务使用的 端口 和 endpoint 信息
+
+  6. `docker network create -d overlay nginx-net-2`
+
+  7. ```sh
+     docker servcie update \
+     --network-add nginx-net-2 \
+     --network-rm nginx-net \
+     my-nginx
+     ```
+
+  8. `docker service ls`  去确认服务已被更新 `docker network inspect nginx-net` 确认已经没有容器连接在上面
+
+  9. `docker service rm my-nginx` 和 `docker network rm nginx-net nginx-net-2` 清理服务和网络资源
+
+**使用用户自定义的覆盖网络**
+
+1. 在 manager 所在的主机上创建覆盖网络
+
+   `docker network create -d overlay my-overlay`
+
+2. ```sh
+   docker service create \
+   --name my-nginx \
+   --network my-overlay \
+   --replicas 1 \
+   --publish published=8080,target=80 \
+   nginx:lastest
+   ```
+
+3. `docker network inspect my-overlay`
+
+4. `docker service rm my-nginx`
+
+5. `docker network rm my-overlay`
