@@ -3183,77 +3183,1731 @@ es 内部 `match` 查询步骤为：
 
 ## 多词查询
 
+```json
+GET /my_index/my_type/_search
+{
+    "query": {
+        "match": {
+            "title": "BROWN DOG!"
+        }
+    }
+}
+```
+
+因为 `match` 底层会构造成
+
+```json
+{
+    "query": {
+        "bool": {
+          	"should": [
+              {"term": {"title": "BROWN"}},
+              {"term": {"title": "DOG"}}
+            ]
+        }
+    }
+}
+```
+
+也就是说只要 任何一个文档里面包含任何一个 `match` 里面任何一个词项，就能被匹配到，匹配到的词项越多，文档就越相关。
+
+### 提高精度
+
+如果想要搜索的是 `BROWN AND DOG`，而不是 `BROWN OR DOG`。只需要使用下面：
+
+```json
+GET /my_index/my_type/_search
+{
+    "query": {
+        "match": {
+            "title": {      
+                "query":    "BROWN DOG!",
+                "operator": "and"                // es 可以接受 operator 作为输入参数，默认情况下是 or
+            }
+        }
+    }
+}
+```
+
+### 控制精度
+
+如果我们既想包含那些可能相关的文档，同时排除那些不太相关的，`match` 支持 `minimum_should_match` 最小匹配参数，可以指定必须匹配的词项数用来表示一个文档是否相关。可以设置为某个具体数字，更常用的做法是将其设置为一个百分数，因为我们无法控制用户搜索时输入的单词数量。
+
+```json
+GET /my_index/my_type/_search
+{
+  "query": {
+    "match": {
+      "title": {
+        "query": "quick brown dog",
+        "minimum_should_match": "75%"
+      }
+    }
+  }
+}
+```
+
+## 组合查询
+
+bool 查询除了决定一个文档是否应该被包括在结果中，还会计算文档的相关程度。
+
+```json
+GET /my_index/my_type/_search
+{
+  "query": {
+    "bool": {
+      "must":     { "match": { "title": "quick" }},
+      "must_not": { "match": { "title": "lazy"  }},
+      "should": [
+                  { "match": { "title": "brown" }},
+                  { "match": { "title": "dog"   }}
+      ]
+    }
+  }
+}
+```
+
+### 评分计算
+
+`bool` 查询会为每个文档计算相关度评分 `_score`，再将所有匹配的 `must` 和 `should` 语句的 `_score` 求和，最后除以 `must` 和 `should` 语句的总数。`must_not` 不会影响评分，作用只是将不相关的文档排除。
+
+### 控制精度
+
+所有 `must` 语句必须匹配，所有 `must_not` 语句都必须不匹配，但有多少 `should` 语句应该匹配呢？默认情况下，没有 `should` 语句是必须匹配的，只有一个例外：那就是当没有 `must` 语句的时候，至少有一个 `should` 语句必须匹配。
+
+可以通过 `minimum_should_match` 控制需要匹配的 `should` 语句的数量，既可以是一个数字，也可以是一个百分比。
+
+```json
+GET /my_index/my_type/_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "match": { "title": "brown" }},
+        { "match": { "title": "fox"   }},
+        { "match": { "title": "dog"   }}
+      ],
+      "minimum_should_match": 2 
+    }
+  }
+}
+```
+
+这个查询结果会将所有满足以下条件的文档返回： `title` 字段包含 `"brown" AND "fox"` 、 `"brown" AND "dog"` 或 `"fox" AND "dog"` 。如果有文档包含所有三个条件，它会比只包含两个的文档更相关。
+
+## 查询语句提升权重
+
+如何让匹配某些查询语句的文档获得更高的权重呢？可以通过指定 `boost` 来控制任何查询语句的相对的权重。
+
+```json
+GET /_search
+{
+    "query": {
+        "bool": {
+            "must": {                // 默认 boost 值为, boost 值更高的更为重要，匹配的文档会拥有更高的评分
+                "match": {  
+                    "content": {
+                        "query":    "full text search",
+                        "operator": "and"
+                    }
+                }
+            },
+            "should": [
+                { "match": {
+                    "content": {
+                        "query": "Elasticsearch",
+                        "boost": 3 
+                    }
+                }},
+                { "match": {
+                    "content": {
+                        "query": "Lucene",
+                        "boost": 2 
+                    }
+                }}
+            ]
+        }
+    }
+}
+```
+
+boost 参数被用来提升一个语句的相对权重(>1)，也可以降低相对权重([0, 1))，这种提升或降低都不是线性的。更高的 `boost` 值为我们带来更高的评分 `_score`。
+
+## 控制分析
+
+查询只能查找倒排索引表中真实存在的项，保证 **文档再索引时与查询字符串在搜索时应用相同的分析过程** 非常重要，这样查询的项才能够匹配倒排索引中的项。
+
+为 `my_index` 新增一个字段：
+
+```json
+PUT /my_index/_mapping/my_type
+{
+    "my_type": {
+        "properties": {
+            "english_title": {
+                "type": "string",
+                "analyzer": "english"
+            }
+        }
+    }
+}
+```
 
+也就是说，使用 `term` 查询 `fox` 时，`english_title` 字段会被匹配，但是 `title` 字段不会。
 
+```json
+GET /my_index/_analyze
+{
+  "field": "my_type.title",   
+  "text": "Foxes"                         // 默认使用 standard 标准分析器，返回 `foxes`
+}
 
+GET /my_index/_analyze
+{
+  "field": "my_type.english_title",       // 英语分析器 返回的词项是 `fox`
+  "text": "Foxes"
+}
+```
 
+`match` 查询这样的高层查询知道字段映射的关系，能为每个被查询的字段应用正确的分析器，可以使用 `validate-query API` 查看这个行为。
 
+```json
+GET /my_index/my_type/_validate/query?explain
+{
+    "query": {
+        "bool": {
+            "should": [
+                { "match": { "title":         "Foxes"}},
+                { "match": { "english_title": "Foxes"}}
+            ]
+        }
+    }
+}
+```
+
+返回结果为：`(title:foxes english_title:fox)`
 
+### 默认分析器
 
+分析器可以从三个层面进行定义：
 
++ 按字段
++ 按索引
++ 全局缺省
 
+es 会按照以下顺序依次处理，直到它找到能够使用的分析器。
 
+**索引时的顺序如下：**
 
++ 字段映射里定义的 `analyzer`
++ 索引设置中名为 `default` 的分析器，缺省配置
++ `standard` 标准分析器，缺省配置
 
+**搜索时的顺序如下：**
+
++ 查询自己定义的 `analyzer`
 
++ 字段映射里定义的 `analyzer`
++ 索引设置中名为 `default` 的分析器，默认为
++ `standard` 标准分析器
 
+有时，在索引时和搜索时使用不同的分析器是合理的，因为我们可能想为同义词建索引(例如，quick 出现的地方，同时也为 fast、rapid、speedy 创建)，但是在搜索的时候不需要搜索所有的同义词，只需要搜索单个词即可。
+
+为此，es 支持一个可选的 **`search_analyzer`** 映射，**仅会应用**于搜索时。还有一个等价的 **`default_search`** 映射，用以指定索引层的默认配置。
+
+**所以搜索时完整的顺序会是：**
+
+1. 查询自己定义的 `analyzer`，否则
+2. 字段映射里定义的 `search_analyzer`，否则
+3. 字段映射里定义的 `analyzer`，否则
+4. 索引设置中名为 `default_analyzer` 的分析器，默认为
+5. 索引设置中名为 `default` 的分析器，默认为
+6. `standard` 标准分析器
+
+### 分析器配置实践
+
+最简单的途径就是在创建索引或增加类型映射的时候，为每个全文字段设置分析器。保持尽量简单的原则。为绝大部分的字段设置你想指定的 default 默认分析器，然后在字段级别设置中，为某一两个字段配置需要指定的分析器。
+
+**对于和时间相关的日志数据，通常做法是每天自行创建索引，由于这种方式不是从头创建的索引，仍可以用索引模版为新建的索引指定配置和映射。**
+
+## 被破坏的相关度
+
++ 问题：
+
+用户索引了一些文档，运行了一个简单的查询，然后发现明显低的相关度的结果出现在了高相关度的结果之上。
 
++ 原因：
 
+设想，我们在两个主分片上创建了索引和总共 10 个文档，其中 6 个文档有单词 `foo` 。可能是分片 1 有其中 3 个 `foo` 文档，而分片 2 有其中另外 3 个文档，换句话说，所有文档是均匀分布存储的。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+在 [什么是相关度？](https://www.elastic.co/guide/cn/elasticsearch/guide/current/relevance-intro.html)中，我们描述了 Elasticsearch 默认使用的相似度算法，这个算法叫做 *词频/逆向文档频率* 或 TF/IDF 。词频是计算某个词在当前被查询文档里某个字段中出现的频率，出现的频率越高，文档越相关。 *逆向文档频率* 将 *某个词在索引内所有文档出现的百分数* 考虑在内，出现的频率越高，它的权重就越低。
+
+但是由于性能原因， Elasticsearch 不会计算索引内所有文档的 IDF 。相反，每个分片会根据 *该分片* 内的所有文档计算一个本地 IDF 。
+
+因为文档是均匀分布存储的，两个分片的 IDF 是相同的。相反，设想如果有 5 个 `foo` 文档存于分片 1 ，而第 6 个文档存于分片 2 ，在这种场景下， `foo` 在一个分片里非常普通（所以不那么重要），但是在另一个分片里非常出现很少（所以会显得更重要）。这些 IDF 之间的差异会导致不正确的结果。
+
+在实际应用中，这并不是一个问题，本地和全局的 IDF 的差异会随着索引里文档数的增多渐渐消失，在真实世界的数据量下，局部的 IDF 会被迅速均化，所以上述问题并不是相关度被破坏所导致的，而是**由于数据太少。**
+
++ 解决方法：
+
+**因此为了避免这种情况，我们可以只在主分片上创建索引，如果只有一个分片，那么本地的 IDF 就是 全局的 IDF**。
+
+**在搜索请求后加上 `?search_type=dfs_query_then_fetch` dfs 是指分布式频率搜索，让 es 先分别获得每个分片本地的 IDF，然后根据结果再计算整个索引的全局 IDF。**
+
+不要在生产环境使用，因为只要有足够的数据保证词频是均匀分布的，就没有理由给每个查询额外加上 DFS 这步。
+
+## 多字符串查询
+
+**`bool`** 查询采取的是 `more matches is better` 匹配的 **越多越好** 的方式。`bool` 查询运行每个 `match` 查询，再把评分加在一起，将结果与所有匹配的语句数量相乘，最后除以所有语句的数量。**处于同一层的语句具有相同的权重。**
+
+```json
+GET /_search
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "match": { "title":  "War and Peace" }},           // 1
+        { "match": { "author": "Leo Tolstoy"   }},           // 2
+        { "bool":  {                                         // 假如子句 match 在外层查询中，则 1，2 比重就会变成 1/4, 而现在是 1/3
+          "should": [
+            { "match": { "translator": "Constance Garnett" }},
+            { "match": { "translator": "Louise Maude"      }}
+          ]
+        }}
+      ]
+    }
+  }
+}
+```
+
+### 语句的优先级
+
+使用 `boost` 参数，要获取最佳值最简单的方式就是不断试错。比较合理的值是在 1~10 之间，也可能是 15。如果要指定更高的值，将不会对最终的评分结果产生更大的影响，因为评分是被归一化的。使用方式前文有，不赘述了。
+
+## 单字符串查询
+
+有些用户期望将所有的搜索项堆积到单个字段中，并期望应用程序能为他们提供正确的结果。多字段搜索的表单通常被称为 高级查询。
+
+## 最佳字段
+
+假设有个网站允许用户搜索博客内容，现在有两篇文章是这样的：
+
+```json
+PUT /my_index/my_type/1
+{
+    "title": "Quick brown rabbits",
+    "body":  "Brown rabbits are commonly seen."
+}
+
+PUT /my_index/my_type/2
+{
+    "title": "Keeping pets healthy",
+    "body":  "My quick brown fox eats rabbits on a regular basis."
+}
+```
+
+内部实现肯定是：
+
+```json
+{
+    "query": {
+        "bool": {
+            "should": [
+                { "match": { "title": "Brown fox" }},
+                { "match": { "body":  "Brown fox" }}
+            ]
+        }
+    }
+}
+```
+
+但是最后会发现 文档1的评分会比文档2更加高，可是文档2包含了两个词，文档1只包含了一个词。
+
+**`bool` 查询评分逻辑：**
+
+1. 它会执行 `should` 语句中的两个查询。
+2. 加和两个查询的评分。
+3. 乘以匹配语句的总数。
+4. 除以所有语句总数（这里为：2）。
+
+可以看出本例中，title 和 body 字段是 **互相竞争** 的关系，需要找到单个 **最佳匹配** 的字段。即，将 **最佳匹配** 字段的评分作为查询的整体评分，这样文档1的相关度就会高一些。也就是同时包含 `brown` 和 `fox` 的单个字段的相关度会更加高。
+
+### dis_max 查询
+
+最大化查询（*Disjunction Max Query*）会想任何与任一查询匹配的文档作为结果返回，但是只将 **最佳匹配** 的评分作为查询的评分结果分会。
+
+```json
+{
+    "query": {
+        "dis_max": {                                   // disjunction == or
+            "queries": [
+                { "match": { "title": "Brown fox" }},
+                { "match": { "body":  "Brown fox" }}
+            ]
+        }
+    }
+}
+```
+
+## 最佳字段查询调优
+
+```json
+{
+    "query": {
+        "dis_max": {
+            "queries": [
+                { "match": { "title": "Quick pets" }},
+                { "match": { "body":  "Quick pets" }}
+            ]
+        }
+    }
+}
+```
+
+```json
+{
+  "hits": [
+     {
+        "_id": "1",
+        "_score": 0.12713557, 
+        "_source": {
+           "title": "Quick brown rabbits",
+           "body": "Brown rabbits are commonly seen."
+        }
+     },
+     {
+        "_id": "2",
+        "_score": 0.12713557, 
+        "_source": {
+           "title": "Keeping pets healthy",
+           "body": "My quick brown fox eats rabbits on a regular basis."
+        }
+     }
+   ]
+}
+```
+
+`dis_max` 会让这俩文档评分一致，单个字段都只匹配了一个词项，但是显然文档2的评分应该更高。
+
+### tie_broker 参数
+
+```json
+{
+    "query": {
+        "dis_max": {
+            "queries": [
+                { "match": { "title": "Quick pets" }},
+                { "match": { "body":  "Quick pets" }}
+            ],
+            "tie_breaker": 0.3     // 0 表示使用 dis_max 最佳匹配语句的普通逻辑，1表示所有匹配到的语句同等重要，最合理的值应该与0接近 [0.1, 0.4]
+        }
+    }
+}
+```
+
+`tie_broker` 参数提供了一种 `dis_max` 和 `bool` 之间的这种选择，它的 **评分方式** 如下：
+
+1. 获得最佳匹配语句的评分 `_score` 。
+2. 将其他匹配语句的评分结果与 `tie_breaker` 相乘。
+3. 对以上评分求和并规范化。
+
+**它会考虑所有匹配的语句，但是最佳匹配语句依旧占最终结果的很大一部分。**
+
+## multi_match 查询
+
+```json
+{
+  "dis_max": {
+    "queries":  [
+      {
+        "match": {
+          "title": {
+            "query": "Quick brown fox",
+            "minimum_should_match": "30%"
+          }
+        }
+      },
+      {
+        "match": {
+          "body": {
+            "query": "Quick brown fox",
+            "minimum_should_match": "30%"
+          }
+        }
+      },
+    ],
+    "tie_breaker": 0.3
+  }
+}
+```
+
+```json
+{
+    "multi_match": {
+        "query":                "Quick brown fox",
+        "type":                 "best_fields",       // 默认值，best_fields 、most_fields 和 cross_fields
+        "fields":               [ "title", "body" ],
+        "tie_breaker":          0.3,
+        "minimum_should_match": "30%" 
+    }
+}
+```
+
+### 查询字段名称的模糊匹配
+
+```json
+{
+    "multi_match": {
+        "query":  "Quick brown fox",
+        "fields": "*_title"
+    }
+}
+```
+
+### 提升单个字段的权重
+
+可以使用 `^` 字符语法为单个字段提升权重，在字段名称的末尾添加 `^boost` ，其中 `boost` 是一个浮点数：
+
+```json
+{
+    "multi_match": {
+        "query":  "Quick brown fox",
+        "fields": [ "*_title", "chapter_title^2" ] 
+    }
+}
+```
+
+## 后面还有几章，但是内容和相关度有关，目前还用不到评分特性，暂时不记录了
+
+## 短语匹配
+
+`match_phrase` 查询首先将查询字符串解析成一个词项列表，然后对这些词项进行搜索，只保留那些包含 **全部搜索** 的词项，以及 **位置与搜索词项相同** 的文档。
+
+```json
+GET /my_index/my_type/_search
+{
+    "query": {
+        "match_phrase": {
+            "title": "quick brown fox"
+        }
+    }
+}
+```
+
+等价于另一种写法
+
+```json
+"match": {
+    "title": {
+        "query": "quick brown fox",
+        "type":  "phrase"
+    }
+}
+```
+
+### 词项的位置
+
+当一个字符串被分词后，这个分析器不但会返回一个词项列表，而且还会返回各词项在原始字符串中的 **位置关系**。
+
+位置信息可以被存储在倒排索引中，因此 `match_phrase` 查询这类对词语位置敏感的查询，可以利用位置信息去匹配包含所有查询词项，且各词项的顺序与搜索指定一致的文档，且 **中间不夹杂其它词项**。
+
+### 什么是短语
+
+一个被认定为和短语 `quick brown fox` 匹配的文档，必须满足以下这些要求：
+
+- `quick` 、 `brown` 和 `fox` 需要全部出现在域中。
+- `brown` 的位置应该比 `quick` 的位置大 `1` 。
+- `fox` 的位置应该比 `quick` 的位置大 `2` 。
+
+本质上来讲，`match_phrase` 查询是利用一种低级别的 `span` 查询族（query family）去做词语位置敏感的匹配。 Span 查询是一种词项级别的查询，所以它们没有分词阶段；它们只对指定的词项进行精确搜索。
+
+## 混合起来
+
+获取我们想要的是包含 "quick brown fox" 的文档也能匹配 "quick fox"。如下所述我们有这样一个文档。
+
+```
+            Pos 1         Pos 2         Pos 3
+-----------------------------------------------
+Doc:        quick         brown         fox
+-----------------------------------------------
+Query:      quick         fox
+Slop 1:     quick                 ↳     fox
+```
+
+```json
+GET /my_index/my_type/_search
+{
+    "query": {
+        "match_phrase": {
+            "title": {
+            	"query": "quick fox",
+            	"slop":  1              // 告诉 match_phrase 查询此条相隔多远时仍然能将文档视为匹配
+            }                         
+        }
+    }
+}
+```
+
+使用了 `slop` 短语匹配中的所有单词 **必须出现**，但是这些单词不必为了匹配而按 **相同的序列排列**。有了足够大的 `slop` 值，单词可以按照任意顺序排列。
+
+"quick fox" 和 "fox quick" 相差的 slop 就是 2。quick 必须至少挪 2 个位置，才能挪到 fox 的左边。因此如果 slop = 2, 词项的匹配也就可以不按顺序了。
+
+## 多值字段
+
+多值字段使用短语匹配时会发生奇怪的事情。
+
+对以下这个文档进行查询
+
+```json
+PUT /my_index/groups/1
+{
+    "names": [ "John Abraham", "Lincoln Smith"]
+}
+```
+
+```json
+GET /my_index/groups/_search          // 文档依旧会被匹配到，即使是属于两个不同的人名
+{
+    "query": {
+        "match_phrase": {
+            "names": "Abraham Lincoln"
+        }
+    }
+}
+```
+
+因为在分析 `John Abraham` 的时候，产生如下信息：
+
+- Position 1: `john`
+- Position 2: `abraham`
+
+在分析 `Lincoln Smith` 的时候，产生如下信息：
+
+- Position 3: `lincoln`
+- Position 4: `smith`
+
+搜索的时候 `abraham` 和 `lincoln` 正好相邻，因此就匹配到了。这种情况可以使用 **`position_increment_gap`** 进行解决。
+
+```json
+DELETE /my_index/groups/ 
+
+PUT /my_index/_mapping/groups                      // 创建一个有正确值的新的映射 groups
+{
+    "properties": {
+        "names": {
+            "type":                "string",
+            "position_increment_gap": 100
+        }
+    }
+}
+```
+
+`position_increment_gap` 告诉 es 应该为数组中每个新元素增加当前词条 `position` 的指定值。所以现在索引 `names` 数组时，得到的映射是：
+
+- Position 1: `john`
+- Position 2: `abraham`
+- Position 103: `lincoln`
+- Position 104: `smith`
+
+## 越近越好
+
+```json
+POST /my_index/my_type/_search
+{
+   "query": {
+      "match_phrase": {
+         "title": {
+            "query": "quick dog",
+            "slop":  50 
+         }
+      }
+   }
+}
+```
+
+`match_phrase` 仅仅排除了不包含确切短语的文档，邻近查询(slop > 0) 的查询，会将查询词条的邻近度考虑到最终相关度 `_score` 中。通过设置一个像 50 或 100 的高 slop 值，能给予那些单词临近的文档更高的分数。
+
+```json
+POST /my_index/my_type/_search
+{
+   "query": {
+      "match_phrase": {
+         "title": {
+            "query": "quick dog",
+            "slop":  50                  // 注意这个值，非常高
+         }
+      }
+   }
+}
+```
+
+## 使用邻近度提高相关度
+
+事实上，如果 7 个词条中有 6 个匹配，那么这个文档对于用户而言就已经足够相关，但是 `match_phrase` 会将其排除在外。前文介绍的 `minimum_should_match` 的确可以解决这个问题。如果想将多个查询的 **分数累计** 起来，意味着我们应该用 `bool` 查询将它们进行合并。
+
+```json
+GET /my_index/my_type/_search
+{
+  "query": {
+    "bool": {
+      "must": {                     // 从结果集中包含或者排除文档
+        "match": { 
+          "title": {
+            "query":                "quick brown fox",
+            "minimum_should_match": "30%"
+          }
+        }
+      },
+      "should": {                   // 增加了匹配到文档的相关度评分
+        "match_phrase": { 
+          "title": {
+            "query": "quick brown fox",
+            "slop":  50
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## 性能优化
+
+短语查询 和 邻近查询 都比 简单的 query 查询 **代价更高**。一个 `match` 查询仅仅是看词条是否存在于 倒排索引 中，而一个 **`match_phrase`** 查询是 **必须计算并比较多个可能重复词项的位置。**一个简单的 `term` 查询 比 一个短语查询大约快 10 倍，比邻近查询(有 slop) 大约快 20 倍。比如在 DNA 序列中，**有很多词项是在很多位置是反复出现的**，这时候使用高 slop 值会导致位置计算量大大增加，查询成本过高。
+
+### 结果集重新评分
+
+一个查询可能会匹配成千上万条结果，但是用户可能只对结果的前几页感兴趣。我们可以对 **顶部文档** 重新排序，来给 **同时匹配** 了短语查询的文档一个额外的相关度升级。`search` API 通过 **重新评分** 明确支持该功能。重新评分阶段支持一个 **代价更高** 的评分算法 -- `phrase` 查询。只是为了从 **每个分片** 中获取 **前 k 个** 结果，根据它们的 **最新评分重新排序**。
+
+```json
+GET /my_index/my_type/_search
+{
+    "query": {
+        "match": {                                    // 决定最终哪些文档会被包含在最终结果集中，通过 TF/IDF 排序
+            "title": {
+                "query": "quick brown fox",
+                "minimum_should_match": "30%"
+            }
+        }
+    },
+    "rescore": {                                     // 重新评分
+        "window_size": 50,                           // 是每一分片进行重新评分的顶部文档数量
+        "query": {         
+            "rescore_query": {
+                "match_phrase": {
+                    "title": {
+                        "query": "quick brown fox",
+                        "slop": 50
+                    }
+                }
+            }
+        }
+    }
+}
+```
+
+## 寻找相关词
+
+会出现这样一种情况， *I’m not happy I’m working* 和 *I’m happy I’m not working* 拥有相同的邻近度，但是含义截然不同。有时候想要搜索的是语义相同的文档。
+
+这种时候要对单词的上下文尽可能多地进行保留。**将每个单词以及它的邻近词作为单个词项索引。**
+
+` ["I m", "m not", "not happy", "happy I", "I m", "m working"]`
+
+这些单词对被称为是 `shingles`。当然也可以索引三个单词。
+
+(后面还有一些和相关度查询的就不做摘抄了)。
+
+## 部分匹配
+
+但如果想匹配部分而不是全部的词该怎么办？ *部分匹配* 允许用户指定查找 **词的一部分** 并找出所有包含这部分片段的词。
+
+es 只是简单地将它们的词干作为索引形式，没有必要像 MySQL 一样做部分匹配。部分匹配较为常见的应用在：
+
++ **匹配邮编、产品序列号、其它 `not_analyzed` 类型的字段**，这些值可以以某个特定前缀开始，也可以是与某种模式匹配的。
++ **输入即搜索(search-as-u-type)** 在用户键入搜索词过程的同时，呈现最可能的结果。
++ 匹配 德语、荷兰语 这样有长组合词的语言。(*Weltgesundheitsorganisation*)
+
+## 邮编与结构化数据
+
+```json
+PUT /my_index
+{
+    "mappings": {
+        "address": {
+            "properties": {
+                "postcode": {
+                    "type":  "string",
+                    "index": "not_analyzed"
+                }
+            }
+        }
+    }
+}
+
+PUT /my_index/address/1
+{ "postcode": "W1V 3DG" }    // W 代表区域（1或2个字母）1V 代表行政区(1或2个数字，可能跟着一个字母) 3代表街区区块 DG 代表单元
+
+PUT /my_index/address/2
+{ "postcode": "W2F 8HW" }
+
+PUT /my_index/address/3
+{ "postcode": "W1F 7HW" }
+
+PUT /my_index/address/4
+{ "postcode": "WC1N 1LZ" }
+
+PUT /my_index/address/5
+{ "postcode": "SW5 0BE" }
+```
+
+## prefix 前缀查询
+
+为了找到所有以 W1 开始的右边，使用简单的 **`prefix` 查询**。
+
+**`prefix` 查询** 是一个词级别的底层的查询，**不会**在搜索之前分析查询字符串，它假定传入前缀就正式要查找的前缀。`prefix` **不会** 做相关度评分计算，只是将所有匹配的文档返回，并为每条结果赋值评分为1。
+
+**`prefix` 查询** 和 **`prefix` 过滤器** 两者区别只在于过滤器可以被缓存，查询不行。
+
+```json
+GET /my_index/address/_search
+{
+    "query": {
+        "prefix": {
+            "postcode": "W1"
+        }
+    }
+}
+```
+
+**`prefix` 查询的工作原理：**
+
+倒排索引包含了一个有序的 唯一词 列表，对于每个词，倒排索引都会将包含的文档 ID 列入 倒排表。查询则会：
+
++ 扫描词列表并查找到第一个以 W1 开始的词
++ 搜集关联的文档 ID
++ 移动到下一个词
++ 如果这个词以 W1 开头，重复执行步骤2，否则执行步骤3
+
+前缀索引越短，所需要访问的词就会越多，如果以 W 作为前缀，则可能就需要数千万次的匹配。它的伸缩性并不是很好，**会给集群带来很多压力**。可以使用较长的前缀进行限制，减少要访问的量。
+
+## 通配符和正则表达式查询
+
+**`wildcard` 通配符查询** 也是一种底层基于词的查询。与前缀查询不同的是它允许指定匹配的正则式，使用标准的 shell 通配符：`?` 匹配任意字符，`*` 匹配 0 或者 多个字符。
+
+```json
+GET /my_index/address/_search
+{
+    "query": {
+        "wildcard": {
+            "postcode": "W?F*HW"        // 会匹配包含 W1F 7HW 和 W2F 8HW 的文档 
+        }
+    }
+}
+```
+
+如果现在只想匹配 W 区域的所有邮编，前缀匹配也会包括以 `WC` 开头的所有邮编。`regexp` 查询允许写出更复杂的模式：
+
+```json
+GET /my_index/address/_search
+{
+    "query": {
+        "regexp": {
+            "postcode": "W[0-9].+" 
+        }
+    }
+}
+```
+
+`wildcard` 和 `regexp` 查询的工作方式与 `prefix` 查询完全一样，它们也需要扫描倒排索引中的词列表才能找到所有匹配的词，然后依次获取每个词相关的文档 ID ，与 `prefix` 查询的 **唯一不同** 是：它们能支持更为复杂的匹配模式。
+
+**避免使用左通配模匹配，如 `*foo`** 这样会消耗非常多的资源。
+
+`prefix`、`wildcard`、`regexp` 三种查询都是针对 `not_analyzed` 字段进行查询，如果是对 `analyzed` 字段进行查询，则会对分词后的每一个词都做检查匹配，效率会更低..查找到的数据也不是正确的。
+
+## 输入即搜索
+
+就是所谓的 即时都锁，让用户能在更短的时间内得到搜索结果，引导用户搜索索引中真实存在的结果。(这个功能可以在很多搜索引擎中看到。
+
+在短语匹配中，还有 `match_phrase_prefix`  短语匹配查询，匹配相对顺序一致的所有指定词语。
+
+```json
+{
+    "match_phrase_prefix" : {
+        "brand" : "johnnie walker bl"
+    }
+}
+```
+
+它与 `match_phrase` 唯一的区别就是把 查询字符串 的 最后一个词 作为前缀使用。实际上搜索的是 `johnnie walker bl*`。
+
+```json
+{
+    "match_phrase_prefix" : {
+        "brand" : {
+            "query": "walker johnnie bl", 
+            "slop":  10
+        }
+    }
+}
+```
+
+前缀查询会有严重的资源消耗的问题，短语查询也是如此，可以通过设置 `max_expansions` 限制前缀扩展的影响：
+
+```json
+{
+    "match_phrase_prefix" : {
+        "brand" : {
+            "query": "johnnie walker bl",
+            "max_expansions": 50             // 控制可以与前缀匹配的词的数量，也就是说最多匹配出 50 条结果
+        }
+    }
+}
+```
+
+## 索引时优化
+
+查询时的灵活性通常以牺牲搜索性能为代价，有时候将这些消耗从查询过程转移到别的地方是有意义的。可以通过在索引时处理数据的灵活性以提升系统性能。虽然增加索引空间与变慢的索引能力，但是索引时的代价只需要付出一次，或许比查询时的代价更小。
+
+## Ngrams 在部分匹配的应用
+
+单个词的查找会比在词列表中盲目挨个查找的效率要高，因此在 **搜索之前** 准备好供部分匹配的数据 可以提高搜索的性能。
+
+在索引时准备数据意味着要选择合适的分析链，这里部分匹配使用的工具是 *n-gram* 。可以将 *n-gram* 看成一个在词语上 *滑动窗口* ， *n* 代表这个 “窗口” 的长度。如果我们要 n-gram `quick` 这个词 —— 它的结果取决于 *n* 的选择长度：
+
+- 长度 1（unigram）： [ `q`, `u`, `i`, `c`, `k` ]
+- 长度 2（bigram）： [ `qu`, `ui`, `ic`, `ck` ]
+- 长度 3（trigram）： [ `qui`, `uic`, `ick` ]
+- 长度 4（four-gram）： [ `quic`, `uick` ]
+- 长度 5（five-gram）： [ `quick` ]
+
+但对于输入即搜索（search-as-you-type）这种应用场景，我们会使用一种特殊的 n-gram 称为 *边界 n-grams* （edge n-grams）。所谓的边界 n-gram 是说它会固定词语开始的一边，以单词 `quick` 为例，它的边界 n-gram 的结果为：
+
+- `q`
+- `qu`
+- `qui`
+- `quic`
+- `quick`
+
+可能会注意到这与用户在搜索时输入 “quick” 的字母次序是一致的，换句话说，这种方式正好满足即时搜索（instant search）！
+
+## 索引时输入即搜索
+
+[不摘抄了](https://www.elastic.co/guide/cn/elasticsearch/guide/current/_index_time_search_as_you_type.html)
+
+## Ngrams 在复合词的应用
+
+[不摘抄了](https://www.elastic.co/guide/cn/elasticsearch/guide/current/ngrams-compound-words.html)
+
+## 控制相关度
+
+评分机制暂时不看了。这个等到以后应用的时候再仔细看吧。
+
+## 聚合
+
+## 高阶概念
+
++ 桶（Buckets）
+  + 满足特定条件的文档集合
++ 指标（Metrics）
+  + 对桶内的文档进行统计计算
+
+## 桶
+
+当聚合开始被执行，每个文档里的值通过计算来决定符合哪个桶的条件。如果匹配到，文档将放入相应的桶并接着进行聚合操作。
+
+桶也可以嵌套早其它桶里，比如，辛辛那提会被放入俄亥俄州这个桶，而 *整个* 俄亥俄州桶会被放入美国这个桶。
+
+## 指标
+
+桶能让我们按照条件划分文档，但是最终我们需要对桶内的文档进行一些指标的计算。
+
+指标指的是简单的数学运算，比如 最小值、平均值、最大值、汇总。
+
+## 尝试聚合
+
+```json
+POST /cars/transactions/_bulk
+{ "price" : 10000, "color" : "red", "make" : "honda", "sold" : "2014-10-28" }
+{ "price" : 20000, "color" : "red", "make" : "honda", "sold" : "2014-11-05" }
+{ "price" : 30000, "color" : "green", "make" : "ford", "sold" : "2014-05-18" }
+{ "price" : 15000, "color" : "blue", "make" : "toyota", "sold" : "2014-07-02" }
+{ "price" : 12000, "color" : "green", "make" : "toyota", "sold" : "2014-08-19" }
+{ "price" : 20000, "color" : "red", "make" : "honda", "sold" : "2014-11-05" }
+{ "price" : 80000, "color" : "red", "make" : "bmw", "sold" : "2014-01-01" }
+{ "price" : 25000, "color" : "blue", "make" : "ford", "sold" : "2014-02-12" }
+```
+
+汽车经销商可能会想知道哪个颜色的汽车销量最好。 
+
+```json
+GET /cars/transactions/_search
+{
+  "size": 0,
+  "aggs": {
+    "popular_colors": {
+      "terms": {
+        "field": "color"
+      }
+    }
+  }
+}
+```
+
+```json
+{
+...
+   "hits": {                       // 因为设置了 size=0 所以不会有结果返回
+      "hits": [] 
+   },
+   "aggregations": {
+      "popular_colors": { 
+         "buckets": [
+            {
+               "key": "red", 
+               "doc_count": 4 
+            },
+            {
+               "key": "blue",
+               "doc_count": 2
+            },
+            {
+               "key": "green",
+               "doc_count": 2
+            }
+         ]
+      }
+   }
+}
+```
+
+**一旦** 文档可以被搜索到，**就** 能被聚合。也就意味我们可以直接将聚合的结果源源不断传入图形库，生成实时的仪表盘。
+
+## 添加度量指标
+
+假如我们想要求每种颜色汽车的平均价格是多少？
+
+```json
+GET /cars/transactions/_search
+{
+  "size": 0,
+  "aggs": {
+    "colors": {
+      "terms": {
+        "field": "color"
+      }
+    },
+    "avg_price": {
+      "avg": {
+        "field": "price"
+      }
+    }
+  }
+}
+```
+
+
+
+```json
+{
+...
+   "aggregations": {
+      "colors": {
+         "buckets": [
+            {
+               "key": "red",
+               "doc_count": 4,
+               "avg_price": { 
+                  "value": 32500
+               }
+            },
+            {
+               "key": "blue",
+               "doc_count": 2,
+               "avg_price": {
+                  "value": 20000
+               }
+            },
+            {
+               "key": "green",
+               "doc_count": 2,
+               "avg_price": {
+                  "value": 21000
+               }
+            }
+         ]
+      }
+   }
+...
+}
+```
+
+## 嵌套桶
+
+每种颜色的汽车平均价格是多少？各自的汽车制造商是谁？
+
+```json
+{
+  "size": 0,
+  "aggs": {
+    "colors": {
+      "terms": {"field": "color"}
+    },
+    "aggs": {
+      "avg_price": {
+        "avg": {"field": "price"}
+      },
+      "make": {
+        "terms": {"field": "make"}
+      }
+    }
+  }
+}
+```
+
+```json
+{
+...
+   "aggregations": {
+      "colors": {
+         "buckets": [
+            {
+               "key": "red",
+               "doc_count": 4,
+               "make": { 
+                  "buckets": [
+                     {
+                        "key": "honda", 
+                        "doc_count": 3
+                     },
+                     {
+                        "key": "bmw",
+                        "doc_count": 1
+                     }
+                  ]
+               },
+               "avg_price": {
+                  "value": 32500 
+               }
+            },
+
+...
+}
+```
+
+## 最后的修改
+
+假如我们想要知道每种颜色的汽车的平均价格，且其中每种汽车制造商的最高价格和最低价格是多少？
+
+```json
+{
+  "size": 0,
+  "aggs": {
+    "colors": {
+      "terms": {"field": "color"},
+      "aggs": {
+        "avg_price": {"avg": {"field": "price"}},
+        "aggs": {
+          "make": {
+            "terms": {"field": "make"},
+            "aggs": {
+              "min_price": {"min": {"field": "price"}},
+              "max_price": {"max": {"field": "price"}}
+          	}
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+```json
+{
+...
+   "aggregations": {
+      "colors": {
+         "buckets": [
+            {
+               "key": "red",
+               "doc_count": 4,
+               "make": {
+                  "buckets": [
+                     {
+                        "key": "honda",
+                        "doc_count": 3,
+                        "min_price": {
+                           "value": 10000 
+                        },
+                        "max_price": {
+                           "value": 20000 
+                        }
+                     },
+                     {
+                        "key": "bmw",
+                        "doc_count": 1,
+                        "min_price": {
+                           "value": 80000
+                        },
+                        "max_price": {
+                           "value": 80000
+                        }
+                     }
+                  ]
+               },
+               "avg_price": {
+                  "value": 32500
+               }
+            },
+...
+```
+
+## 条形图
+
+聚合还有一个令人激动的特性就是十分容易地将它们转换成图表和图形。
+
+我们希望知道每个售价区间内汽车的销量，还会想知道每个售价区间内汽车带来的收入，可以通过对每个区间内已售汽车的售价求和得到。
+
+[具体使用看这里吧 不记录了](https://www.elastic.co/guide/cn/elasticsearch/guide/current/_building_bar_charts.html)
+
+## 按时间统计
+
+构建按时间统计的 date_histogram 使用频率仅次于使用 es 进行搜索。**默认** 只返回文档数目非 0 的 buckets。
+
+Date_histogram 倾向于转换成线状图以展示时间序列。假如想知道每月销售多少台汽车？
+
+```json
+GET /cars/transactions/_search
+{
+  "size": 0,
+  "aggs": {
+    "sales": {
+      "data_histogram": {
+        "field": "sold",
+        "interval": "month",
+        "format": "yyyy-MM-dd"
+      }
+    }
+  }
+}
+```
+
+```json
+{
+   ...
+   "aggregations": {
+      "sales": {
+         "buckets": [
+            {
+               "key_as_string": "2014-01-01",
+               "key": 1388534400000,
+               "doc_count": 1
+            },
+            {
+               "key_as_string": "2014-02-01",
+               "key": 1391212800000,
+               "doc_count": 1
+            },
+            {
+               "key_as_string": "2014-05-01",
+               "key": 1398902400000,
+               "doc_count": 1
+            },
+            {
+               "key_as_string": "2014-07-01",
+               "key": 1404172800000,
+               "doc_count": 1
+            },
+            {
+               "key_as_string": "2014-08-01",
+               "key": 1406851200000,
+               "doc_count": 1
+            },
+            {
+               "key_as_string": "2014-10-01",
+               "key": 1412121600000,
+               "doc_count": 1
+            },
+            {
+               "key_as_string": "2014-11-01",
+               "key": 1414800000000,
+               "doc_count": 2
+            }
+         ]
+...
+}
+```
+
+## 返回空的 buckets
+
+```json
+GET /cars/transactions/_search
+{
+  "size": 0,
+  "aggs": {
+    "sales": {
+      "data_histogram": {
+        "field": "sold",
+        "interval": "month",
+        "format": "yyyy-MM-dd",
+        "min_doc_count": 0,           // 这个参数会返回空的 buckets
+        "extended_bounds": {          // es 只会默认返回最大值和最小值之间的 buckets, 加上这个参数就可以返回边界值了
+          "min": "2014-01-01",
+          "max": "2014-12-31"
+        }
+      }
+    }
+  }
+}
+```
+
+## 扩展例子
+
+[暂时不写了](https://www.elastic.co/guide/cn/elasticsearch/guide/current/_extended_example.html)
+
+## 潜力无穷
+
+kibana
+
+## 范围限定的聚合
+
+福特在售车有多少种颜色？
+
+```json
+GET /cars/transactions/_search
+{
+  "query": {
+    "match": {"make": "ford"}
+  },
+  "aggs": {
+    "colors": {
+      "terms": {"field": "color"}
+    }
+  }
+}
+```
+
+```json
+{
+...
+   "hits": {
+      "total": 2,
+      "max_score": 1.6931472,
+      "hits": [
+         {
+            "_source": {
+               "price": 25000,
+               "color": "blue",
+               "make": "ford",
+               "sold": "2014-02-12"
+            }
+         },
+         {
+            "_source": {
+               "price": 30000,
+               "color": "green",
+               "make": "ford",
+               "sold": "2014-05-18"
+            }
+         }
+      ]
+   },
+   "aggregations": {
+      "colors": {
+         "buckets": [
+            {
+               "key": "blue",
+               "doc_count": 1
+            },
+            {
+               "key": "green",
+               "doc_count": 1
+            }
+         ]
+      }
+   }
+}
+```
+
+### 全局桶
+
+福特汽车与所有汽车平均售价的比较。
+
+```json
+GET /cars/transactions/_search
+{
+  "size": 0,
+  "query": {"match": {"make": "ford"}},
+  "aggs": {
+    "single_avg_price": {
+      "avg": {"field": "price"}
+    },
+    "all": {
+      "global": {},                       // 全局桶没有参数
+      "aggs": {
+        "avg_price": {
+          "avg": {"field": "price"}       // 聚合操作针对所有文档，忽略汽车品牌，有点牛逼的样子，es 的功能也太丰富了吧
+        }
+      }
+    }
+  }
+}
+```
+
+`single_avg_price` 度量计算是基于查询范围内所有文档，即所有的福特汽车。
+
+`avg_price` 嵌套在全局桶下，意味着它完全忽略了范围，并对所有文档进行计算，聚合返回的平均值是所有汽车的平均售价。
+
+## 过滤和聚合
+
+如果想找到售价在 $10000 美元之上的所有汽车的同时，为这些车计算平均售价。聚合结果收到筛选条件的影响。
+
+```json
+GET /cars/transactions/_search
+{
+  "size": 0,
+  "query": {
+    "constant_score": {
+      "filter": {"range": {"price": {"gte": 10000}}}
+    }
+  },
+  "aggs": {
+    "single_avg_price": {"avg": {"field": "price"}}
+  }
+}
+```
+
+## 过滤桶
+
+假设现在有一个用户搜索框，用户搜索福特汽车的同时，我们也在页面上显示出上个月福特汽车出售的数量，同时显示所有福特汽车的平均售价。
+
+```json
+GET /cars/transactions/_search
+{
+  "size": 0,
+  "query": {"match": {"make": "ford"}},
+  "aggs": {
+    "recent_sales": {
+      "filter": {"range": {"sold": {"from": "now-1M"}}}
+    },
+    "aggs": {
+      "average_price": {"avg": {"field": "price"}}
+    }
+  }
+}
+```
+
+```json
+{
+  "took": 36,
+  "timed_out": false,
+  "_shards": {
+    "total": 4,
+    "successful": 4,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": 103675,
+    "max_score": 1,
+    "hits": [
+      {....}                 // 这个结果显示的是所有的 福特 汽车信息
+    ]
+  },
+  "aggregations": {
+    "skl_trade": {
+      "doc_count": 6880     // 这个结果显示的是 filter 桶里的信息
+    },
+    "avg_price": {
+      "value": 3.2459393124612808      // 聚合结果不受到 filter 桶的影响，计算的是 福特 汽车的平均价格，不管是不是近一个月内的
+    }
+  }
+}
+```
+
+## 后过滤器
+
+假如我们想要在页面上显示 绿色的福特汽车的信息，还想显示统计 每种颜色的福特车的数量。就可以使用下列的语句。反正就是一个语句，干了 sql 语句的两个事情。
+
+```json
+GET /cars/transactions/_search
+{
+    "size" : 0,
+    "query": {
+        "match": {
+            "make": "ford"
+        }
+    },
+    "post_filter": {                              // resp['hits']['hits'] 里面的内容是绿色福特车的信息
+        "term" : {
+            "color" : "green"
+        }
+    },
+    "aggs" : {
+        "all_colors": {
+            "terms" : { "field" : "color" }      // aggregations 里面的信息是 每种颜色的福特车的数量信息
+        }
+    }
+}
+```
+
+### 性能考虑：
+
+当你需要对搜索结果和聚合结果做不同的过滤时，才应该用 `post_filter`, 它的特性是在查询之后执行，任何过滤对性能带来的好处都会完全丢失(比如缓存)。所以**不要把它当作普通的过滤条件使用**，`post_filter` 只与聚合一起使用。
+
+## 小结
+
+query 中的 `filter` 过滤 会影响搜索结果和聚合结果
+
+`filter` 桶不会影响 query 的结果，也不会影响聚合的结果，但会增加一个字段显示 `filter` 桶 的查询结果
+
+`post_filter` 会影响 query 结果，但是不会影响聚合结果
+
+## 多桶排序
+
+多值桶(`terms`、`histogram`、`data_histogram`) 会动态生成很多桶，那么 es 是如何决定这些桶展示给用户的顺序呢？
+
+**默认** 会根据 `doc_count` 降序排列。
+
+## 内置排序
+
+现在想要按照 `terms` 聚合，按照 `doc_count` 值升序排序
+
+```json
+GET /cars/transactions/_search
+{
+  "size": 0,
+  "aggs": {
+    "colors": {
+      "terms": {
+        "field": "color",
+        "order": {"_count": "asc"}
+      }
+    }
+  }
+}
+```
+
+`order` 中可以写：
+
++ `_count` 按文档数排序，对 `terms`、`histogram`、`date_histogram` 有效
++ `_term` 按词项的字符串值的字母顺序排序，只在 `terms` 内使用
++ `_key` 按每个桶的键值数值排序，理论上与 `_term` 类似，只在 `histogram` 和 `date_histogram` 内使用
+
+## 按度量排序
+
+如果想按照汽车颜色创建一个销售条状图表，但按照汽车平均售价的升序进行排序。增加一个度量，再指定 `order` 参数引用这个度量即可：
+
+```json
+GET /cars/transactions/_search
+{
+    "size" : 0,
+    "aggs" : {
+        "colors" : {
+            "terms" : {
+              "field" : "color",
+              "order": {
+                "avg_price" : "asc"                // 按照平均价格进行排序
+              }
+            },
+            "aggs": {
+                "avg_price": {
+                    "avg": {"field": "price"}      // 计算每个桶的平均价格
+                }
+            }
+        }
+    }
+}
+```
+
+如果想使用 **多值度量** 进行排序呢？只需以 **关心的度量** 为 **关键词** 使用 **点式** 路径。
+
+```json
+GET /cars/transactions/_search
+{
+    "size" : 0,
+    "aggs" : {
+        "colors" : {
+            "terms" : {
+              "field" : "color",
+              "order": {
+                "stats.variance" : "asc" 
+              }
+            },
+            "aggs": {
+                "stats": {                                     
+                    "extended_stats": {"field": "price"}
+                }
+            }
+ 9       }
+    }
+}
+```
+
+## 基于 "深度" 度量排序
+
+当想要对更深的度量进行排序，比如 孙子桶 或者 从孙同。可以定义更深的路径，使用 (>) 括起来即可。
+
+但是这样的前提是 **嵌套路径上的每个桶必须是 单值的**
+
+目前有三个单值桶：`filter`、`global`、`reverse_nested`。创建一个汽车售价的直方图，按照红色和绿色车各自的方差进行排序。
+
+```json
+GET /cars/transactions/_search
+{
+    "size" : 0,
+    "aggs" : {
+        "colors" : {
+            "histogram" : {
+              "field" : "price",
+              "interval": 20000,
+              "order": {
+                "red_green_cars>stats.variance" : "asc"
+              }
+            },
+            "aggs": {
+                "red_green_cars": {
+                    "filter": { "terms": {"color": ["red", "green"]}},
+                    "aggs": {
+                        "stats": {"extended_stats": {"field" : "price"}}   
+                    }
+                }
+            }
+        }
+    }
+}
+
+```
+
+## 近似聚合
+
+单词请求获得精确结果的，这类型的算法通常被认为是 "高度并行" 的，无需任何额外的代价，可以在多台机器上并行执行。
+
+### max 度量
+
+1. 把请求广播到所有的分片上
+2. 查看每个文档的 `price` 字段，如果 `price > current_max`，将 `current_max` 替换成 `price`
+3. 返回所有分片最大的 `price` 并传回给协调节点
+4. 找到从所有分片返回的最大 `price`, 这就是最终的最大值
+
+这个算法可以随着机器数的线性增长而横向扩展，机器之间不需要讨论中间结果，内存消耗很小。
+
+**那么更加复杂的操作则需要在算法的性能和内存使用上做出权衡，对于这个问题，有一个三角因子模型：大数据、精确性、实时性。** 选择的时候满足其中两项。
+
+Elasticsearch 目前支持 **两种近似算法**（ `cardinality` 和 `percentiles` ）。 它们会提供准确但不是 100% 精确的结果。 以牺牲一点小小的估算错误为代价，这些算法可以为我们换来高速的执行效率和极小的内存消耗。
+
+## 统计去重后的数量
+
+[优化指标计算的速度](https://www.elastic.co/guide/cn/elasticsearch/guide/current/cardinality.html)
+
+## 百分位的计算
+
+[另一种优化指标计算的速度](https://www.elastic.co/guide/cn/elasticsearch/guide/current/percentiles.html)
+
+## 通过聚合发现异常指标
+
+[暂时不想记录了](https://www.elastic.co/guide/cn/elasticsearch/guide/current/significant-terms.html)
+
+## Doc Values and Fielddata
+
+ 聚合使用一个叫做 **doc values** 的数据结构。doc values 的存在是因为倒排索引只对某些操作是高效的。
+
+倒排索引的 **优势** 在于查找包含某个项的文档，对于另外一个方向的相反操作并 **不高效**。
+
+```
+Term      Doc_1   Doc_2   Doc_3
+------------------------------------
+brown   |   X   |   X   |
+dog     |   X   |       |   X
+dogs    |       |   X   |   X
+fox     |   X   |       |   X
+foxes   |       |   X   |
+in      |       |   X   |
+jumped  |   X   |       |   X
+lazy    |   X   |   X   |
+leap    |       |   X   |
+over    |   X   |   X   |   X
+quick   |   X   |   X   |   X
+summer  |       |   X   |
+the     |   X   |       |   X
+------------------------------------
+```
+
+如果我们想要获得所有包含 `brown` 的文档的词的完整列表。
+
+```json
+GET /my_index/_search
+{
+  "query" : {              // 查询部分简单又高效
+    "match" : {            // 首先在词项列表中找到 brown, 然后扫描所有列，找到包含 brown 的所有文档
+      "body" : "brown"     // 可以找到 doc_1 和 doc_2 这两个满足条件
+    }
+  },
+  "aggs" : {               // 聚合部分要找到 doc_1 和 doc_2 里所有唯一的项，用倒排索引做这件事情的代价会很高，且词项文档一增加，执行时间也会增加
+    "popular_terms": {     
+      "terms" : {
+        "field" : "body"
+      }
+    }
+  }
+}
+```
+
+Doc values 通过转置两者间的关系来解决这个问题。
+
+```
+Doc      Terms
+-----------------------------------------------------------------
+Doc_1 | brown, dog, fox, jumped, lazy, over, quick, the
+Doc_2 | brown, dogs, foxes, in, lazy, leap, over, quick, summer
+Doc_3 | dog, dogs, fox, jumped, over, quick, the
+-----------------------------------------------------------------
+```
+
+数据转置以后, 收集 doc_1 和 doc_2 的 唯一 token 就会很容易，获得每个文档行，获取所有的词项，求两个集合的并集即可。
+
+**搜索 和 聚合 是相互紧密缠绕的，搜索使用倒排索引查找文档，聚合操作收集和聚合 doc values 里的数据。**
+
+**另外 排序、访问字段值的脚本、父子关系处理 都用到了 doc values。**
+
+## 深入理解 Doc Value
+
+`doc values` 是 **在索引时** 与 倒排索引 **同时** 生成。也就是说 `doc values` 和 倒排索引 一样，基于 `segment` 生成，并且是 **不可变的**。`doc values` 和 倒排索引 一样 **序列化** 到磁盘，这样对性能和扩展性有很大帮助。
+
++ 当 `working set` **远小于** 系统的 **可用内存**
+
+  系统会自动将 `doc values` 驻留在内存中，使得读写十分 **快速**。
+
++ 当 `working set` **远大于** 系统的 **可用内存**
+  
+  系统会根据需要从磁盘读取 `doc values`, 然后 **选择性** 地放到分页缓存中。很显然，这样 **性能** 会比在内存中 **差很多**，但是它的大小就不再局限于服务器的内存了。如果是使用的 `JVM` 的 `Heap` 来实现，那么只能是因为 `OutOfMemory` 导致程序崩溃了。
+
+### 列式存储的压缩
+
+`doc values` 本质上是一个序列化的 **列式存储**。列式存储 **适用于** 聚合、排序、脚本 等操作。
+
+这种存储方式 **便于压缩（减少磁盘空间、提高访问速度）**，所以减少直接存磁盘读取数据的大小可以提高性能，尽管需要额外消耗 CPU 运算进行解压。
+
+### 如何压缩数据
+
+```
+Doc      Terms
+-----------------------------------------------------------------
+Doc_1 | 100
+Doc_2 | 1000
+Doc_3 | 1500
+Doc_4 | 1200
+Doc_5 | 300
+Doc_6 | 1900
+Doc_7 | 4200
+-----------------------------------------------------------------
+```
+
+按列布局，意味着我们有一个 **连续的数据块**：`[100,1000,1500,1200,300,1900,4200]`。因为我们已经知道他们 **都是数字**，所以可以使用 **统一的偏移** 来将他们紧密排列。
+
+**针对数字压缩有很多压缩技巧**，会注意到这里的数字都是 100 的倍数，`doc values` 会检测一个段里面的所有数值，并使用一个最大公约数，方便做进一步的数据压缩。如果我们保存 100 作为此段的除数，我们可以对每个数字都除以 100，这样数字都会变少，就可以用更少的位存储，也减少了磁盘存放的大小。
+
+** Doc values 在压缩过程中**
 
 
 
