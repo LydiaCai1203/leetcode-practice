@@ -4843,9 +4843,9 @@ GET /my_index/_search
       "body" : "brown"     // 可以找到 doc_1 和 doc_2 这两个满足条件
     }
   },
-  "aggs" : {               // 聚合部分要找到 doc_1 和 doc_2 里所有唯一的项，用倒排索引做这件事情的代价会很高，且词项文档一增加，执行时间也会增加
-    "popular_terms": {     
-      "terms" : {
+  "aggs" : {               // 聚合部分要找到 doc_1 和 doc_2 里所有唯一的项
+    "popular_terms": {     // 迭代索引力的每个 词项，收集 doc_1 和 doc_2 列中的 token
+      "terms" : {          // 这很慢，且很难扩展，随着词项和文档的数量增加，执行时间也会增加
         "field" : "body"
       }
     }
@@ -4864,7 +4864,7 @@ Doc_3 | dog, dogs, fox, jumped, over, quick, the
 -----------------------------------------------------------------
 ```
 
-数据转置以后, 收集 doc_1 和 doc_2 的 唯一 token 就会很容易，获得每个文档行，获取所有的词项，求两个集合的并集即可。
+数据转置以后, 收集 doc_1 和 doc_2 的 唯一 token 就会很容易，获得每个文档行，获取所有的词项，求两个集合的 **并集** 即可。(话说为什么不是求的交集呢？？？？？？)
 
 **搜索 和 聚合 是相互紧密缠绕的，搜索使用倒排索引查找文档，聚合操作收集和聚合 doc values 里的数据。**
 
@@ -4907,41 +4907,1090 @@ Doc_7 | 4200
 
 **针对数字压缩有很多压缩技巧**，会注意到这里的数字都是 100 的倍数，`doc values` 会检测一个段里面的所有数值，并使用一个最大公约数，方便做进一步的数据压缩。如果我们保存 100 作为此段的除数，我们可以对每个数字都除以 100，这样数字都会变少，就可以用更少的位存储，也减少了磁盘存放的大小。
 
-** Doc values 在压缩过程中**
+**doc value** 在 **压缩**过程中会使用如下技巧（针对 **数值类型**）：
 
+1. 如果所有的数值各不相同，或有缺失，设置一个标记并记录这些值
+2. 如果这些值 **小于** 256，将使用一个简单的 **编码表**
+3. 如果这些值 **大于** 256，检测是否存在一个 **最大公约数**
+4. 如果 **不存在** 最大公约数，从最小的数值开始，统一计算 **偏移量** 进行编码
 
+那么针对 **string 类型**呢？
 
+​	es 会借助 **顺序表**，会讲字段值进行 **去重** 之后存放如顺序表，通过分配一个 ID，然后通过 ID 来构建 Doc values。这样可以和数值类型达到同样的的压缩效果。当然还有其它的方法：**固定长度**、**变长**、**前缀字符编码** 等等。
 
+### 禁用 Doc Values
 
+`Doc Values` **默认** 会对 所有的数字、地理坐标、日期、IP、`not_analyzed` 字符类型 会 **开启**。
 
+`analyzed` 字符类型 暂时还不能使用 `Doc Values`。因为文本经过分析流程会生成很多的 Token，使得 `Doc Values` 无法高效进行。因此如果你确定某些字段永远都不会进行聚合的话，可以 **禁用** 该字段的 `Doc Values`。这样不仅 **节省磁盘空间**，也许会 **提升索引的速度**。
 
+禁用方式为：
 
+```json
+PUT my_index
+{
+  "mappings": {
+    "my_type": {
+      "properties": {
+        "session_id": {
+          "type":       "string",
+          "index":      "not_analyzed",
+          "doc_values": false      // 禁用该字段的 Doc Values, 这样它就不能被正常聚合、排序
+        }                          // 以及脚本操作了
+      }
+    }
+  }
+}
+```
 
+也可以禁用特定字段的倒排索引，方式如下：
 
+```json
+PUT my_index
+{
+  "mappings": {
+    "my_type": {
+      "properties": {
+        "customer_token": {
+          "type":       "string",
+          "index":      "not_analyzed",
+          "doc_values": true,            // 被启用来允许聚合
+          "index": "no"                  // 索引被禁用，该字段无法被搜索了
+        }
+      }
+    }
+  }
+}
+```
 
+## 聚合与分析
 
+`analyzed` 是如何影响聚合呢？
 
++ 分析会影响聚合中使用的 tokens
++ Doc values 不能适用于 `analyzed` 字符串
 
+初始数据如下：
 
+```json
+POST /agg_analysis/data/_bulk
+{ "state" : "New York" }
+{ "state" : "New Jersey" }
+{ "state" : "New Mexico" }
+{ "state" : "New York" }
+{ "state" : "New York" }
+```
 
+现在我们聚合：
 
+```json
+GET /agg_analysis/data/_search
+{
+    "size" : 0,
+    "aggs" : {
+        "states" : {
+            "terms" : {
+                "field" : "state"
+            }
+        }
+    }
+}
+```
 
+得到结果：
 
+```json
+{
+...
+   "aggregations": {
+      "states": {
+         "buckets": [
+            {
+               "key": "new",
+               "doc_count": 5
+            },
+            {
+               "key": "york",
+               "doc_count": 3
+            },
+            {
+               "key": "jersey",
+               "doc_count": 1
+            },
+            {
+               "key": "mexico",
+               "doc_count": 1
+            }
+         ]
+      }
+   }
+}
+```
 
+显然这不是我们想要的结果，只需要把 字段类型 设置为 `not_analyzed`。这样可以防止 `New York` 被分析。
 
+```json
+DELETE /agg_analysis/
+PUT /agg_analysis
+{
+  "mappings": {
+    "data": {
+      "properties": {
+        "state" : {
+          "type": "string",
+          "fields": {           // raw multified
+            "raw" : {
+              "type": "string",
+              "index": "not_analyzed"
+            }
+          }
+        }
+      }
+    }
+  }
+}
 
+GET /agg_analysis/data/_search
+{
+  "size" : 0,
+  "aggs" : {
+    "states" : {
+        "terms" : {
+            "field" : "state.raw"         // 这样聚合出的结果才是正确的
+        }
+    }
+  }
+}
+```
 
+### 分析字符串 和 Fielddata
 
+为什么 Doc Values 不支持 分析字符串，但是为什么仍然可以对这些字段使用聚合呢？
 
+答案：
 
+因为 `fielddata`，它的构建和管理 100% 在内存中，常驻于 JVM 内存对，这意味着它的 **本质** 是 **不可扩展** 的。从历史上看，`fielddata` 是所有字段的默认值，但是 es 已迁移到 doc values 以减少 OOM 的机率。分析的字符串是仍然使用 `fielddata` 的最后一块阵地。最终目的是建立一个序列化的数据结构，可以高维度的分析字符串，逐步淘汰 fielddata。
 
+虽然没有看懂 fielddata 到底是干啥的... 假装看懂了吧。也许 7.x 这里会完全不一样。
 
+### 高基数内存的影响
 
+**避免分析字段的另一个原因就是：**
 
+高基数字段在加载到 `fielddata` 时会消耗大量内存，分析过程会生成大量的 `token`，这些 `token` 大多数是唯一的，这会增加字段的整体技术并且带来更大的内存压力。
 
+`n-gram` 的分析过程（New York）：
 
+`ne`、`ew`、`w`、`y`、`yo`、`or`、`rk`
 
+由此可见会生成 **大量的唯一 token**，这些数据加载到内存中，会轻而易举地将我们 **堆空间消耗殆尽**。
 
+最后，在聚合字符串之前，务必确认该字符串类型是 `not_analyzed` 还是 `analyzed`，如果是 `not_analyzed` 则会通过 `doc values` 来节省内存。如果是 `analyzed`，则它将使用 `fielddata` 并加载到内存中。它会否因为 `ngrams` 拥有一个非常大的基数？如果是，这对于内存来说是极度不友好的。
+
+## 限制内存使用
+
+`fielddata` 是 **延迟加载** 的。如果从来 **没有聚合** 一个 `analyzed` 字符串，就 **不会加载**  `fielddata` 到内存中。另外 `fielddata` 是 **基于字段加载** 的，所以只有 **很活跃** 地使用字段才会增加 `fielddata` 的负担。一旦，`analyzed` 字符串被加载到 `fielddata`，它们就一直会在那里，直到节点崩溃。所以，要留意 **内存的使用情况**。
+
+**！！！** 
+
+但是，假如你的查询是 高度选择性 和 只返回命中的 100 个结果，需要注意：
+
+1. `fielddata` 会加载索引中（针对该特定字段的）**所有的** 文档。
+2. `fielddata` 不是在索引创建时构建的，而是在查询运行时 **动态填充** 的。因此将所有的信息一次加载，再将其维持在内存中的方式，比反复只加载一个 `fielddata` 的部分代价要低。
+3. 堆栈乱用会导致节点不稳定，感谢缓慢的垃圾回收机制，甚至会导致节点宕机。JVM 堆是有限资源，应该被合理利用。**限制 fielddata 对堆使用的影响有多套机制，而这些机制非常重要。**
+
+#### 选择堆大小
+
+在设置 es 堆大小时需要通过设置 `$ES_HEAP_SIZE` 环境变量。遵循以下两个规则：
+
+**不要超过可用 RAM 的 50%**
+
+因为 Lucene 能很好利用文件系统的缓存，它是通过系统内核管理的，如果没有足够的文件系统缓存空间，性能会受到影响。此外，专用于堆的内存越多意味着其他所有使用 doc values 的字段内存越少。
+
+**不要超过 32GB**
+
+如果堆大小小于 32 GB，JVM 可以利用指针压缩，这可以大大降低内存的使用：每个指针 4 字节而不是 8 字节。
+
+### Fielddata 的大小
+
+`indices.fielddata.cache.size` 控制为 fielddata 分配的堆空间大小。 当你发起一个查询，分析字符串的聚合将会被加载到 fielddata，如果这些字符串之前没有被加载过。如果结果中 fielddata 大小超过了指定 `大小` ，其他的值将会被回收从而获得空间。
+
+### 监控 fielddata
+
+无论是仔细监控 fielddata 的内存使用情况， 还是看有无数据被回收都十分重要。高的回收数可以预示严重的资源问题以及性能不佳的原因。
+
+Fielddata 的使用可以被监控：
+
+- 按索引使用 [`indices-stats` API](http://www.elastic.co/guide/en/elasticsearch/reference/current/indices-stats.html) ：
+
+  ```json
+  GET /_stats/fielddata?fields=*
+  ```
+
+- 按节点使用 [`nodes-stats` API](https://www.elastic.co/guide/en/elasticsearch/reference/5.6/cluster-nodes-stats.html) ：
+
+  ```json
+  GET /_nodes/stats/indices/fielddata?fields=*
+  ```
+
+- 按索引节点：
+
+```json
+GET /_nodes/stats/indices/fielddata?level=indices&fields=*
+```
+
+使用设置 `?fields=*` ，可以将内存使用分配到每个字段。
+
+### 断路器
+
+Elasticsearch 包括一个 *fielddata 断熔器* ，这个设计就是为了处理上述情况。 断熔器通过内部检查（字段的类型、基数、大小等等）来估算一个查询需要的内存。它然后检查要求加载的 fielddata 是否会导致 fielddata 的总量超过堆的配置比例。
+
+如果估算查询的大小超出限制，就会 *触发* 断路器，查询会被中止并返回异常。这都发生在数据加载 *之前* ，也就意味着不会引起 OutOfMemoryException 。
+
+## Fielddata 的过滤
+
+背景：
+
+用户可以为歌曲设置任何他们喜欢的标签，比如 rock、hiphop、electronica，但是有的歌曲也会附上 my_16th_birthday_favourite_anthem 这样的标签，假如我们想为用户展示每首歌曲最受欢迎的三个标签，怎么实现呢？
+
+```json
+PUT /music/_mapping/song
+// 有了这个映射，只有那些至少在 本段 文档中出现超过 1% 的项才会被加载到内存中
+// 这样可以把 my_16th_birthday_favourite_anthem 这种标签过滤掉
+{
+  "properties": {
+    "tag": {
+      "type": "string",
+      "fielddata": {                    // 在这里面配置 fielddata 处理该字段的方式
+        "filter": {
+          "frequency": {                // 允许我们基于项频率过滤加载 fielddata
+            "min":              0.01,   // 只加载那些至少在本段文档中出现 1% 的项
+            "min_segment_size": 500     // 忽略任何文档个数小于 100 的段，如果段内只有少量文档
+          }                             // 它的词频会非常粗略切没有任何意义，且小的分段会很快被
+        }                               // 合并到大的分段中
+      }
+    }
+  }
+}
+```
+
+**fielddata 是按段来加载** 的，所以可见的词频只是该段内的频率。但是这个限制也有 **好处**，可以让受欢迎的新项迅速提升到顶部。
+
+为什么这么说呢？
+
+试想，有一个新风格的歌曲在一夜间收到大众欢迎，如果想要将这种新风格的歌曲标签包括在最受欢迎列表中呢？依赖对索引做完整的词频计算，就必须等到新标签变得像 rock 和 electronica 一样流行。但是基于段来加载的 fielddata，新加的标签会很快作为高频标签出现在新段内，当然也会迅速上升到顶部。
+
+**缺点**，Fielddata 过滤对内存使用有 **巨大的** 影响，因为有些数据根本就没有被使用到，舍弃掉也没问题，**内存的节省** 通常要比包括一个大量而无用的长尾项更为重要。
+
+## 预加载 fielddata
+
+[预加载原理、全局序号、索引预热器](https://www.elastic.co/guide/cn/elasticsearch/guide/2.x/preload-fielddata.html)
+
+## 优化聚合查询
+
+`terms` 桶基于我们的数据动态构建桶，大多数时候，对于单个字段的聚合查询还是非常快的，但是 **同时聚合多个字段时**，就可能产生大量的分组，最终结果就是占用大量 es 内存，导致 OOM 的情况发生。
+
+假设我们现在有一些关于电影的数据集，每条数据里面会有一个数组类型的字段，存储该电影的所有演员的名字。
+
+文档数据长这样：
+
+```json
+{
+  "actors" : ["Fred Jones", "Mary Jane", "Elizabeth Worthing"]
+}
+```
+
+这时我们想查询出演影片最多的十个演员以及与他们合作最多的演员
+
+```json
+{
+  "aggs": {
+    "actors": {
+      "terms": {
+        "field": "actors",       // 返回出演最多的十分演员
+        "size": 10
+      },
+      "aggs": {
+        "costars": {
+          "terms": {
+            "field": "actors",   // 返回与这十位演员合作最多的五位演员（？？？？）
+            "size": 5
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+这条语句，第一层 actors，构建树的第一层，每个演员都会有一个桶。第二层 costars，构建第二层，每个联合出演都会有一个桶。意味着每部影片会生成 n^2 个桶。因此，即使最后返回数据只有 50 条，但是会创建一个有 2，000，000 桶的树，还要排序，取前10。随着文档数目的增加，内存压力也会越来越大。
+
+### 深度优先 和 广度优先
+
+es 允许我们**改变**聚合的 **集合模式**。之前展示的策略就是 **深度优先**，先构建完整的树，修建无用的节点，这对于大多数的聚合都能正常工作，但对于上面举的例子则不再使用。
+
+**广度优先** 会先执行第一层聚合，再继续下一层聚合之前先做修建。结合之前的例子，就是说构建第一层树的时候，已经知道我们只需要前十位演员。因此也就没必要保留其它的演员信息。然后根据前十个桶，再构建第二层树。广度优先可以 **大幅度节省内存**。
+
+只需要使用：
+
+```json
+{
+  "aggs" : {
+    "actors" : {
+      "terms" : {
+         "field" :        "actors",
+         "size" :         10,
+         "collect_mode" : "breadth_first" 
+      },
+      "aggs" : {
+        "costars" : {
+          "terms" : {
+            "field" : "actors",
+            "size" :  5
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+广度优先 **仅仅适用于** 每个组聚合数量远远小于当前总组数的情况。
+
+广度优先的 **内存使用情况** 与 **裁剪后的缓存分组数据量** 是呈线性的。对于很多聚合来说，每个桶内的文档数量是相当大的，假如有一个 按月分组 的直方图，**总组数是固定的**，每个月下的数据量相当大的话，广度优先并不是一个好的选择。这时候在第一层进行修剪没有什么意义，且数据量大内存使用也大，因此才选择用 深度优先 作为 **默认策略**。
+
+## 总结
+
+内存的管理形式可以有多种形式，取决于我们特定的应用场景：
+
+- 在规划时，组织好数据，使聚合运行在 `not_analyzed` 字符串而不是 `analyzed` 字符串，这样可以有效的利用 doc values 。
+- 在测试时，验证分析链不会在之后的聚合计算中创建高基数字段。
+- 在搜索时，合理利用近似聚合和数据过滤。
+- 在节点层，设置硬内存大小以及动态的断熔限制。
+- 在应用层，通过监控集群内存的使用情况和 Full GC 的发生频率，来调整是否需要给集群资源添加更多的机器节点
+
+## 数据建模（关联关系处理）
+
+关系型数据库中，实体关联查询时间消费是很昂贵的，关联的越多，消费就越昂贵，特别是跨服务器，关联成本极其昂贵，基本不可用。单个服务器上又存在数据量的限制。
+
+es 与大多数的 NoSQL 数据库类似，是扁平化的，索引是独立文档的集合体。单个文档中的 **数据变更** 是 **ACIDic** 的，但是涉及到多个文档的事务则不是。当一个事务部分失败时，无法回滚索引数据到前一个状态的。
+
+**扁平化有以下优势：**
+
++ 索引过程是快速和无锁的
++ 搜索过程是快速和无锁的
++ 每个文档都是相互独立的，因此大规模的数据可以在多个节点上分布
+
+## 应用层联接
+
+意思就是我们无法通过语法对不同的索引进行 join， 但是可以在应用程序中实现联接，来模拟关系型数据库中的 join。
+
+找到用户名字为 John 的用户 ID
+
+```json
+GET /my_index/user/_search
+{
+  "query": {
+    "match": {
+      "name": "John"
+    }
+  }
+}
+```
+
+比如通过用户的 ID = 1 可以很容易找到博客帖子。
+
+```json
+GET /my_index/blogpost/_search
+{
+  "query": {
+    "filtered": {
+      "filter": {
+        "term": { "user": 1 }
+      }
+    }
+  }
+}
+```
+
+应用层联接的 **主要优点**：可以对数据进行标准化的处理；**缺点** 是：为了在搜索时联接文档，必须运行额外的查询。但是这种方式只适用于第一次查询只有少量的文档匹配的情况，并且最好它们 **很少改变**。这样会允许应用程序对它们进行缓存，避免经常运行第一次查询。
+
+## 非规范的你的数据
+
+如果希望能够通过某个用户姓名找到它的博客文章，可以在博客文档中包含着歌用户的姓名。比如：
+
+```json
+PUT /my_index/blogpost/2
+{
+  "title":    "Relationships",
+  "body":     "It's complicated...",
+  "user":     {
+    "id":       1,
+    "name":     "John Smith" 
+  }
+}
+```
+
+这样就能减少在应用层的关联，**数据非规范化** 的 **优点** 就是速度快。因为每个文档都包含了所需的信息，这样并不需要花费昂贵的代价在联接操作上了。
+
+## 字段折叠
+
+如果需要通过特定字段进行 **分组** 的话，例如，我们需要按照 用户名称 分组，然后返回最相关的博客文章。
+
+```json
+PUT /my_index/_mapping/blogpost
+{
+  "properties": {
+    "user": {
+      "properties": {
+        "name": {                // 用 user.name 字段进行全文检索
+          "type": "string",
+          "fields": {
+            "raw": {             // user.name.raw 字段可以通过 terms 聚合进行分组
+              "type":  "string",
+              "index": "not_analyzed"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+有如下这样的数据
+
+```json
+PUT /my_index/user/1
+{
+  "name": "John Smith",
+  "email": "john@smith.com",
+  "dob": "1970/10/24"
+}
+
+PUT /my_index/blogpost/2
+{
+  "title": "Relationships",
+  "body": "It's complicated...",
+  "user": {
+    "id": 1,
+    "name": "John Smith"
+  }
+}
+
+PUT /my_index/user/3
+{
+  "name": "Alice John",
+  "email": "alice@john.com",
+  "dob": "1979/01/04"
+}
+
+PUT /my_index/blogpost/4
+{
+  "title": "Relationships are cool",
+  "body": "It's not complicated at all...",
+  "user": {
+    "id": 3,
+    "name": "Alice John"
+  }
+}
+```
+
+现在查询标题包含了 relationships 并且作者名称包含了 John 的博客，查询结果再按照作者名进行分组。
+
+```json
+GET /my_index/blogpost/_search
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "must": [
+        {"match": {"title": "relationships"}},
+        {"match": {"user.name": "John"}}
+      ]
+    }
+  },
+  "aggs": {
+    "users": {
+      "terms": {
+        "field": "user.name.raw",
+        "order": {"top_score": "desc"}
+      },
+      "aggs": {
+        "top_score": {"max": {"script": "_score"}},
+        "blogposts": {"top_hits": {"_score": "title", "size": 5}}  // top_hits 是一个关键词
+      }
+    }
+  }
+}
+```
+
+**top_score**: 通过 users 聚合得到的每一个桶按照文档评分对词项进行排序
+
+**top_hits**: 仅仅为每个用户返回评分最高最相关的 5 个博客文档的 title 字段。
+
+```json
+...
+"hits": {
+  "total":     2,
+  "max_score": 0,
+  "hits":      []     // 因为 size=0 所以这里是空的
+},
+"aggregations": {
+  "users": {
+     "buckets": [
+        {
+           "key":       "John Smith",        // 每个用户都会有一个桶
+           "doc_count": 1,
+           "blogposts": {
+              "hits": {                      // 在 blogposts.hits 数组包含针对着歌用户的顶层查询
+                 "total":     1,             // 结果
+                 "max_score": 0.35258877,
+                 "hits": [
+                    {
+                       "_index": "my_index",
+                       "_type":  "blogpost",
+                       "_id":    "2",
+                       "_score": 0.35258877,
+                       "_source": {
+                          "title": "Relationships"
+                       }
+                    }
+                 ]
+              }
+           },
+           "top_score": {                         // 用户桶按照每个用户最相关的博客文章进行排序
+              "value": 0.3525887727737427
+           }
+        },
+...
+```
+
+使用 **top_hits** 聚合 **等效** 执行一个查询，返回这些用户的名字，和他们最相关的文档，然后为每一个用户执行相同的查询，以获得最好的博客。不过使用 **top_hits** 的效率会好很多。
+
+## 非规范化和并发
+
+非规范化数据的 **缺点**：
+
+1. 索引会 **更大**，因为每个博客文档的 `_source` 也会 **更大**，并且这里有很多的索引字段。不过数据被存入磁盘会被高度压缩，且磁盘已经很廉价了，es 可以很愉快地应付这些额外的数据。
+
+2. 如果用户改变了名字，那么所有博客文档里面的用户名也都要修改了。
+
+如果我们希望能够搜索到一个特定目录下的文件，等效于：
+
+`grep "some text" /clinton/projects/elasticsearch/*`
+
+文档结构长这样：
+
+```json
+PUT /fs/file/1
+{
+  "name":     "README.txt", 
+  "path":     "/clinton/projects/elasticsearch", 
+  "contents": "Starting a new Elasticsearch project is easy..."
+}
+```
+
+当然我们也希望能够搜索到一个特定目录下的目录树包含的任何文件，相当于：
+
+`grep -r "some text" /clinton`
+
+因此，需要对路径层次结构进行索引：
+
+```json
+/clinton
+/clinton/projects
+/clinton/projects/elasticsearch
+```
+
+这种层次结构能够通过 `path` 字段使用 `path_hierarchy tokenizer` 自动生成
+
+```json
+PUT /fs
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "paths": { 
+          "tokenizer": "path_hierarchy"
+        }
+      }
+    }
+  }
+}
+```
+
+file 类型的映射看上去如下所示
+
+```json
+PUT /fs/_mapping/file
+{
+  "properties": {
+    "name": { 
+      "type":  "string",
+      "index": "not_analyzed"
+    },
+    "path": { 
+      "type":  "string",
+      "index": "not_analyzed",
+      "fields": {
+        "tree": { 
+          "type":     "string",
+          "analyzer": "paths"
+        }
+      }
+    }
+  }
+}
+```
+
+一旦索引建立并且文件已被编入索引，就可以在 `/clinton/projects/elasticsearch` 目录中包含 `elasticsearch` 的文件。
+
+```json
+GET /fs/file/_search
+{
+  "query": {
+    "filtered": {
+      "query": {
+        "match": {
+          "contents": "elasticsearch"
+        }
+      },
+      "filter": {
+        "term": { 
+          "path": "/clinton/projects/elasticsearch"
+        }
+      }
+    }
+  }
+}
+```
+
+或者
+
+```json
+GET /fs/file/_search
+{
+  "query": {
+    "filtered": {
+      "query": {
+        "match": {
+          "contents": "elasticsearch"
+        }
+      },
+      "filter": {
+        "term": { 
+          "path.tree": "/clinton"
+        }
+      }
+    }
+  }
+}
+```
+
+### 重命名文件和目录
+
+```json
+PUT /fs/file/1?version=2    // 确保该更改仅应用于索引中具有此相同版本号的文档
+{
+  "name":     "README.asciidoc",
+  "path":     "/clinton/projects/elasticsearch",
+  "contents": "Starting a new Elasticsearch project is easy..."
+}
+```
+
+## 解决并发问题
+
+如果多个人同时进行 重命名文件 或 目录 时，可能出现以下两种情况。
+
++ 当你使用 version 时，若与重命名的版本号产生冲突时，你的重命名操作将会失败。
++ 如果没有使用版本控制，你的变更将会覆盖其它用户的变更。
+
+**解决方式:**
+
++ 如果你的主要数据存储是关系数据库，es 仅仅是作为一个 搜索引擎 或 一种提升性能 的方式。可以首先在数据库中执行变更动作，在完成后将变更录入 es，这种方式你将受益于 ACID 数据库事务的支持。并在 es 中以正确的顺序产生变更。
+
++ 如果不是在 关系型数据库 中，就得使用 es 的 全局锁、文档锁、树锁
+
+### 全局锁
+
+在 **任何时间** 只允许一个进程进行变更动作。另外由于大部分的变更都只涉及到少量的文件，因此会很快完成，不会造成较长时间的堵塞。这个方法 **锁定** 的是 **整个文件系统**。
+
+es 支持文档级别的 ACID, 我们可以使用 **一个文档是否存在的状态** 来作为全局锁。
+
+```json
+// 为了请求得到锁，尝试 create 全局锁
+// 如果这个请求因冲突异常而失败，说明另一个进程已被授予全局锁，稍后再进行尝试
+PUT /fs/lock/global/_create
+{}
+```
+
+完成变更以后，务必要释放全局锁
+
+```json
+DELETE /fs/lock/global
+```
+
+全局锁对系统造成的性能限制 和 变更的频繁程度以及单个变更的时间消耗有关。如果性能限制过大，可以通过 **细化锁粒度** 来增加并行度。
+
+### 文档锁
+
+文档锁顾名思义锁的是单个文档，也就任何时间只有一个进程可以修改某个文档。
+
+```json
+POST /fs/lock/1/_update
+{
+  "upsert": { "process_id": 123 },
+  "script": "if ( ctx._source.process_id != process_id )
+  { assert false }; ctx.op = 'noop';"
+  "params": {
+    "process_id": 123
+  }
+}
+```
+
+如果文档并不存在， `upsert` 文档将会被插入—和前面 `create` 请求相同。 但是，如果该文件 *确实* 存在，该脚本会查看存储在文档上的 `process_id` 。 如果 `process_id` 匹配，更新不会执行（ `noop` ）但脚本会返回成功。 如果两者并不匹配， `assert false` 抛出一个异常，你也知道了获取锁的尝试已经失败。
+
+变更执行完以后务必释放掉所有的锁，检索所有的锁的文档，并进行批量删除。
+
+```json
+POST /fs/_refresh 
+
+GET /fs/lock/_search?scroll=1m 
+{
+    "sort" : ["_doc"],
+    "query": {
+        "match" : {
+            "process_id" : 123
+        }
+    }
+}
+
+PUT /fs/lock/_bulk
+{ "delete": { "_id": 1}}
+{ "delete": { "_id": 2}}
+```
+
+ ### 树锁
+
+我们还可以锁定目录树的一部分，而不是锁定涉及到的每一个文档。我们将需要独占访问我们要重命名的文件或目录，它可以通过 **独占锁** 来实现。树锁用最小的代价提供了细粒度的并发控制，它也有不适应的场景，如：数据模型必须有类似目录树的顺序访问路径，才可以使用。
+
+具体使用暂时不摘录了，没看懂。
+
+### 总结
+
+**如果持有锁的进程死了怎么办？** 我们需要考虑以下两个问题：
+
++ 我们如何知道我们可以释放的死亡进程中原本持有的锁？
++ 如何清理死去进程还未完成的变更？
+
+**采用锁**，会带来 **复杂** 的实现逻辑，作为 **替代方案** ，es 提供两个模型帮助我们处理相关联的实体，嵌套的对象 和 父子关系。
+
+## 嵌套对象
+
+将相关的实体数据都存储在同一文档中，就可以利用文档的 ACIDic 来解决了。
+
+比如：
+
+```json
+PUT /my_index/blogpost/1
+{
+  "title": "Nest eggs",
+  "body":  "Making your money work...",
+  "tags":  [ "cash", "shares" ],
+  "comments": [ 
+    {
+      "name":    "John Smith",
+      "comment": "Great article",
+      "age":     28,
+      "stars":   4,
+      "date":    "2014-09-01"
+    },
+    {
+      "name":    "Alice White",
+      "comment": "More like this please",
+      "age":     31,
+      "stars":   5,
+      "date":    "2014-10-22"
+    }
+  ]
+}
+```
+
+但是如上的结构会导致下列查询也能返回数据：
+
+```json
+GET /_search
+{
+  "query": {
+    "bool": {
+      "must": [                             // 实际上 Alice 是 13 岁 而不是 28 岁
+        { "match": { "name": "Alice" }},
+        { "match": { "age":  28      }} 
+      ]
+    }
+  }
+}
+```
+
+这种 **问题** 出现是因为 es 存储的时候 **将 JSON 对象扁平化** 存储了，失去了姓名和年龄的对应关系了。
+
+```json
+{
+  "title":            [ eggs, nest ],
+  "body":             [ making, money, work, your ],
+  "tags":             [ cash, shares ],
+  "comments.name":    [ alice, john, smith, white ],
+  "comments.comment": [ article, great, like, more, please, this ],
+  "comments.age":     [ 28, 31 ],
+  "comments.stars":   [ 4, 5 ],
+  "comments.date":    [ 2014-09-01, 2014-10-22 ]
+}
+```
+
+**嵌套对象** 可以解决这个问题。只需要将 `comments` 的字段类型设置为 `nested`。而不是 `object`。每一个嵌套对象都会被索引为一个 **隐藏的独立文档**。由于是隐藏的，如果要 **增删改** 一个嵌套对象，必须把整个文档都重新索引才可以。并且查询的时候，返回的是全部文档，而不仅是嵌套对象本身。
+
+```json
+{       // 嵌套文档
+  "comments.name":    [ john, smith ],
+  "comments.comment": [ article, great ],
+  "comments.age":     [ 28 ],
+  "comments.stars":   [ 4 ],
+  "comments.date":    [ 2014-09-01 ]
+}
+{       // 嵌套文档
+  "comments.name":    [ alice, white ],
+  "comments.comment": [ like, more, please, this ],
+  "comments.age":     [ 31 ],
+  "comments.stars":   [ 5 ],
+  "comments.date":    [ 2014-10-22 ]
+}
+{       // 根文档（或称父文档）
+  "title":            [ eggs, nest ],
+  "body":             [ making, money, work, your ],
+  "tags":             [ cash, shares ]
+}
+```
+
+嵌套文档 **优点**：
+
+1. 嵌套文档 **直接存储** 在 文档内部，查询时，嵌套文档和根文档的 **联合成本低**，速度和单独存储的一样。
+2. 嵌套文档中的每一个 嵌套对象 都是独立索引的，因此对象中的每一个 **相关性都会得以保留**，查询不会出错。
+
+## 嵌套对象映射
+
+设置一个对象为嵌套对象很简单，只需要将字段类型 object 替换为 nested 即可。
+
+```json
+PUT /my_index
+{
+  "mappings": {
+    "blogpost": {
+      "properties": {
+        "comments": {
+          "type": "nested", 
+          "properties": {
+            "name":    { "type": "string"  },
+            "comment": { "type": "string"  },
+            "age":     { "type": "short"   },
+            "stars":   { "type": "short"   },
+            "date":    { "type": "date"    }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## 嵌套对象查询
+
+需要使用 nested 查询去获取它们。
+
+```json
+GET /my_index/blogpost/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "title": "eggs"              // 查询根文档
+          }
+        },
+        {
+          "nested": {                    // nested 子句作用于 comments 字段
+            "path": "comments",          // 查询中，既不能查询文档字段，也不能查询其它的嵌套文档
+            "query": {
+              "bool": {
+                "must": [ 
+                  {
+                    "match": {
+                      "comments.name": "john"   // 具体这样点操作符操作
+                    }
+                  },
+                  {
+                    "match": {
+                      "comments.age": 28
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+}}}
+```
+
+nested 字段 **可以包含** 其它的 nested 字段，同样地，nested 查询也 **可以包含** 其它的 nested 查询。
+
+**nested 查询** 肯定可以匹配到多个嵌套的文档，每一个匹配的 **嵌套文档** 都有自己的相关度的分，但是众多分数最终需要汇聚为可供根文档使用的一个分数。默认情况，**根文档** 的分数是这些嵌套文档分数的 **平均值**。可以通过设置 score_mode 来控制这个得分策略（avg、max、sum、none-返回1.0 常数值分数）
+
+## 使用嵌套字段排序
+
+```json
+PUT /my_index/blogpost/2
+{
+  "title": "Investment secrets",
+  "body":  "What they don't tell you ...",
+  "tags":  [ "shares", "equities" ],
+  "comments": [
+    {
+      "name":    "Mary Brown",
+      "comment": "Lies, lies, lies",
+      "age":     42,
+      "stars":   1,
+      "date":    "2014-10-18"
+    },
+    {
+      "name":    "John Smith",
+      "comment": "You're making it up!",
+      "age":     28,
+      "stars":   2,
+      "date":    "2014-10-16"
+    }
+  ]
+}
+```
+
+假如我们想要查询 10月份收到评论的博客文档，按照 stars 数的最小值 升序排序，查询语句如下：
+
+```json
+GET /_search
+{
+  "query": {
+    "nested": {                        // 筛选出了 10月份 收到评论的文章
+      "path": "comments",
+      "filter": {
+        "range": {
+          "comments.date": {
+            "gte": "2014-10-01",
+            "lt":  "2014-11-01"
+          }
+        }
+      }
+    }
+  },
+  "sort": {                                
+    "comments.stars": {            // 按照匹配的评论中 comment.starts 字段的最小值 升序排序
+      "order": "asc",   
+      "mode":  "min",   
+      "nested_path": "comments",   // 为什么在这里重复了一遍 nested_filter 呢?
+      "nested_filter": {           // 排序发生在查询执行之后，查询条件限定了 10 月份收到评论的博客文档，但返回的是博客文档。
+        "range": {                 // 如果我们不在排序子句中加入 nested_filter, 那博客文档的排序就是基于博客文档的所有评论，而不仅仅是 10 月份了
+          "comments.date": {
+            "gte": "2014-10-01",
+            "lt":  "2014-11-01"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+## 嵌套聚合
+
+nested 聚合允许我们对嵌套对象里的字段进行聚合操作
+
+```json
+GET /my_index/blogpost/_search
+{
+  "size" : 0,
+  "aggs": {
+    "comments": { 
+      "nested": {
+        "path": "comments"
+      },
+      "aggs": {
+        "by_month": {
+          "date_histogram": {                // comment 对象根据 comments.date 字段的月份值被分到不同的桶
+            "field":    "comments.date",
+            "interval": "month",
+            "format":   "yyyy-MM"
+          },
+          "aggs": {
+            "avg_stars": {
+              "avg": {                       // 计算每个桶内 star 的平均数量
+                "field": "comments.stars"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+嵌套结果：
+
+```json
+...
+"aggregations": {
+  "comments": {
+     "doc_count": 4, 
+     "by_month": {
+        "buckets": [
+           {
+              "key_as_string": "2014-09",
+              "key": 1409529600000,
+              "doc_count": 1, 
+              "avg_stars": {
+                 "value": 4
+              }
+           },
+           {
+              "key_as_string": "2014-10",
+              "key": 1412121600000,
+              "doc_count": 3, 
+              "avg_stars": {
+                 "value": 2.6666666666666665
+              }
+           }
+        ]
+     }
+  }
+}
+...
+```
+
+### 嵌套对象的使用时机
+
+嵌套模型的 **缺点**：
+
++ 当对嵌套文档做 增加、修改、删除时，整个文档都要 **重新被索引**，嵌套文档越多，成本越大
++ 查询 **结果返回** 的不仅仅是匹配的嵌套文档，而是整个文档
++ 又是你需要在主文档和其关联实体之间做一个完整的隔离设计，这个隔离是由 **父子关联** 提供的。
+
+## 父-子 关系文档
+
+暂时不做记录了，再看也记不住，[链接](https://www.elastic.co/guide/cn/elasticsearch/guide/current/parent-child.html)
+
+## 扩容设计
+
+暂时不做记录了，再看也记不住，[链接](https://www.elastic.co/guide/cn/elasticsearch/guide/current/scale.html)
 
 
 
