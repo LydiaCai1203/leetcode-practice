@@ -62,6 +62,7 @@
 
 ## 数据结构
 + [数据结构基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/datastructure_base_tips.md)
++ [数据库基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/database_base_tips_v2.md)
 + leetcode(microsoft_question)
     + [easy](https://github.com/LydiaCai1203/leetcode-practice/blob/master/microsoft_leetcode/easy.md)
 
