@@ -1,6 +1,5 @@
-## REVIEW OF DATASTRUCTURE（阿菜2019年自制面经）
+## REVIEW OF DATASTRUCTURE
 
-##### 所以数据结构与算法和设计模式有关的面试题我全都放在这里了
 [笨方法学算法](https://python-data-structures-and-algorithms.readthedocs.io/zh/latest/)
 
 ------------------
@@ -50,24 +49,136 @@
 
 #### 快速排序
 [理解哨兵的算法看这里，这个比较好懂](https://blog.csdn.net/kmyhy/article/details/82991482)
-    
+
     首先有一堆数组，然后N/2取一个值当pivot, 将所有比pivot小的都排到左边，所有比pivot大的都排到右边去，递归
     空间复杂度 O(1)
     不稳定
     最好的时间复杂度O(NlogN)
     最坏的时间复杂度O(N**2)
     平均的时间复杂度O(NlogN)
-    
-------------------
-### 2. 发生散列冲突时的几种解决方法
-    1. 开放寻址法
-        a. 线性探测(step=1,2,3...)
-        b. 二次探测(step=1, 2**2, 3**2...)
-        c. 双重散列(一组hash函数进行散列)
-    2. 链表法
-        a. 一个value一个slot,一个slot里面有一个链表，插入的时间复杂度是O(1),查找和删除的时间复杂度和链表的长度成正比
 
-------------------
-### 4. 你知道大顶堆和小顶堆吗
-    pass
+**工作过程：**
+
++ 选择基准值 pivot 将数组分为两个子数组：小于基准值的元素排到左边，大于基准值的元素排到右边，这个过程称为 partition
++ 对子数组再分区，排序，直到有序为止
+
+**实现**：
+
+```python3
+# v1 -- 1. 这个解法没有考虑有重复值的情况 2. 使用了额外的存储空间 3. 每次都要两次遍历数组
+# 这个算法时间复杂度最好的情况也要 O(2NlogN)
+
+def quicksort(array: list):
+		if len(array) < 2:
+				return array
+    
+		pivot = array[0]
+		left_array = [i for i in array if i < pivot]
+		right_array = [i for i in array if i > pivot]
+		return left_array + [pivot] + right_array
+```
+
+```python3
+# v2 -- 使用双指针 + pivot 的方式，左指针 负责找到比 pivot 更大的，右指针 负责找到比 pivot 更小的
+# 谁找到了就停下，没找的继续往左/右挪，直到 l == r, 然后将 pivot 与 l(r) 指向的元素交换
+# 递归重复上面步骤即可
+
+def quicksort_v2(array: list, begin: int, end: int) -> None:
+    """
+    	升序 + 左指针找大 + 右指针找小的, 右边的指针先动
+    	注意处理 [2, 4, 3] 的情况
+    """
+    
+    if begin >= end:
+        return 
+
+    pivot_idx = begin
+    pivot = array[pivot_idx]
+
+    left, right = begin + 1, end
+
+    while True:
+        while True:
+            if left >= right or array[right] < pivot:
+                break
+            right = right - 1
+        
+        while True:
+            if left >= right or array[left] > pivot:
+                break
+            left = left + 1
+
+        if left != right:
+            array[left], array[right] = array[right], array[left]
+        else:
+            break
+    
+    flag = False
+    if array[pivot_idx] > array[left]:
+        array[pivot_idx], array[left] = array[left], array[pivot_idx]
+        flag = True
+
+    # 左边数组快排
+    quicksort_v2(array, begin, left-1)
+    # 右边数组快排
+    quicksort_v2(array, left+1 if flag else left, end)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
