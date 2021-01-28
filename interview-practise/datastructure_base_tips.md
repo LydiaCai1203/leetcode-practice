@@ -29,7 +29,23 @@
     最坏的时间复杂度O(N**2)
     平均的时间复杂度O(N**2)
 
+**实现：**
+
+```python3
+def insertion_sort(array):
+    """插排
+    """
+    for index, value in enumerate(array):
+
+        pos = index
+        while pos > 0 and value < array[pos-1]:
+            array[pos] = array[pos-1]
+            pos -= 1
+        array[pos] = value
+```
+
 #### 选择排序
+
     每次都会从无序数组中找出最小的，然后放在有序数组的末尾
     空间复杂度O(1)
     不稳定
