@@ -36,7 +36,6 @@ def insertion_sort(array):
     """插排
     """
     for index, value in enumerate(array):
-
         pos = index
         while pos > 0 and value < array[pos-1]:
             array[pos] = array[pos-1]
@@ -64,7 +63,41 @@ def insertion_sort(array):
     平均的时间复杂度O(NlogN)
 
 ```python3
+def merge_sort(array: list) -> list:
+    if len(array) == 1:
+        return array
+    
+    mid = int(len(array) / 2)
+    left_array = merge_sort(array[:mid])
+    right_array = merge_sort(array[mid:])
 
+    array = merge_two_array(left_array, right_array)
+    return array
+
+
+def merge_two_array(left_array: list, right_array: list) -> list:
+    """双指针记录位置
+    """
+    tmp_array = []
+    left, right = 0, 0
+    while True:
+        
+        if left == len(left_array):
+            tmp_array.extend(right_array[right:])
+            break
+        
+        if right == len(right_array):
+            tmp_array.extend(left_array[left:])
+            break
+            
+        if left < len(left_array) and left_array[left] > right_array[right]:
+            tmp_array.append(right_array[right])
+            right += 1
+
+        if right < len(right_array) and left_array[left] <= right_array[right]:
+            tmp_array.append(left_array[left])
+            left += 1
+    return tmp_array
 ```
 
 #### 快速排序
