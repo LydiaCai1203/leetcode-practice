@@ -1,4 +1,4 @@
-## REVIEW OF PYTHON（阿菜2019年自制面经）
+## REVIEW OF PYTHON
 
 ------------
 
