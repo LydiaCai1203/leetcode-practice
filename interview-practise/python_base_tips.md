@@ -137,7 +137,7 @@ class Person(object):
 
 person = Person('caiqj', 25)
 print(person._name)   # 可以访问 这个只是人为约定的
-print(person.__age)   # 这样直接访问是访问不到的
+print(person.__age)   # 这样直接访问是访问不到的 实际叫做：_Person__age
 ```
 
 ----------------------
