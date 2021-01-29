@@ -119,7 +119,7 @@ print(p1.name, p2.name)
 name = ['caiqj', 'jx']
 age = [22, 23]
 print({
-    n, a for n, a in zip(name, age)
+    n: a for n, a in zip(name, age)
 })
 ```
 
