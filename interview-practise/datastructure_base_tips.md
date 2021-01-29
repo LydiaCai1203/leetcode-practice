@@ -31,7 +31,7 @@
 
 **实现：**
 
-```python3
+```python
 def insertion_sort(array):
     """插排
     """
@@ -62,7 +62,7 @@ def insertion_sort(array):
     最坏的时间复杂度O(NlogN)
     平均的时间复杂度O(NlogN)
 
-```python3
+```python
 def merge_sort(array: list) -> list:
     if len(array) == 1:
         return array
@@ -118,7 +118,7 @@ def merge_two_array(left_array: list, right_array: list) -> list:
 
 **实现**：
 
-```python3
+```python
 # v1 -- 1. 这个解法没有考虑有重复值的情况 2. 使用了额外的存储空间 3. 每次都要两次遍历数组
 # 这个算法时间复杂度最好的情况也要 O(2NlogN)
 
@@ -132,7 +132,7 @@ def quicksort(array: list):
 		return left_array + [pivot] + right_array
 ```
 
-```python3
+```python
 # v2 -- 使用双指针 + pivot 的方式，左指针 负责找到比 pivot 更大的，右指针 负责找到比 pivot 更小的
 # 谁找到了就停下，没找的继续往左/右挪，直到 l == r, 然后将 pivot 与 l(r) 指向的元素交换
 # 递归重复上面步骤即可
@@ -188,7 +188,7 @@ def quicksort_v2(array: list, begin: int, end: int) -> None:
 最好最坏的时间复杂度应该都是 O(logN)
 ```
 
-```python3
+```python
 def search(nums: List[int], target: int) -> int:
     if not nums:
         return -1
@@ -207,7 +207,7 @@ def search(nums: List[int], target: int) -> int:
     return -1
 ```
 
-```python3
+```python
 # 153. 寻找旋转排序数组中的最小值
 # 延伸思考题
 def findMin(nums: List[int]) -> int:
@@ -238,7 +238,7 @@ def findMin(nums: List[int]) -> int:
             end = mid - 1
 ```
 
-```python3
+```python
 # 34. 在排序数组中查找元素的第一个和最后一个位置
 # 延伸思考题
   def searchRange(nums: List[int], target: int) -> List[int]:
@@ -271,17 +271,96 @@ def findMin(nums: List[int]) -> int:
       return begin
 ```
 
+### 3. 哈希表
 
+#### 哈希表的工作过程
 
+哈希表的出现旨在能够快速查找和删除元素。给每个元素一种 "逻辑下标"，哈希表就是通过一个哈希函数来计算一个元素应该放在数组哪个位置。当然对于某一个特定的元素，哈希函数每次计算的下标必须要一样才可以，且范围不可以超过给定数组的长度。
 
+假如我们有一个数组 T，有 `M=13` 个元素，可以定义一个简单的哈希函数 `h(key) = key % M` , 但是 key=5 和 key=18 会得到一样的位置结果，这就是 **哈希冲突**。
 
+#### 哈希冲突(collision)
 
+使用 **链接法(chaining)** 解决冲突，将 18 挂在 5 的下面，5 有一个指针指向 8。
 
+使用 **开放寻址法(open addressing)** 解决冲突，当一个槽被占用的时候，采用一种方式来寻找下一个可用的槽。根据寻找槽的方式不同，又可以分为以下几种：
 
++ **线性探查(line probing)**
 
+  ```shell
+  # 这里叫做线性探查的意思应该是下面的这个函数是线性函数
+  h(k, i) = (h′(k) + i) % m, i=0,1,...,m-1
+  ```
 
++ **二次探查**
 
+  ```shell
+  # 当一个槽被占用，以二次方作为偏移量
+  h(k, i) = (h′(k) + c1 + c2i2) % m, i=0,1,...,m−1
+  ```
 
++ **双重散列**
+
+  ```shell
+  # 重新计算 hash 结果
+  h(k,i) = (h1(k) + ih2(k)) % m
+  ```
+
+#### CPython 如何解决冲突
+
+不同 cpython 版本实现的探查方式是不同的，直接查看 dictobject.c 即可。
+
+#### 哈希函数
+
+hash 函数的冲突越小越好，要求尽可能地被散列到 m 个槽中的任何一个。
+
+#### 装载因子(load factor)
+
+如果继续往 hash 表里塞东西，就会发生空间不够用的情况，因此就要 **重新开辟空间并重新进行散列了**。
+
+比如，我们上边的例子插入 8 个元素，哈希表总大小是 13，它的 load factor 就是 `8/13≈0.62` 。这时表示 hash 表很快将会不够用，因此通常的当 `load factor > 0.8` 的时候，表示需要开辟空间，并重新散列了。
+
+#### 重哈希(rehashing)
+
+rehashing 就是重新开辟一片空间，搜索 cpython 的 dictobject.c 文件中的 GROWTH_RATE 关键字即可。python3.3 的策略是扩大为已经使用的槽数目的两倍。开辟了新空间以后，会把原来哈希表里不为空槽的数据重新插入新的哈希表，插入方式不变。
+
+#### 哈希表 ADT
+
+```python
+class Slot(object):
+		"""一个槽会有三种状态
+			1. hashmap.unused        从未使用过 或者 冲突过
+			2. hashmap.empty         使用过但是被移除了  
+		"""
+		def __init__(self, key, value):
+				self.key = key
+				self.value = value
+class HashTable(object):
+		pass
+```
+
++ 哈希表的 插入 和 删除 的平均时间复杂度都是 O(1)
++ Slot 在 二次探查法中不能直接删除，原因？(待查)
+
+### 4. 字典 dict
+
+python 内置的 dict 就是利用 hash 表实现的。它支持三个最基本的方法：
+
++ `add(key, value)` 有 key 则更新，否则插入
++ `get(key, default=None)` 获取 key 的值，不存在则返回默认值 None
++ `removw(key)` 软删除一个 key, 标记 slot 状态为 empty
+
+#### 实现 dict ADT
+
+py2 和 py3 中，dict 的 `items()`、`keys()`、`values()` 的返回时不同的，pt2 返回的是列表，py3 返回的是迭代器，更节约内存空间。
+
+#### Hashtable
+
+作为 dict 的 key 必须是可哈希的，也就是说不能是 list 等可变对象。记得以前看过 《流畅的 Python》我们的对象是一个不可变对象，因此对象也是可以当作 key 的。
+
+### 5. 集合 Set
+
+如果让你自己实现一个 Set 呢？一样可以使用 hash table，只要将 value 设置为 1 即可。
 
 
 
