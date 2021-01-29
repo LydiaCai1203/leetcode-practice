@@ -132,10 +132,10 @@ print({
 ```python
 class Person(object):
     def __init__(self, name, age):
-        self._name = 'caiqj'
-        self.__age = 23
+        self._name = name
+        self.__age = age
 
-person = Person()
+person = Person('caiqj', 25)
 print(person._name)   # 可以访问 这个只是人为约定的
 print(person.__age)   # 这样直接访问是访问不到的
 ```
