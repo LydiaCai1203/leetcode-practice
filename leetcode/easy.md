@@ -1235,39 +1235,63 @@ class Solution:
 --------------------------
 ### 剑指 Offer 29. 顺时针打印矩阵
 
-    输入一个矩阵，按照从外向里以顺时针的顺序依次打印出每一个数字
+    给定一个数组 nums，编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序。
 
 #### 示例1:
-
-```python
-输入：matrix = [[1,2,3],[4,5,6],[7,8,9]]
-输出：[1,2,3,6,9,8,7,4,5]
-```
-
-#### 示例2:
-
-```python
-输入：matrix = [[1,2,3,4],[5,6,7,8],[9,10,11,12]]
-输出：[1,2,3,4,8,12,11,10,9,5,6,7]
-```
-
-#### 限制
-
-```python
-0 <= matrix.length <= 100
-0 <= matrix[i].length <= 100
-```
-
 ```markdown
-** 解题思路 - 拿 示例2 举例（现在按照顺时针把对应的 x, y 坐标列出）可以知道 宽度为 4，y <= 3。高度为 3, x <= 2, 只要按照右下左上的顺序循环计算坐标值即可，坐标存下来放进列表, 每次计算出新的坐标以后就判断新坐标是否在列表中存在，假如存在，则意味这需要拐弯了，假如有两个新坐标都连续存在，则意味着已经顺时针遍历结束**
-右: (0, 0) (0, 1) (0, 2) (0, 3) -> (x, y+)
-下: (1, 3) (2, 3) -> (x+, y)
-左: (2, 2) (2, 1) (2, 0) -> (x, y-)
-上: (1, 0) -> (x-, y)
-右: (1, 1) (1, 2) -> (x, y+)
+示例:
+输入: [0,1,0,3,12]
+输出: [1,3,12,0,0]
+
+说明:
+必须在原数组上操作，不能拷贝额外的数组。
+尽量减少操作次数。
 ```
 
 #### Solution - v1
 ```python
+class Solution:
+    def moveZeroes(self, nums: List[int]) -> None:
+        """
+        还是看了题解，zero 和 not_zero 双指针法
+        zero 指向的是所有的0，not zero 指向的是非0，所有的非0元素向左冒泡
+        """
+        threshold = len(nums)
+        
+        zero, not_zero = 0, 0
+        while zero < threshold and not_zero < threshold:
+            # 找到 0 元素
+            while zero < threshold:
+                if nums[zero] == 0:
+                    break
+                zero += 1
 
+            # 找到非 0 元素
+            while not_zero < threshold:
+                if nums[not_zero] != 0:
+                    break
+                not_zero += 1
+            
+            if zero < threshold and not_zero < threshold and zero < not_zero:
+                nums[zero] = nums[not_zero]
+                nums[not_zero] = 0
+            else:
+                not_zero += 1
+        return nums   
+```
+
+#### Solution - v1
+```python
+class Solution:
+    def moveZeroes(self, nums: List[int]) -> None:
+        """
+        Do not return anything, modify nums in-place instead.
+        """
+        tmp = 0
+        for i in range(len(nums)):
+            if nums[i]:
+                nums[tmp] = nums[i]
+                tmp += 1
+        for j in range(tmp, len(nums)):
+            nums[j] = 0
 ```
