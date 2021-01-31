@@ -1233,7 +1233,7 @@ class Solution:
 ```
 
 --------------------------
-### 剑指 Offer 29. 顺时针打印矩阵
+### 283. 移动零
 
     给定一个数组 nums，编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序。
 
@@ -1294,4 +1294,54 @@ class Solution:
                 tmp += 1
         for j in range(tmp, len(nums)):
             nums[j] = 0
+```
+
+--------------------------
+### 350. 两个数组的交集 II
+
+    给定两个数组，编写一个函数来计算它们的交集。
+
+#### 示例:
+```markdown
+示例 1：
+输入：nums1 = [1,2,2,1], nums2 = [2,2]
+输出：[2,2]
+
+示例 2:
+输入：nums1 = [4,9,5], nums2 = [9,4,9,8,4]
+输出：[4,9]
+
+如果给定的数组已经排好序呢？你将如何优化你的算法？双指针解法
+
+如果 nums1 的大小比 nums2 小很多，哪种方法更优？ 使用第一种解法，hash table 占用空间也小，速度也快。方法二还得排序
+
+如果 nums2 的元素存储在磁盘上，内存是有限的，并且你不能一次加载所有的元素到内存中，你该怎么办？
+也就是说 nums2 无法进行高效排序，那就选择 方法一, 方法一只涉及到查询操作。
+```
+
+#### Solution - v1
+```python
+class Solution:
+    """
+        输出结果中每个元素出现的次数，应与元素在两个数组中出现次数的最小值一致。
+        我们可以不考虑输出结果的顺序。
+    """
+    def intersect(self, nums1: List[int], nums2: List[int]) -> List[int]:
+        hash1 = dict()
+        for i in nums1:
+            hash1.setdefault(i, 0)
+            hash1[i] += 1
+        
+        hash2 = dict()
+        for j in nums2:
+            hash2.setdefault(j, 0)
+            hash2[j] += 1
+
+        rst = []
+        for k, v in hash1.items():
+            if hash2.get(k):
+                num = min(hash2[k], v)
+                for _ in range(num):
+                    rst.append(k)
+        return rst
 ```
