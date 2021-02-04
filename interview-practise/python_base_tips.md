@@ -1,6 +1,6 @@
 ## REVIEW OF PYTHON
 
-(阿菜，记住 2020， 宁可得罪君子，不可得罪小人。吕锡坤带给你的教训，你要永远牢记，永远不再犯相同的错误)
+[无意中发现一个适合初学者看的 python 练习册](https://anandology.com/python-practice-book/getting-started.html)
 
 ### 1. 在Python中，string、tuiple、number都是不可更改的对象。list和dict和set都是可更改的对象。
 
@@ -161,7 +161,7 @@ print(person.__age)   # 这样直接访问是访问不到的 实际叫做：_Per
 **迭代器**
 
 ```markdown
-迭代器当然也是可迭代对象。
+迭代器当然也是可迭代对象。要注意，迭代器是惰性加载、且只能循环遍历一次，因为它每次都只返回需要的，因此它不需要记住之前所有的元素。
 Python 的迭代协议要求一个 __iter__() 方法返回一个特殊的迭代器对象，这个迭代器对象实现了 __next__() 并通过 StopIteration 异常标识迭代的完成。也就是迭代器要实现 __iter__() 和 __next__() 两种方法。
 
 优点：
@@ -171,6 +171,7 @@ Python 的迭代协议要求一个 __iter__() 方法返回一个特殊的迭代�
 **生成器**
 
 ```markdown
+生成器也是迭代器，拥有迭代器的特性。
 Python 使用生成器对延迟操作提供了支持，即在需要的时候才会产生结果。有两种方式提供生成器：
 1. 生成器函数：常规函数定义，使用 yield 语句而不是 return 语句返回结果。yield 语句一次返回一个结果，每个结果中间都是挂起函数的状态，以便下次从它离开的地方继续执行。
 2. 生成器表达式：类似列表推导表达式，生成器返回按需产生结果的一个对象，而非一次构建一个结果列表。
@@ -237,8 +238,20 @@ while True:
 ```
 
     3. items 在这里是一个自由变量(自由变量是指既不在函数内部，又不是函数的形参，也不是全局变量，那么这个变量相对于函数来说就是自由变量了)，闭包就是引用了自由变量的函数。
+    4. 以下这个例子就可以说明为什么叫做自由变量。也就是说父函数调用结束以后，里头的变量还是能保持状态。
+    其实 var 在 inner 里面
+    func.__code__.co_freevars                 # ('var',)
+    func.__closure__[0].cell_contents         # 3
 
-    4. 其实闭包就是可以通过配置定制不同的函数。
+```python
+		def outer():
+  			var = 3
+    		def inner():
+      			print(var)
+    		return inner
+		func = outer()   # 现在 func == inner, outer() 执行完以后按道理来说 var 应该已经被 GC 回收
+		func()           # 打印出 3，发现 var 变量还在
+```
 
 ```python
     def make_average():
@@ -264,8 +277,8 @@ while True:
     def make_average():
         items_count = 0
         def inner(new_value):
-            nonlocal items_count
-            items_count += 1
+            nonlocal items_count         # 但是要注意如果 items_count：list, 那么 items_count[0] += 1 这样的动作是成立的
+            items_count += 1            
             return items_count
         return inner
 ```
@@ -365,7 +378,7 @@ def record_runtime(func):
 class BaseClass(object):
     def add(self, x):
         return x + 1
-class SubClass(object):
+class SubClass(BaseClass):
     def add(self, x):
         x = super().add(x)
         return x + 1
@@ -401,8 +414,8 @@ class Singleton:
         if not hasattr(cls, '_instance'):
             print('还没有创建实例')
             with cls.lock:
-                if not hasattr(cls, *args, **kwargs):
-                    cls._instance = object.__new__(cls, *args, **kwargs)
+                if not hasattr(cls, '_instance'):
+                    cls._instance = super().__new__(cls, *args, **kwargs)
         return cls._instance
 ```
 
@@ -456,13 +469,17 @@ def singleton(cls):
 
 ### 16. GIL全局锁（全局解释器锁）
 
-+ The GIL is a mutex (or a lock) that allows only one thread to hlod the control of the Python Interpreter.This means that only one thread can be in a state of execution at any point in time. performance overhead.
-  
-  1. py2的逻辑当中，GIL的释放逻辑就是，当前线程遇到IO操作的时候，或者说ticks的数目达到100的时候，就进行释放。这个东西每次释放以后就会归零。
-  
-  2. py3的逻辑当中，GIL不再使用计数器，而是使用计时器，执行时间达到阈值以后，GIL就会释放锁，这样对CPU密集型的程序会更加的友好。
-  
-  3. 当GIL释放以后，线程都会进行锁竞争，切换线程，会消耗资源。
+```markdown
+首先，GIL 不是 Python 的，是 Python 解释器的。另外也不是所有的解释器都有，实现 GIL 解释器的有 CPython。
+其次，GIL 的出现是为了解决内存管理，因为 Python 是采用引用计数的形式，当某个对象上的引用为0的时候，就会被 GC 回收。解释器又是一句一句翻译成字节码执行的，多线程可能会造成内存泄漏或者是提前释放，等奇奇怪怪的问题。GIL 可以避免多个解释器去同时执行同一条字节码。
+最后，GIL 的出现注定了 Python 多线程无法利用多核特性，同一个时刻，只有一个线程能拿到锁。
+```
+
+1. py2的逻辑当中，GIL的释放逻辑就是，当前线程遇到IO操作的时候，或者说ticks的数目达到100的时候，就进行释放。这个东西每次释放以后就会归零。
+
+2. py3的逻辑当中，GIL不再使用计数器，而是使用计时器，执行时间达到阈值以后，GIL就会释放锁，这样对CPU密集型的程序会更加的友好。
+
+3. 当GIL释放以后，线程都会进行锁竞争，切换线程，会消耗资源。
 
 #### 16.1. 那么是不是python的多线程就一点用处都没有了呢？
 
@@ -511,19 +528,30 @@ sys.getrefcount(a) # 3
 
 [参考 你知道堆和栈的区别吗](https://blog.csdn.net/echoisland/article/details/6403763)
 
+```markdown
+什么是进程？
+进程 是现代分时系统的工作的单元，进程包括了 代码段、当前活动(通过程序计数器的值和处理器寄存器的内容来表示)，堆栈段(临时数据、函数参数、返回地址、局部变量)、数据段(全局变量)。进程还有可能包括堆，这是在进程运行期间动态分配的内存。每个进程在操作系统内用 PCB，PCB 中就包含了一个特定进程相关的信息，如：进程状态、编号、程序计数器、寄存器、内存界限、打开文件夹列表等等。
+
+程序计数器 是用来表示下一个要执行的命令和相关资源集合。
+```
+
+```markdown
+什么是线程？
+线程是 CPU 使用的基本单元，它由 线程ID、程序计数器、寄存器集合 和 栈组成。它和属于同一进程的其它线程共享 代码段、数据段、其它操作系统资源。
+```
+
+    两者之间的区别：
     1. 线程是程序执行时候的最小单位，进程是资源分配时候的最小单位。
-    2. 进程有自己独立的地址空间，每启动一个进程，系统就会为其分配地址空间，建立数据表来维护代码段，堆栈段，和数据段，这种操作非常的昂贵。
-    3. 线程是共享进程中的数据的，使用相同的地址空间，因此CPU切换一个线程的花费远远比进程要小的多。同时创建一个线程的开销比创建一个进程的开销也要小的多。
-    4. 线程之间的通信也非常方便，同一个进程下的线程共享全局变量，静态变量等数据。但是进程间的通信需要通过IPC的方式进行。
-    5. 多进程程序会更加健壮，多线程程序只要有一个线程死掉了，整个进程也就死掉了，但是一个进程死掉了不会对其它的进程造成影响，因为进程有自己独立的地址空间。
-    
-    这样的回答我还是觉得很不好 所以还是要回去复习os才行
+    2. 进程有自己 独立的地址空间，每启动一个进程，系统就会为其分配地址空间，建立数据表来维护代码段，堆栈段，和数据段，这种操作非常的 昂贵。
+    3. 线程是 共享 进程中的数据的，使用相同的地址空间，因此CPU切换一个线程的花费远远比进程要小的多。同时创建一个线程的开销比创建一个进程的 开销 也要小的多。
+    4. 线程之间的 通信 也非常 方便，同一个进程下的线程共享全局变量，静态变量等数据。但是进程间的通信需要通过IPC的方式进行。
+    5. 但是正犹豫进程是独立的地址空间，所以进程和进程之间的隔离性好，一个进程出问题不会影响到别的进程。
 
 ----------------------------
 
 ### 18. 协程
 
-    1. 进程和线程都面临着用户态到内核态的切换，切换是需要切换时间的，协程是程序主动控制去切换的，没有线程切换的开销。
+    协程看上去有点像线程，但是进程和线程都面临着用户态到内核态的切换，切换是需要切换时间的，协程是程序主动控制去切换的，没有线程切换的开销。
 
 ----------------------------
 
@@ -532,7 +560,6 @@ sys.getrefcount(a) # 3
     1. 必须有一个内嵌函数
     2. 内嵌函数必须引用的外部函数中的变量
     3. 外部函数的返回值必须是内部函数，
-    4. 反正说的还是很模糊就对了。
 
 ----------------------------
 
@@ -550,8 +577,10 @@ sys.getrefcount(a) # 3
 
 ```python
 foo = [2, 18, 9, 22, 17, 24, 8, 12, 27]
-filter(lambda x: x % 3 == 0, foo)
+filter(lambda x: x % 3 == 0, foo)1
 map(lambda x: x * 2 + 10, foo)
+
+from functools import reduce
 reduce(lambda x, y: x + y, foo)
 ```
 
@@ -563,8 +592,8 @@ reduce(lambda x, y: x + y, foo)
 import copy
 a = [1, 2, 3, ['a', 'b', 'c']]
 b = a    # 这个比较简单 就不做举例了
-c = copy.copy(a)
-d = copy.deepcopy(a)
+c = copy.copy(a)              # a[0] 存的还是一个引用，a 一变，b 里面也会跟着变
+d = copy.deepcopy(a)          # 就是可变对象里面的可变对象也会分配一个全新的内存空间
 
 c.append(5)
 print(c)
@@ -695,7 +724,7 @@ f(3)
 
     1. f(2) 和 f(3, [3, 2, 1]) 的输出都不会写错，但是f(3)的输出就要注意了；
     2. 只要在for前面打印出l的地址 就一目了然了；因为当形参的默认参数是可变对象的时候，只会在定义的时候分配一次内存。之后不管使用几次这个函数，默认值都是一开始定义函数的时候产生的对象。
-    3. 所以说f(2)的时候 这个默认值已经变掉了，之后f(3)的时候就会出问题啦！！！！！
+    3. f(2) 什么都不传，l用用的是默认形参了，因此在 f(2) 调用完以后，函数签名变成了 def f(2, l=[0,1]), 所以调用 f(3) 的时候，结果就会出乎意料了。
 
 -------------------------------------
 
@@ -771,7 +800,7 @@ go D go!
 ```
 
     2. 感觉例子不是很好 但是让我想到了C++里面构造函数和析构函数的调用顺序，我觉得应该按照那样举例子比较好.
-         这道题在新式类里 和 旧式类 中，执行的结果输出顺序应该是不一样的，在新式类中使用了C3算法，C3算法在后面有做详细解释。
+       这道题在新式类里 和 旧式类 中，执行的结果输出顺序应该是不一样的，在新式类中使用了C3算法，C3算法在后面有做详细解释。
 
 ------------------------------
 
@@ -986,10 +1015,8 @@ cProfile.run('f3(lIn)')
 
 ### 43. python里的类成员
 
-    这道题，ztz还在cls的时候，考过我。这一次笔试的时候也还是做到了这道题，其实现在想想，他当初确定要走以后，是想过要在最后的时间里面教我一点东西的。其实这道应该和Python函数里面的default arguments放在一起。
-
 ```python
-class Myclass(object):
+class MyClass(object):
     name = []
     def func_1():
         pass
@@ -1084,34 +1111,35 @@ mro(G) = [G] + merge(mro(E), mro(F), [E, F])
 #### method-one：
 
 ```python
-    'abc'[::-1]
+'abc'[::-1]
 ```
 
 #### method-two:
 
 ```python
-    ''.join(reversed('abc'))
+''.join(reversed('abc'))
 ```
 
 #### method-three:
 
 ```python
-    from collections import deque
-    d = deque()
-    d.exetendleft('abc')
-    ''.join(reversed('abc'))
-```
-
-#### method-four:
-
-```python
-    使用递归实现
+from collections import deque
+d = deque()
+d.exetendleft('abc')
+''.join(reversed('abc'))
 ```
 
 -------------------------------------
 
 ### 47. 有用过functools和itertools里面的东西吗
 
-    pass
+    # 偏函数
+    # 偏函数的作用就是冻结某些函数的参数或者关键字参数，同时会生成一个带有新标签的的对象，也是一个函数。
+    from functools import partial
+    def add(*args):
+    		return sum(*args)
+    		
+    sum_3 = partial(add, [1,2,3])
+    sum_5 = partial(add, [1,2,3,4,5])
 
 -------------------------------------
