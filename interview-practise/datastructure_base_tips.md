@@ -129,7 +129,7 @@ def quicksort(array: list):
     pivot = array[0]
     left_array = [i for i in array if i < pivot]
     right_array = [i for i in array if i > pivot]
-    return left_array + [pivot] + right_array
+    return quicksort(left_array) + [pivot] + quicksort(right_array)
 ```
 
 ```python
