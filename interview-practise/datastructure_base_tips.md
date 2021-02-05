@@ -123,13 +123,13 @@ def merge_two_array(left_array: list, right_array: list) -> list:
 # 这个算法时间复杂度最好的情况也要 O(2NlogN)
 
 def quicksort(array: list):
-		if len(array) < 2:
-				return array
+    if len(array) < 2:
+	return array
     
-		pivot = array[0]
-		left_array = [i for i in array if i < pivot]
-		right_array = [i for i in array if i > pivot]
-		return left_array + [pivot] + right_array
+    pivot = array[0]
+    left_array = [i for i in array if i < pivot]
+    right_array = [i for i in array if i > pivot]
+    return left_array + [pivot] + right_array
 ```
 
 ```python
