@@ -1143,3 +1143,129 @@ d.exetendleft('abc')
     sum_5 = partial(add, [1,2,3,4,5])
 
 -------------------------------------
+
+### 48. 说说 Python 里的 yield、pass、lambda、with 的理解
+
+**yield**
+
+```markdown
+yield 的主要工作是以类似于 return 语句的方式控制生成器函数的流。
+命中 yield 语句时，程序将暂停函数执行，并将产生的值返回给调用方。暂停某个功能时，将保存该功能的状态(这包括生成器本地的所有变量绑定，指令指针，内部堆栈 以及 任何异常处理)。无论何时调用生成器的方法之一，都可以恢复函数执行。当生成器被耗尽时，迭代将停止，for 循环将退出，如果您继续 next()，那么您将获得一个显示的 StopIteration 异常。
+```
+
+**pass**
+
+```markdown
+pass 关键字本身就是一个完整的语句，不执行任何操作，在字节编译阶段将其丢弃。
+在 Python 语法中，块内的语句(for or if)在技术上称为 suite（套件）。套件必须包含一个或者多个语句，不可以为空。可以使用 pass 语句达到在套件内什么都不做的目的。
+
+应用：
+1. 用在脚手架中，在填写细节之前，方便支撑程序的主要结构。
+```
+
+**lambda**
+
+```markdown
+在 Python 中，使用 lambda 可以创建一个匿名函数。可以为它分配名称，也可以不为它分配名称。
+
+lambda 的句法：
+1. 只能包含表达式，不能在其主体包含语句
+2. 被编写为单行执行
+3. 不支持类型注释
+4. 可以立即调用(IIFE)
+```
+
+```python
+# 直接调用匿名函数，不过只在交互式解释器中才可以用。
+>>> lambda x, y: x * y
+>>> _(5, 6)
+30
+
+# 立即调用函数表达式
+>>> (lambda x, y: x + y)(2, 3)
+5
+
+# 关键字参数和可变参数
+>>> (lambda *args: sum(args))(1, 2, 3)
+>>> (lambda x, y, z=3: z + y + z)(1, 2)
+>>> (lambda **kwargs: sum(kwargs.values()))(one=1, two=2, three=3)
+```
+
+```markdown
+- 函数 和 lambda 的区别：
+函数名：
+	def add: pass         # 函数名称是 add
+	lambda x, y: x + y    # 函数名称是 lambda
+追溯：
+	def add: pass         # 引发异常时，回溯会显示 add
+	lambda x, y: x + y    # 引发异常时，回溯会显示 lambda
+```
+
+**with**
+
+```markdown
+with 语句用于使用上下文管理器定义的方法来包装块的执行，进行资源的获取和释放。要 with 在用户定义的对象中使用语句，只需要是该对象实现上下文管理器协议，添加方法 __enter__() 和 __exit__()。还有一种更为简单的方法，使用 contextlib 模块。
+```
+
+**方法一：**
+
+```python
+class ManagerWriter(object):
+  	"""
+  			这个类的实例就是一个上下文管理器
+  	"""
+  	def __init__(self, filename: str):
+      	self.filename = filename
+
+    def __enter__(self):
+      	self.file = open(self.filename, 'w')
+        return self.file
+    
+    def __exit__(self):
+      	self.file.close()
+
+with ManagerWriter('my_file.txt') as f:        # 上下文表达式
+  	f.write('hello world.')
+```
+
+```markdown
+1. 一旦进入 with 语句的上下文，ManagerWriter 的实例就会被创建，该实例的 __enter__() 会被调用。在 __enter__() 中会初始化在对象中使用的资源，所以该方法始终返回所获取资源的描述符。
+# 资源描述符：是操作系统提供的用于访问请求的资源的句柄。比如 file = open('hello.txt') 中，file 就是文件流资源的描述符。
+2. __exit__() 始终会被调用，该方法释放所有获取的资源。
+```
+
+**方法二：**
+
+```python
+import time
+from contextlib import contextmanager
+
+@contextmanager
+def timethis(label):
+  	start = time.time()
+    try:
+      	yield                # yield 之前的代码会在上下文管理器中作为 __enter__() 方法来执行
+    finally:                 # yield 之后的代码会作为 __exit__() 方法执行。
+      	end = time.time()    # 如果出现异常，异常会在 yield 语句那里抛出。
+        print('{}:{}'.format(label, end - start))
+
+with timethis('counting'):
+  	n = 10000000
+    while n > 0:
+      	n -= 1
+```
+
+```python
+def list_transaction(orig_list: list):
+  	working = list(orig_list)
+    yield working
+    org_list[:] = working
+
+# 任何对列表的修改只有当所有代码运行完成并且不出现异常的情况下才会生效
+items = [1, 2, 3]
+with list_transaction(items) as working:
+  	working.append(4)
+    working.append(5)
+    raise RuntimeError('oops')
+```
+
