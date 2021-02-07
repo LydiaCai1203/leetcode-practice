@@ -323,8 +323,6 @@
 
 ### 16. uWSGI和gunicorn是什么？两者之间的区别
 
-### 
-
 ### 17. SSO（Single Sign On）
 
 #### 17.1 简介
@@ -359,20 +357,6 @@
 
     who, when, why, how, what
 
-#### 20.主流的通信安全
 
-[微信支付签名生成基本步骤介绍]([https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=4_3](https://pay.weixin.qq.com/wiki/doc/api/wxa/wxa_api.php?chapter=4_3))
-
-+ 首先需要考虑以下几个问题
-  
-  + **请求参数是否被篡改**
-  
-  + **请求来源是否合法**
-  
-  + **请求是否具有唯一性**
-
-+ 生成签名的基本步骤
-  
-  + 设所有发送或接收到的数据为集合 M，将集合 M 内的非空参数值的参数按照参数名的 ASCII 码， 
 
 
