@@ -69,9 +69,7 @@ Docker 具有以下隔离机制：
 3. 文件系统隔离(UnionFS)
 ```
 
-[详细笔记]()
-
-# 
+[详细笔记](https://github.com/LydiaCai1203/leetcode-practice/blob/master/docker_virtual_isolate.md)
 
 
 
