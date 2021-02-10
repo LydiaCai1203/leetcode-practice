@@ -69,7 +69,7 @@ key        msqid      owner      perms      used-bytes   messages
 
 运行了上述程序以后，再执行 `ipcs -q` 就会发现已经隔离了，看不见创建了的 mq 的信息了。
 
-###PID Namespace
+### PID Namespace
 
 Linux 中，`PID = 1` 的进程是 init 进程，如果某个进程脱离了父进程，init 进程就会负责回收资源并结束这个子进程。所以要做到进程空间的隔离，就要创建出 `PID = 1` 的进程。
 
