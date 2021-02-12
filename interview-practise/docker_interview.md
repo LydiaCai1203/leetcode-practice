@@ -10,7 +10,7 @@ Docker 最初是 dotCloud 公司的一个内部项目，该项目由 Golang 开�
 
 ### 2. Docker 架构
 
-![](/Users/cqj/project/private/leetcode-practice/statics/docker_architecture.jpeg)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/docker_architecture.jpeg)
 
 ### 3. Docker 和 VM 的区别？
 
@@ -22,7 +22,7 @@ Docker:
 容器内的应用进程直接运行于宿主机的内核，容器内没有自己的内核，而且也没有进行硬件虚拟，因此容器比传统的虚拟机更为轻便。
 ```
 
-![](/Users/cqj/project/private/leetcode-practice/statics/vm_docker.jpeg)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/vm_docker.jpeg)
 
 ### 4. Docker 的优点是什么？
 
@@ -660,7 +660,7 @@ docker run 时使用：
 当 Docker 启动时，会自动在主机上创建一个 docker0 虚拟网桥，docker 会随机分配一个本地未占用的私有网段中的一个地址给 docker0 接口。此后启动的容器内的网口也会自动分配一个同一网段的地址(172.17.0.0/16)。
 ```
 
-![](/Users/cqj/project/private/leetcode-practice/statics/docker_network_struct.jpg)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/docker_network_struct.jpg)
 
 ```markdown
 当创建一个 Docker 容器的时候，会同时创建一对 veth pair 接口，当数据包发送到其中一个接口时，另一个接口也可以收到相同的数据包。这对接口一端在容器内，即 eth0，另一段在本地并被挂载到 docker0 网桥，名称以 veth 开头。通过这种方式达到主机和容器的通信，容器之间也可以相互通信。Docker 创建了一个在主机和容器之间的虚拟共享网络。
