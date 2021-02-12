@@ -5,7 +5,7 @@
 ### 1. Docker 是什么？
 
 ```markdown
-Docker 最初是 dotCloud 公司的一个内部项目，该项目由 Golang 开发实现，基于 Linux 内核的 CGroup、Namespace、UnionFs 等技术，对进程进行封装隔离(操作系统层面的虚拟化技术)。由于隔离的进程独立于宿主机和其它进程，因此也成为容器。最初的实现基于 LXC(Linux Container)，后来使用自行开发的 libcontainer，后来使用了 runC 和 containerd。runc 是一个 Linux 命令行工具，用来创建和运行容器。containerd 是一个守护程序，管理程序的生命周期，提供了在一个节点上执行容器和管理镜像的最小功能集。
+Docker 最初是 dotCloud 公司的一个内部项目，该项目由 Golang 开发实现，基于 Linux 内核的 CGroup、Namespace、UnionFs 等技术，对进程进行封装隔离(操作系统层面的虚拟化技术)。由于隔离的进程独立于宿主机和其它进程，因此也称为容器。
 ```
 
 ### 2. Docker 架构
@@ -37,16 +37,18 @@ Docker:
 ```markdown
 镜像：
 镜像是一个特殊的文件系统，除了提供容器运行时所需要的程序、库、资源、配置等文件外，还包含了一些为运行时准备的一些配置参数(如匿名卷、环境变量、用户等)。镜像不会包含任何动态数据，其内容在构建之后也不会被改变。镜像并不是一个文件，而是由多层文件系统联合而成的。
+```
 
------------------------
+```markdown
 容器：
 镜像是静态的定义，容器是镜像运行时的实体，容器可以被创建、启动、停止、删除、暂停等。容器的实质是进程，容器进程运行于属于自己的独立的 Namespace。所以容器可以拥有自己的 root 文件系统、网络配置、进程空间、用户ID空间。所以容器内的进程是运行在一个隔离的环境里。
 
 每一个容器在运行时，以镜像为基础层，在上创建一个当前容器的存储层，我们成这个为容器运行时读写而准备的存储层成为，容器存储层。容器存储层的生命周期和容器一样。
 
 根据《Docker 的最佳实践》，容器不应该向其存储层内写入任何的数据，容器存储层要保持无状态话，所有文件写入操作都应该使用数据卷(volume)、绑定宿主目录,在这些位置的读写会跳过容器存储层，直接对 宿主/网络存储 发生读写，性能和稳定性都将会更高。
+```
 
-------------------------
+```markdown
 仓库：
 镜像仓库是一个集中存储、分发镜像的服务。通常一个仓库会包含一个软件不同版本的镜像，tag 用于对应软件的版本。对应格式为 <仓库名>:<标签>。如果不给出标签，则默认 tag=latest。仓库名经常以 两段式路径 的形式出现，如 caiqj/nginx-procy, 前者是用户名，后者是软件名。
 ```
@@ -63,15 +65,15 @@ Docker:
 除了官方的 Docker Registry 以外，还有第三方软件实现了 Docker Registry API, 甚至还提供了用户界面以及一些高级功能，比如 Harbor、Sonatype Nexus。
 ```
 
-### 4. 什么是 Docker Engine？
+### 7. 什么是 Docker Engine？
 
 ```markdown
 Docker 守护程序/Docker 引擎（dockerd）侦听 Docker API 请求并管理 Docker 对象，例如图像、容器、网络、卷。守护程序可以和其它的守护程序通信以管理 Docker 服务。
 ```
 
-### 6. Docker 实现隔离机制的底层技术是什么？
+### 8. Docker 实现隔离机制的底层技术是什么？
 
-[详细笔记](https://github.com/LydiaCai1203/leetcode-practice/blob/master/docker_virtual_isolate.md)
+[Namespace 和 CGroup 详述](https://github.com/LydiaCai1203/leetcode-practice/blob/master/docker_virtual_isolate.md) | [Namespace 和 CGroup 概述](https://yeasy.gitbook.io/docker_practice/underly/namespace)
 
 ```markdown
 Docker 具有以下隔离机制：
@@ -85,7 +87,7 @@ Docker 具有以下隔离机制：
 3. 文件系统隔离(UnionFS)
 ```
 
-### 7. 什么是 memory-swap 标志?
+### 9. 什么是 memory-swap 标志?
 
 **什么是内存溢出？**
 
@@ -106,7 +108,7 @@ docker 可以强制限制容器使用的内存大小。在启动的容器的时�
     c. --memory-swap == -1: 允许容器无限交换。最高不超过主机系统上可用的数量。
 ```
 
-### 8. Dockerfile 中 ADD 和 COPY 的区别？
+### 10. Dockerfile 中 ADD 和 COPY 的区别？
 
 **docker build 上下文**
 
@@ -164,7 +166,7 @@ RUN pwd              # 输出结果：/a/b/c
 
 ```markdown
 COPY 指令会保留源文件的各种元数据，比如读、写、执行的权限，文件的变更时间等等。
-执行的时候还可以通过 --chown=<user>:<group> 来改变文件所属的用户以及组。一般用法就是复制 源文件/源目录下的文件 到 目的文件/目的目录下
+执行的时候还可以改变文件所属的用户以及组。如果不是复制完全不会变的目录，最好一个文件一个文件复制。否则会导致缓存失效。
 
 格式：
 `COPY <src> <dest>`
@@ -194,7 +196,7 @@ COPY 指令会保留源文件的各种元数据，比如读、写、执行的权
 `ADD http://example.com/big.tar.xz /usr/src/things/`
 ```
 
-### 10. FROM
+### 11. FROM
 
 ```markdown
 为后续指令设置基本镜像，它都是第一条指令。
@@ -204,7 +206,7 @@ COPY 指令会保留源文件的各种元数据，比如读、写、执行的权
 `FROM scratch`
 ```
 
-### 11. RUN && CMD
+### 12. RUN && CMD
 
 **RUN**
 
@@ -265,7 +267,7 @@ exec 格式（推荐使用）
 正确做法是，`CMD ["nginx", "-g", "daemon off;"]` 以前台形式执行 nginx 可执行文件。
 ```
 
-### 12. ENTRYPOINT
+### 13. ENTRYPOINT
 
 ```markdown
 使用：
@@ -275,7 +277,7 @@ ENTRYPOINT [ "curl", "-s", "http://myip.ipip.net" ]
 存在 ENTRYPOINT 之后，CMD 的内容会作为参数传给 ENTRYPOINT, 可以达到叠加使用的效果。
 ```
 
-### 13. ENV 和 ARG 的区别是什么？
+### 14. ENV 和 ARG 的区别是什么？
 
 ```markdown
 ENV 使用：
@@ -294,7 +296,7 @@ docker build --build-arg <参数名>=<值>
 如果 ARG 在 FROM 之前使用，则 ARG 只能在 FROM 中使用。如果想要在 FROM 之后使用，必须再次指定 ARG。
 ```
 
-### 14. EXPOSE 声明端口
+### 15. EXPOSE 声明端口
 
 ```markdown
 格式：
@@ -307,20 +309,7 @@ EXPOSE 是声明运行时容器提供服务的端口，这只是一个声明，�
 2.在运行时使用随机端口映射时，`docker run -p <宿主端口>:<容器端口>`，则会自动随机映射 EXPOSE 的端口。 
 ```
 
-### 13. 匿名卷
-
-```markdown
-格式：
-VOLUME ["<路径1>", "<路径2>"...]
-VOLUME <路径>
-
-使用：
-`VOLUME /data`
-
-容器运行时应该尽量保持容器存储层不发生写操作，为了防止运行时用户忘记将动态文件所保存目录挂载为卷，在 Dockerfile 中，可以事先指定某些目录挂载为匿名卷。这样在运行时，用户不指定挂载，应用也可以正常进行。
-```
-
-### 14. USER 切换用户
+### 16. USER 切换用户
 
 ```markdown
 改变之后层执行 RUN、CMD、ENTRYPOINT 之类的命令的用户身份。
@@ -333,7 +322,7 @@ USER redis
 RUN [ "redis-server" ]
 ```
 
-### 15. HEALTHCHEK 健康检查
+### 17. HEALTHCHEK 健康检查
 
 ```markdown
 格式：
@@ -358,17 +347,20 @@ HEALTHCHECK --interval=5s \     # 健检之间的间隔实践
     CMD curl -fs http://localhost/ || exit 1
 ```
 
-### 16. LABEL 为镜像添加元数据
+### 18. 匿名卷
 
 ```markdown
 格式：
-LABEL <key>=<value> <key>=<value> <key>=<value> ...
+VOLUME ["<路径1>", "<路径2>"...]
+VOLUME <路径>
 
 使用：
-LABEL org.opencontainers.image.authors="yeasy"
+`VOLUME /data`
+
+容器运行时应该尽量保持容器存储层不发生写操作，为了防止运行时用户忘记将动态文件所保存目录挂载为卷，在 Dockerfile 中，可以事先指定某些目录挂载为匿名卷。这样在运行时，用户不指定挂载，应用也可以正常进行。
 ```
 
-### 16. Dockerfile 多阶段构建
+### 19. Dockerfile 多阶段构建
 
 ```markdown
 通常做法：
@@ -400,25 +392,25 @@ LABEL org.opencontainers.image.authors="yeasy"
    WORKDIR /root/
    COPY --from=0 /go/src/github.com/go/helloworld/app .
    CMD ["./app"]
-   
+
 4. 多阶段构建就相当于是将原来的一个 Dockerfile 拆分成两个，然后将一个 Dockerfile 中的项目及其依赖库编译测试打包好后，再将其拷贝到运行环境中。
 ```
 
-### 11. Docker 的命名空间是什么？
+### 20. LABEL 为镜像添加元数据
 
 ```markdown
-Docker 命名空间会为每个容器创建一组 namespace, 这些 namespace 为容器提供了一层隔离，每个容器都在不同的 namespace 中运行。
+格式：
+LABEL <key>=<value> <key>=<value> <key>=<value> ...
+
+使用：
+LABEL org.opencontainers.image.authors="yeasy"
 ```
 
-### 12. Docker 默认哪些网络可用？
+### 21. Docker 默认哪些网络可用？
 
 [Docker 网络概述](https://github.com/LydiaCai1203/leetcode-practice/blob/master/docker/docker_develop.md)
 
-```markdown
-看一下 bridge、host、overlay、none、macvlan 都是什么意思
-```
-
-### 13. 容器是怎么做持久化的？
+### 22. 容器是怎么做持久化的？
 
 **持久化到目录**
 
@@ -462,10 +454,13 @@ docker run -d --name redis_test -v volume1:/data_volume redis
 
 # 挂载卷 --mount 方式
 # -v 可以做的 --mount 都可以做，--mount 更灵活，支持更多复杂操作，且不需要严格按照参数顺序，通过 kv 方式配置，可读性也越高
-docker run -d --name redis_test --mount type=volume,source=volume1,target=/data_volume redis
+# -v 本地目录不存在，会自动创建。--mount 本地目录不存在的话会报错
+# 挂载的目录默认权限是 读写，也可以指定是只读权限
+docker run -d --name redis_test --mount type=volume,source=volume1,target=/data_volume,readonly redis
 
 # 清理所有无用的数据卷
 docker volume prune
+docker volume rm <volume_name>
 ```
 
 **持久化到容器**
@@ -519,7 +514,7 @@ data/
 data/file.txt
 ```
 
-### 15. 查看镜像所占存储空间大小？
+### 23. 查看镜像所占存储空间大小？
 
 ```markdown
 $ docker images ls
@@ -530,7 +525,7 @@ redis         latest    235592615444   8 months ago    104MB
 Docker Hub 中的镜像是压缩后的大小，docker image ls 显示的大小是下载到本地，解压缩以后的大小。但是由于镜像是分层存储的，不同镜像使用到相同的层，是只存储一层的。如果要看 image 的总存储，使用 docker system df 即可。
 ```
 
-### 16. 虚悬镜像
+### 24. 虚悬镜像
 
 ```markdown
 既没有仓库名，也没有标签名，即都是 none 的镜像，称为虚悬镜像。比如 build 一个新镜像，但是新镜像和旧镜像的名字一样，这样旧镜像就会变成虚悬镜像。可以使用以下命令删除。
@@ -541,7 +536,7 @@ docker image ls -f dangling=true
 docker image prune
 ```
 
-### 17. 中间层镜像
+### 25. 中间层镜像
 
 ```markdown
 为了加速镜像构建、重复利用资源，Docker 还会利用中间镜像。在使用一段时间后，可能会看到一些依赖的中间层镜像。`docker image ls` 只会列出顶层镜像，`docker image ls -a` 就可以显示包括中间镜像在内的所有镜像。`docker image ls ubuntu` 可以帮助只列出和 ubuntu 相关的镜像。
@@ -549,7 +544,7 @@ docker image prune
 这些中间层镜像的 仓库名 和 标签 也都是 none，和虚悬镜像不同，它们是其它镜像依赖的镜像，所以不应该也没必要被删除。如果依赖他们的镜像被删除了，中间镜像也会被一起删除的。
 ```
 
-### 18. 如何批量删除镜像
+### 26. 如何批量删除镜像
 
 ```markdown
 # 可以批量删除所有名字为 redis 的镜像
@@ -559,7 +554,7 @@ $ docker image rm ${docker image ls -q redis}
 $ docker image rm ${docker image ls -q -f before=mongo:3.2}
 ```
 
-### 14. docker commit
+### 27. docker commit
 
 ```markdown
 docker 可以将容器的 读写层 保存下来成为一个新的镜像，运行这个新镜像的话，就会拥有容器最后的文件变化。可以通过 `docker diff <registry>:<tag>` 来查看具体的改动。或者使用 `docker history <registry>:<tag>` 查看镜像内的提交记录。
@@ -584,7 +579,7 @@ sha256:07e33465974800ce65751acc279adc6ed2dc5ed4e0838f8b86f0c87aa1795214
 2. 如果修改的层仅仅是在当前层标记、添加、改动，而不会改动到上一层。每次修改都制作一次镜像，到最后镜像就会十分臃肿，即便这一次删除了上一次的修改，在镜像里的东西也不会消失。
 ```
 
-### 20. Docker 镜像是怎么实现增量的修改和维护的？
+### 28. Docker 镜像是怎么实现增量的修改和维护的？
 
 ```markdown
 通常 UnionFS 有两个用途：
@@ -594,21 +589,133 @@ sha256:07e33465974800ce65751acc279adc6ed2dc5ed4e0838f8b86f0c87aa1795214
 LiveCD 正是基于此方法允许在镜像不变的基础上，允许用户进行一些写操作。Docker 在 OverlayFS 上构建容器也是利用了类似的原理。
 ```
 
-### 21. 启动容器时 -it 参数代表什么含义
+### 29. 启动容器时 -it 参数代表什么含义
 
 ```markdown
 -i：让容器的标准输入始终打开
 -t: 让 Docker 分配一个伪终端并绑定到容器的标准输入上
 ```
 
-### 22. docker run 命令之后做了什么？
+### 30. docker run 命令之后做了什么？
 
 ```markdown
 1. docker engine 会检查本地是否存在指定镜像，不存在就去仓库下载
 2. 利用镜像创建一个容器
 3. 分配一个文件系统，在只读镜像外层挂载一个可读写层
 4. 从宿主机配置的网桥接口中桥接一个虚拟接口到容器中去
-5. 从地址池配置一个 ip 地址给容器
+5. 从网桥可用地址段中获取一个空闲地址分配给容器的虚拟接口，然后配置默认路由
 6. 执行用户指定的应用程序
 7. 执行完毕后容器被终止
+```
+
+### 31. attach 和 exec 的区别是什么？
+
+```markdown
+attach:
+# 进入容器以后如果从容器中再退出，会导致容器停止
+`docker attach <container-id>`
+
+exec:
+# 进入容器以后终端分配 bash, 退出后不会导致容器停止
+`docker exec -it 69d1 bash`
+```
+
+### 32. docker run 中 -p 和 -P 的区别
+
+```markdown
+-P: Docker 会随机映射一个端口到内部容器开放的网络端口上
+-p: 支持指定要映射的端口，在一个指定端口上只可以绑定一个容器
+
+格式：
+-p ip:hostPort:containerPort | ip::containerPort | hostPort:containerPort
+
+使用：
+# 指定映射使用一个特定地址
+`docker run -d -p 127.0.0.1:80:80 nginx:alpine`
+
+# 绑定 localhost 的任意端口到容器的 80 端口上，本机会自动分配一个端口
+`docker run -d -p 127.0.0.1::80 nginx:alpine`
+
+# 查看当前映射的端口配置, 可以查看映射
+`docker port <container_id> 80`  0.0.0.0:32768
+```
+
+### 33. 自定义配置容器的主机名和 DNS
+
+```markdown
+主要绑定容器内这三个文件 /etc/hostname /etc/hosts /etc/resolv.conf
+
+docker run 时使用：
+# 会被写入容器内的 /etc/hostname 和 /etc/hosts
+-h HOSTNAME  | --hostname=HOSTNAME  
+# 会被写入到容器的 /etc/resolv.conf，这样可以解析所有不在 hosts 文件中的主机名
+--dns=IP_ADDRESS
+# 设定容器的搜索域
+--dns-search=DOMAIN
+```
+
+### 34. 高级网络配置
+
+```markdown
+当 Docker 启动时，会自动在主机上创建一个 docker0 虚拟网桥，docker 会随机分配一个本地未占用的私有网段中的一个地址给 docker0 接口。此后启动的容器内的网口也会自动分配一个同一网段的地址(172.17.0.0/16)。
+```
+
+![](/Users/cqj/project/private/leetcode-practice/statics/docker_network_struct.jpg)
+
+```markdown
+当创建一个 Docker 容器的时候，会同时创建一对 veth pair 接口，当数据包发送到其中一个接口时，另一个接口也可以收到相同的数据包。这对接口一端在容器内，即 eth0，另一段在本地并被挂载到 docker0 网桥，名称以 veth 开头。通过这种方式达到主机和容器的通信，容器之间也可以相互通信。Docker 创建了一个在主机和容器之间的虚拟共享网络。
+```
+
+**1. 容器想访问外部网络，需要本地系统转发支持**
+
+```markdown
+# 查看本地有没有开启转发
+`sysctl net.ipv4.ip_forward`
+net.ipv4.ip_forward=1
+
+假如在启动 docker engine 的时候就设定 --ip-forward=true 就会自动设定系统的 ip_forward 参数为 1。
+```
+
+**2. 容器之间访问**
+
+```markdown
+1. 容器的网络拓扑已经互联，所有的容器都会被连接到 docker0 网桥上。
+2. 本系统的防火墙软件 - iptables 允许通过
+```
+
+**3. 实际上 -p 端口映射，就是在修改本机的 NAT 规则。**
+
+### 35. docker compose 是什么？
+
+```markdown
+docker compose 是官方开源项目，由 Python 编写，因此可以使用 pip 安装，负责实现对容器集群的快速编排。对于 web 的服务容器本身，往往需要加上数据库服务容器、负责均衡容器等。compose 允许用户通过 docker-compose.yml 来定义一组相关联的应用容器为一个项目。
+
+compose 中有两个重要的概念：
+1. 服务：一个应用的容器 或 若干运行相同镜像的容器实例
+2. 项目：由一组关联的应用容器组成的一个完整业务单元，在 docker-compose.yml 文件中定义
+```
+
+### 36. Docker Swarm 是什么？
+
+```markdown
+Docker swarm 已经内嵌入 Docker engine。内置 kv 存储功能，具有容错能力的去中心化设计、内置服务发现、负载均衡、路由网格、动态伸缩、滚动更新、安全传输等。
+```
+
+### 37. Swarm 中的 节点 是什么？
+
+```markdown
+运行 Docker 的主机可以主动初始化一个 swarm 集群，或者，假如一个已存在的 swarm 集群，这种运行 Docker 的主机就称为 swarm 集群中的一个节点。
+
+管理节点 和 工作节点：
+一个 swarm 集群可以有多个管理节点，只有一个节点称为 leader。管理节点用于 swarm 集群的管理。工作节点是任务执行节点，管理节点将服务下发至工作节点执行。管理节点默认也作为工作节点，你也可以通过配置让服务只运行在管理节点。
+```
+
+### 38. Swarm 中的服务和任务是什么？
+
+```markdown
+任务(task)：
+是 swarm 中最小的调度单位，目前来说是一个单一的容器。
+
+服务(service)：
+一组任务的集合，服务定义了任务的属性。有两种属性，`replicated services` 和 `global services`。前者按照一定规则在各个工作节点上运行指定个数的任务。后者在每个工作节点上运行一个任务。
 ```

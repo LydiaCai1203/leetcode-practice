@@ -1,4 +1,4 @@
-## Docker 基础技术
+## Docker 底层隔离技术
 
 ### Linux Namespace
 
@@ -14,9 +14,9 @@ Linux Namespace 是 Linux 提供的一种内核级别 **环境隔离** 的方法
 + `unshare` - 使某个进程脱离某个 namespace
 + `setns` - 把某个进程加入到某个 namespace
 
-### UTS Namespace
+### 1. UTS Namespace
 
-用于设置该命名空间中正在运行的进程可见的 主机名 和 NIS 域名。在容器内运行的进程通常不需要知道主机名和域名，因此不因与主机共享 UTS 命名空间。
+用于 **设置该命名空间中正在运行的进程可见的 主机名 和 NIS 域名**。在容器内运行的进程通常不需要知道主机名和域名，因此不因与主机共享 UTS 命名空间。容器在网络上可以被视为一个独立的节点而非主机上的一个进程。
 
 ```c++
 int container_main(void* arg)
@@ -42,9 +42,9 @@ int main()
 }
 ```
 
-### IPC Namespace
+### 2. IPC Namespace
 
-IPC 是进程间通信的一种方式，有 共享内存、信号量、消息队列等方法。将 IPC 隔离，就是意味着只有在同一个 namespace 下的进程才能互相通信。
+IPC 是进程间通信的一种方式，有 共享内存、信号量、消息队列等方法。将 IPC 隔离，就是意味着 **只有在同一个 namespace 下的进程才能互相通信**。
 
 ```c++
 int container_pid = clone(
@@ -69,9 +69,9 @@ key        msqid      owner      perms      used-bytes   messages
 
 运行了上述程序以后，再执行 `ipcs -q` 就会发现已经隔离了，看不见创建了的 mq 的信息了。
 
-### PID Namespace
+### 3. PID Namespace
 
-Linux 中，`PID = 1` 的进程是 init 进程，如果某个进程脱离了父进程，init 进程就会负责回收资源并结束这个子进程。所以要做到进程空间的隔离，就要创建出 `PID = 1` 的进程。
+Linux 中，`PID = 1` 的进程是 init 进程，如果某个进程脱离了父进程，init 进程就会负责回收资源并结束这个子进程。所以要做到 **进程空间的隔离**，就要创建出 `PID = 1` 的进程。
 
 ```c++
 int container_main(void* arg)
@@ -99,9 +99,9 @@ int main()
 }
 ```
 
-### Mount Namespace
+### 4. Mount Namespace
 
-即使进行了上述的操作以后，使用 `ps`、`top` 这些命令，还是可以看到所有的进程。因为这些命令会去读 `/proc` 文件系统，而 `/proc` 文件系统在父进程和子进程中都是一样的，所以命令显示的东西也是一样的。
+即使进行了上述的操作以后，使用 `ps`、`top` 这些命令，还是可以看到所有的进程。因为这些命令会去读 `/proc` 文件系统，而 `/proc` 文件系统在父进程和子进程中都是一样的，所以命令显示的东西也是一样的。mnt 命名空间允许 **不同命名空间的进程看到的文件结构不同**，这样每个命名空间 中的进程所看到的文件目录就被隔离开了
 
 ```c++
 int container_main(void* arg)
@@ -122,9 +122,9 @@ int main()
     int container_pid = clone(
       container_main, 
       container_stack+STACK_SIZE, 
-			CLONE_NEWUTS | CLONE_NEWPID | CLONE_NEWNS | SIGCHLD, 
+            CLONE_NEWUTS | CLONE_NEWPID | CLONE_NEWNS | SIGCHLD, 
       NULL
-   	);
+       );
     waitpid(container_pid, NULL, 0);
     printf("Parent - container stopped!\n");
     return 0;
@@ -145,7 +145,7 @@ F S UID        PID  PPID  C PRI  NI ADDR SZ WCHAN  STIME TTY          TIME CMD
 
 `CLONE_NEWNS` 创建 mount namespace 以后，父进程会把自己的文件结构复制到子进程中，子进程中新的 namespace 中所有的 mount 操作都只会影响自身的文件系统。
 
-### User Namespace
+### 5. User Namespace
 
 Linux 给每个用户都分配了一个 **UID**，这个数字用于标识系统的用户并确定用户可以访问哪些系统资源。
 
@@ -191,20 +191,20 @@ int main()
             (long) geteuid(), (long) getegid(), (long) getuid(), (long) getgid());
 
     pipe(pipefd);
- 
+
     printf("Parent [%5d] - start a container!\n", getpid());
-	
-  	// 创建了一个子进程
+
+      // 创建了一个子进程
     int container_pid = clone(
       container_main, 
       container_stack+STACK_SIZE, 
       CLONE_NEWUTS | CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWUSER | SIGCHLD, 
       NULL
     );
-    
+
     printf("Parent [%5d] - Container [%5d]!\n", getpid(), container_pid);
 
-		// UID 映射，都映射为容器中的 root 用户
+        // UID 映射，都映射为容器中的 root 用户
     set_uid_map(container_pid, 0, uid, 1);
     set_gid_map(container_pid, 0, gid, 1);
 
@@ -219,9 +219,9 @@ int main()
 }
 ```
 
-### Network Namespace
+### 6. Network Namespace
 
-这里的网络隔离还是没有看明白，还需要再做理解！！！！！！！！！！！
+有了 pid 命名空间，每个命名空间中的 pid 能够相互隔离，但是网络端口还是共享 host 的端口。网络隔离是通过 net 命名空间实现的， **每个 net 命名空间有独立的 网络设备，IP 地址，路由表，/proc/net 目录。这样每个容器的网络就能隔离开来**。Docker 默认采用 veth 的方式，将容器中的虚拟网卡同 host 上的一 个Docker 网桥 docker0 连接在一起。
 
 **网卡**：
 
@@ -238,16 +238,14 @@ int main()
 网桥工作在数据链路层，数据链路层地址就是 mac 地址，网桥与 hub 的区别就在于，网桥会过滤 mac，只有目的 mac 地址匹配的数据才会发送到出口。
 ```
 
-![](/Users/cqj/project/private/leetcode-practice/docker_network.jpg)
-
 ```markdown
 1. ip 包会从 container 发往自己默认的网关 docker0，包到达 docker0 的时候就相当于到达了主机。
 2. 这时会查询主机的路由表，发现包应该从主机的网卡 eth0 出去。
 ```
 
-### Linux CGroup
+### 7. Linux CGroup
 
-namespace 解决的主要是 环境隔离 的问题，cgroup 解决的是 计算机资源 使用上的隔离。
+namespace 解决的主要是 环境隔离 的问题，**cgroup 解决的是 计算机资源 使用上的隔离**。
 
 Linux CGroup 全称为 (Linux Control Group) 是 Linux 内核的一个功能，用来限制、控制、分离一个进程组群的资源(CPU、内存、磁盘输入输出、网络带宽 等)。
 
@@ -260,13 +258,13 @@ Linux CGroup 全称为 (Linux Control Group) 是 Linux 内核的一个功能，�
 1. CGroup 在 Linux 内部实现是一个文件系统的形式， 比如 “/sys/fs/cgroup/cpuset”
 
 2. 假如你要限制某个进程的 CPU 使用率
-	a. echo 20000 > /sys/fs/cgroup/cpu/haoel/cpu.cfs_quota_us     20% 的意思
-	b. echo 3529 >> /sys/fs/cgroup/cpu/haoel/tasks
-	
+    a. echo 20000 > /sys/fs/cgroup/cpu/haoel/cpu.cfs_quota_us     20% 的意思
+    b. echo 3529 >> /sys/fs/cgroup/cpu/haoel/tasks
+
 3. 假如你要限制内存使用
-	a. mkdir /sys/fs/cgroup/memory/haoel
-	b. echo 64k > /sys/fs/cgroup/memory/haoel/memory.limit_in_bytes
-	c. echo [pid] > /sys/fs/cgroup/memory/haoel/tasks 
+    a. mkdir /sys/fs/cgroup/memory/haoel
+    b. echo 64k > /sys/fs/cgroup/memory/haoel/memory.limit_in_bytes
+    c. echo [pid] > /sys/fs/cgroup/memory/haoel/tasks 
 ```
 
 ### CGroup 的术语
@@ -295,9 +293,25 @@ Linux CGroup 全称为 (Linux Control Group) 是 Linux 内核的一个功能，�
 一个子系统就是一个资源控制器，比如CPU子系统就是控制CPU时间分配的一个控制器。子系统必须附加到一个层级上才能起作用，一个子系统附加到某个层级以后，这个层级上的所有控制族群都受到这个子系统的控制。Cgroup的子系统可以有很多，也在不断增加中。
 ```
 
-### AUFS
+### 8. UnionFS
 
-AUFS 是一种 Union File System，UFS 就是把不同物理位置的目录 联合挂载 到同一个目录中。AUFS 是 Advance Union File System，可靠性、性能都更好，而且还引入了新的功能，如可写分支的负载均衡。*不过 Linus 始终不喜欢 冈岛顺治郎 写的 AFUS，所以一直不让合进 Linux 主分支里，哈哈哈哈。*
+```markdown
+UnionFS 是一种分层、轻量级、高性能的文件系统，它支持对文件系统的修改作为一次提交来进行层层叠加。同时可以将不同的目录挂载到同一个虚拟文件系统下。UFS 是 Docker image 的基础，Docker 中使用 AUFS。
+```
+
+### 8.1 UFS 的实际应用
+
+主要用于 Linux 的演示、光盘教学、系统急救、商业产品的演示。不需要硬盘安装，直接把 CD/DVD 这个文件系统联合挂载到一个可写的存储系统上(比如 U盘)。这样对 DVD/CD 上的 image 做任何的改动，都会应用在 U 盘上面，因此可以进行任意修改，也改不坏原来的东西。
+
+### 8.2 UFS 在 Docker 上的实际应用
+
+docker 的分层镜像利用了 UFS 搭建。比如说你的源代码作为一个只读 layer, 把你的工作目录作为一个 可写 layer, 将你的工作目录联合挂载到只读 layer 上，这样你在可写层做的任何修改都不会影响到可读 layer 了。
+
+**除了 AUFS，Docker 还支持 BTRFS、VFS 等等。**
+
+### 8.3 AUFS
+
+AUFS 是 Advance Union File System，可靠性、性能都更好，而且在 UFS 的基础上还引入了新的功能，如可写分支的负载均衡。AUFS 支持为每一个成员目录(分支) 设定为 readonly、readwrite、writeout-able 等权限。
 
 **1. 首先我们建两个目录，并在这两个目录中放上一些文件**
 
@@ -375,17 +389,7 @@ $ cat ./vegetables/tomato
 I am a vegetable
 ```
 
-### UFS 的实际应用
-
-主要用于 Linux 的演示、光盘教学、系统急救、商业产品的演示。不需要硬盘安装，直接把 CD/DVD 这个文件系统联合挂载到一个可写的存储系统上(比如 U盘)。这样对 DVD/CD 上的 image 做任何的改动，都会应用在 U 盘上面，因此可以进行任意修改，也改不坏原来的东西。
-
-### UFS 在 Docker 上的实际应用
-
-docker 的分层镜像利用了 UFS 搭建。比如说你的源代码作为一个只读 layer, 把你的工作目录作为一个 可写 layer, 将你的工作目录联合挂载到只读 layer 上，这样你在可写层做的任何修改都不会影响到可读 layer 了。
-
-**除了 AUFS，Docker 还支持 BTRFS、VFS 等等。**
-
-### AUFS 的一些特性
+### 8.4 AUFS 的一些特性
 
 AUFS 可以把多个目录合并为一个目录，并可以为每个需要合并的目录指定相应的权限，实时的添加、删除、修改已经被 mount 好的目录。而且还可以在多个可写的 `branch/dir` 间进行负载均衡。
 
@@ -437,4 +441,3 @@ carrots  tomato
 ```
 
 **4. whiteout 原理就是某个上层目录覆盖了下层相同名字的目录，用于隐藏底层分支的文件**
-
