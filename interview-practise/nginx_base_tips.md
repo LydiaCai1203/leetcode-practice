@@ -4,6 +4,8 @@
 
 ### Nginx 配置模版 && 部分中文注释
 
+[nginx 配置系统](http://tengine.taobao.org/book/chapter_02.html#id6)
+
 ```shell
 #定义Nginx运行的用户和用户组
 user www www;
@@ -151,7 +153,67 @@ http
 }
 ```
 
-### 1. Nginx 多进程模型结构
+```shell
+# main：nginx 在运行时与具体业务功能无关的一些参数
+user nobody;
+worker_processes 1;
+error_log logs/error.log info;
+
+events {
+    worker_connections 1024;
+}
+
+# http: 与提供 http 服务相关的一些配置参数
+http {
+    # server: http 服务上支持若干虚拟主机,每个虚拟主机对应一个配置项
+    server {
+        listen 80;
+        server_name www.linuxidc.com;
+        access_log logs/linuxidc.access.log main;
+        # location: http 服务中，某些特定的 URL 对应的一系列配置项
+        location / {
+            index index.html;
+            root /var/www/linuxidc.com/htdocs;
+        }
+    }
+    server {
+        listen 80;
+        server_name www.Androidj.com;
+        access_log logs/androidj.access.log main;
+        location / {
+            index index.html;
+            root /var/www/androidj.com/htdocs;
+        }
+    }
+}
+
+# mail: 实现 email 相关的代理时，共享的一些配置项。
+mail {
+    auth_http 127.0.0.1:80/auth.php;
+    pop3_capabilities "TOP" "USER";
+    imap_capabilities "IMAP4rev1" "UIDPLUS";
+    server {
+        listen 110;
+        protocol pop3;
+        proxy on;
+    }
+    server {
+        listen 25;
+        protocol smtp;
+        proxy on;
+        smtp_auth login plain;
+        xclient off;
+    }
+}
+```
+
+### 1. 什么是 Nginx？
+
+```markdown
+nginx 是用于 web 服务、反向代理、缓存、负载均衡、媒体流 等的开源软件。它最初是为最大性能和稳定性而设计的 web 服务器。除了 HTTP 服务器功能之外，nginx 还可以充当电子邮件的代理服务器，HTTP、TCP、UDP 服务器的反向代理和负载均衡器。
+```
+
+### 2. Nginx 多进程模型结构
 
 ![](/Users/cqj/project/private/leetcode-practice/statics/nginx_struct.jpeg)
 
@@ -168,7 +230,7 @@ worker 进程（处理基本的网络事件）
 worker 进程的个数可以设置(一般与 cpu 核数一致)，worker 之间是独立的，对等竞争处理客户端的请求，一个请求只能在一个 worker 中处理。
 ```
 
-### 2. 为什么说 Nginx 服务不间断？
+### 3. 为什么说 Nginx 服务不间断？
 
 ```markdown
 重启 nginx 服务 == 通过 kill 向 master 发送信号, master 收到 HUP 信号以后会经历以下过程（`nginx -s reload`）：
@@ -179,13 +241,13 @@ worker 进程的个数可以设置(一般与 cpu 核数一致)，worker 之间�
 5. 老的 worker 进程处理完当前 正在处理但是未处理完成 的 client 请求以后结束
 ```
 
-### 3. worker 进程竞争模式是什么？
+### 4. worker 进程竞争模式是什么？
 
 ```markdown
 在 master 进程里先建立好需要 listen 的 socket(listenfd)，然后再 fork 出多个 worker 进程。所有 worker 进程的 listenfd 会在新链接到来时变得可读，为保证只有一个进程来处理该连接，所有的 worker 进程在注册 listenfd 读事件前，需要抢到 accept_mutex 互斥锁，然后在读事件里调用 accept 接收该连接。接收 accept 连接后，开始读取请求、解析请求、处理请求，产生数据以后返回给客户端，最后才断开连接。
 ```
 
-### 4. Nginx 如何实现高并发的？
+### 5. Nginx 如何实现高并发的？
 
 ```markdown
 虽然 nginx 的每个 worker 里只有一个主线程，但是 nginx 采用了异步非阻塞的方式来处理请求。(这里指的就是 IO 多路复用吧)
@@ -201,13 +263,16 @@ select、poll、epoll、kqueue 这类系统调用的作用，就是让我们可�
 这也是 nginx worker 数会设置成 cpu 的内核数的原因，不带来不必要的 CPU 竞争，不导致不必要的上下文切换。nginx 甚至会在 4bit 字符串比较的时候转换成整数比较，以减少 CPU 的指令数。
 ```
 
-### 5. Nginx 基础概念 - connection
+### 6. worker_connections 含义
 
 ```markdown
-在 nginx 中，connection 就是对 tcp 连接的封装，其中包括了连接的 socket、读事件、写事件。利用 nginx 封装的 connection，我们可以很方便地使用 nginx 来处理与连接相关的事情，比如 建立连接、发送 和 接收数据。nginx 中的 http 请求就是建立在 connection 之上的。利用 nginx 提供的 connection, 我们可以和任何后端服务打交道。
+worker_connections 是每个 worker 进程所能建立连接的最大值。
+
+一个 nginx 所能建立的最大连接数 = worker_connections * worker_processes
+这里指的是对于 http 请求本地资源来说能支持的最大并发数量，如果是 http 作为反向代理，最大并发数量就是 worker_connections * worker_processes / 2,因为作为反向代理服务器，每个并发会建立与客户端和与后端服务的连接，会占用两个连接。
 ```
 
-### 6. 七层负载均衡 和 四层负载均衡(load balancer)  - 四种转发模式
+### 7. 七层负载均衡 和 四层负载均衡(load balancer)  - 四种转发模式
 
 [美团点评四层负载均衡](https://tech.meituan.com/2017/01/05/mgw.html)  - 有点怪
 
@@ -295,4 +360,145 @@ client -> LVS -> SNAT -> Real Server -> LVS -> DNAT -> client
 缺点：FULLNAT 比 NAT 多做了 SNAT 和 DNAT，性能要逊色于 NAT 模式。
 ```
 
+### 8. Nginx 作为 web 服务器时是如何处理 HTTP 请求？
 
+```markdown
+1. nginx 首先确定是哪个服务器来处理该请求
+
+server {
+    listen            80;
+    server_name       example.com www.example.com
+}
+根据请求头中的 Host 字段，来确定应该路由到哪个服务器。如果没有找到匹配的，或者请求头中不包含此字段，nginx 会将请求路由到该端口的默认服务器(配置中的第一个服务器)，默认服务器可以配置(在 port 后面写上 default_server 就可以);也可以定义成丢弃请求，只需要配置 Host 为 ""）
+
+2. nginx 会选择匹配前缀最长的 location 块。当所有其他 location 块都不能提供匹配项时，会使用第一个提供的最短的块。比如：
+  
+`/logo.gif` 首先会与 location 前缀是 "/" 匹配，然后与正则表达式 "\.(gif|jpg|png)" 匹配，因此请求由后一个 location 进行处理，使用伪指令 "root /data/www" 将请求映射到 "/data/www/logo.gif"，然后将文件发送到客户端。
+
+server {
+    listen      80;
+    server_name example.org www.example.org;
+    # 对于匹配的请求，会将 URI 映射到 /data/www 中
+    root        /data/www;
+
+    location / {
+        index   index.html index.php;
+    }
+
+    location ~* \.(gif|jpg|png)$ {
+        expires 30d;
+    }
+
+    location ~ \.php$ {
+        fastcgi_pass  localhost:9000;
+        fastcgi_param SCRIPT_FILENAME
+                      $document_root$fastcgi_script_name;
+        include       fastcgi_params;
+    }
+}
+
+```
+
+### 9. Nginx 作为 负载均衡器 是如何处理请求的？
+
+```markdown
+http {
+    upstream myapp1 {
+        # 什么都不指定，默认以轮询方式
+        # minimum_conn;
+        # ip-hash;
+        server srv1.example.com;
+        server srv2.example.com;
+        server srv3.example.com;
+    }
+
+    server {
+        listen 80;
+
+        location / {
+            proxy_pass http://myapp1;
+        }
+    }
+}
+```
+
+```markdown
+1. round-robin: 请求以循环、轮转的方式分发给应用服务器
+2. least-connected：下一个请求被分配到拥有最少活动连接数的服务器
+3. ip-hash: 使用一个 hash 函数，基于客户端 ip 地址判断下一个请求应该被分发到哪台服务器
+4. weighted: 给服务器加权来影响负载均衡算法。
+```
+
+### 10. Nginx 反向代理
+
+```markdown
+反正代理服务器架设在服务器端，通过缓冲经常被请求的页面来缓解服务器的工作量，将客户机请求转发给内部网络上的目标服务器。并将从服务器上得到的结果返回给客户端，此时代理服务器和目标主机一起对外表现为一个服务器。
+
+平时我们说的代理是正向代理，是指隐藏了真实的请求客户端，服务端不知道真实的客户端是谁。反向代理隐藏了真实的服务端。
+```
+
+```shell
+upstream tomcatserver1 {  
+    server 192.168.72.49:8081;  
+}  
+upstream tomcatserver2 {  
+    server192.168.72.49:8082;  
+}  
+server {  
+    listen       80;  
+    server_name  test8081.com;  
+    location / {  
+        proxy_pass   http://tomcatserver1;  //反向代理服务器的地址
+        index  index.html index.htm;  
+    }       
+}  
+server {  
+    listen       80;  
+    server_name  test8082.com;    
+    location / {  
+        proxy_pass   http://tomcatserver2;  
+        index  index.html index.htm;  
+    }          
+}  
+```
+
+```markdown
+浏览器访问 test8081.com 时，nginx 反向代理接收到请求，找到 server_name 为 test8081.com 的节点，然后找到 proxy_pass 对应的路径，将请求转发到 upstream tomcatserver1 上面。
+```
+
+### 11. Nginx 中如何防止使用为定义的服务器名称进行请求？
+
+```markdown
+如果请求头里没有 Host 字段，只需要将服务器名称设置为 "", 则可以使用如下定义丢弃掉该请求。该定义会返回特殊的 nginx 的非标准代码 444，以关闭连接。从 0.8.48 开始，此设置已经变为默认设置，因此可以省略。
+server {
+    listen          80;
+    server_name     "";
+    return          444;
+}
+
+```
+
+### 12. 使用 反向代理服务器 的优点是什么？
+
+```markdown
+1. 隐藏服务器真实的 IP
+2. 反向代理服务器就是负载均衡的一种实现，它可以将客户端请求分发到不同的真实服务器上。
+3. 提高访问速度。反向代理服务器可以对于静态内容以及短时间内有大量访问请求的动态内容提供缓存服务，提高访问速度。
+4. 提供安全保障。反向代理服务器可以作为应用层防火墙，为网站提供对基于 Web 的攻击行为(DoS/DDoS)的防护，更容易排查恶意软件，还可以为后端服务器统一提供加密和 SSL 加速，提供 HTTP 访问认证等。
+```
+
+### 13. Nginx 中，upstream 的作用是什么？
+
+```markdown
+upstrema 模块，使得 nginx 跨越单机的限制，完成网络数据的接收、处理和转发。从本质上来说，upstream 属于 handler, 只是它不产生自己的内容，upsrteam 模块只需要开发若干回调函数，完成构造请求和解析响应等具体的工作。
+```
+
+#### 14. Nginx 的默认端口是什么？
+
+`80端口是 nginx 服务器上的默认端口`
+
+### 15. 什么是 C10K 问题？如何解决？
+
+```markdown
+C10K 就是同时连接到服务器的客户端数量超过 10K 个的环境中，即便硬件性能足够，依然无法正常提供服务。
+```

@@ -16,7 +16,7 @@
 
 + [赶集网36条军规](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/36%E6%9D%A1%E5%86%9B%E8%A7%84.txt)
 
-+ [数据库基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/database_base_tips.md)
++ [数据库基础复习 - Redis](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/database_base_tips_v2.md)
 
 + 极客时间-MySQL45讲整理
     + [第一讲 mysql的逻辑架构](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/%E4%B8%80%E6%9D%A1sql%E8%AF%AD%E5%8F%A5%E6%98%AF%E5%A6%82%E4%BD%95%E6%89%A7%E8%A1%8C%E7%9A%84.md)
@@ -64,7 +64,6 @@
 
 ## 数据结构
 + [数据结构基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/datastructure_base_tips.md)
-+ [数据库基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/database_base_tips_v2.md)
 + leetcode(microsoft_question)
     + [easy](https://github.com/LydiaCai1203/leetcode-practice/blob/master/microsoft_leetcode/easy.md)
 
@@ -78,7 +77,8 @@
 + [计算级网络基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/network_base_tips.md)
 
 
-## k8s部署demo概念
+## Docker 基础 && k8s部署demo概念
++ [Docker 常见问题整理](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/docker_interview.md)
 + [第一章：基础概念+对k8s结构的一个整体把握](https://github.com/LydiaCai1203/leetcode-practice/blob/master/learn_k8s/partone.md)
 + [第二章：基础节点部分更高级一点的理解和应用](https://github.com/LydiaCai1203/leetcode-practice/blob/master/learn_k8s/parttwo.md)
 + [CI/CD](https://github.com/LydiaCai1203/leetcode-practice/blob/master/learn_k8s/what_cicd.md)
