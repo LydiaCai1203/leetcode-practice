@@ -541,11 +541,11 @@ e. **异步非阻塞 IO**
 
 异步 IO 不是顺序执行，用户进程进行了 aio_read 系统调用之后，无论内核数据是否准备好，都会直接返回给用户进程。然后用户态进程可以去做别的事情。等待 socket 数据准备好以后，内核会直接复制数据给进程，然后从内核向用户进程发送通知。
 
-![](/Users/cqj/project/private/leetcode-practice/statics/asynchronous_io.jpeg)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/asynchronous_io.jpeg)
 
  **各个 IO 模型的比较图：**
 
-![](/Users/cqj/project/private/leetcode-practice/statics/io_summary.jpeg)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/io_summary.jpeg)
 
 异步 IO 就像是用户进程将整个 IO 操作交给了 kernal 完成，然后 kernel 做完了发信号通知，用户进程不需要 check IO 操作的状态，也不需要主动地却拷贝数据。
 
