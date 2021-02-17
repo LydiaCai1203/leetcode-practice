@@ -497,8 +497,122 @@ upstrema 模块，使得 nginx 跨越单机的限制，完成网络数据的接�
 
 `80端口是 nginx 服务器上的默认端口`
 
-### 15. 什么是 C10K 问题？如何解决？
+### 15. 什么是 C10K 问题？Nginx 是如何解决的？
 
 ```markdown
-C10K 就是同时连接到服务器的客户端数量超过 10K 个的环境中，即便硬件性能足够，依然无法正常提供服务。
+C10K 就是同时连接到服务器的客户端数量超过 10K 个的环境中，即便硬件性能足够，依然无法正常提供服务。Nginx 最初是为解决 C10K 问题而设计的，早在 1999 年，没有服务器可以处理超过 10K 个并发连接。Apache 会为每一个请求打开一个线程，取而代之的是，Nginx 是一个 worker 一个进程。通常在单独的 CPU 内核上运行每个线程，并且使用了 IO多路复用 的事件模型 来解决 C10K 问题。
 ```
+
+### 16.  select、poll、epoll、kqueue 之间的区别？
+
+#### 16.1 Linux 里面的 IO 模型
+
+1. 用户态 和 内核态
+
+```markdown
+Linux 中有用户空间和内核空间，这样设计是为了保证用户空间崩溃了，内核也不会受到影响。因此进程是不能直接访问硬件设备，当进程需要访问硬件设备，必须由用户态切换到内核态，再通过系统调用去访问硬件设备。
+```
+
+2.  Linux 中的 5 种 IO 模型
+
+```markdown
+在 Linux 中，一次 IO 操作会涉及到两个系统对象：用户进程、内核空间。其中用户进程发起 IO 的读写操作后，数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。一次当一个 read 操作发生会，会经历两个阶段：
+1. 等待数据准备
+2. 将数据从内核拷贝到进程中
+```
+
+a. **同步阻塞 IO**
+
+用户空间的应用程序执行一个系统调用，这会导致应用程序阻塞，什么也不干，直到数据准备好，并且将数据从内核复制到用户进程，最后进程再处理数据。整个过程，进程都被阻塞, 直到 kernel 返回结果，用户进程才会解除 block 状态。
+
+b. **同步非阻塞 IO**
+
+用户空间的应用程序执行一个系统调用，应用程序不会阻塞。如果数据没有准备好，内核会返回一个 error 状态，然后用户进程不断轮询 check 内核状态，在轮询期间就可以做别的事情，直到内核把数据准备好，然后会返回成功指示，通知用户进程把数据从内核空间拷贝到用户所在的进程进行处理。
+
+c. **IO 多路复用**
+
+由一个专门的进程负责轮询检查 IO 操作的状态，而不是用户进程自己负责。Linux 下的 select、poll、epoll 就是干这个的。当用户进程调用了 select，整个进程就会被 block，同时 kernel 会监听所有 select 所负责的 socket，当任何一个 socket 中的数据准备好了，select 就会返回。这时用户进程再调用 read 操作，将数据从 kernel 拷贝到用户进程。多路复用的特点是通过一种机制，使得一个进程能同时等待 IO 文件描述符，内核来监视这些文件描述符，其中任意一个进入读就绪状态，select、poll、epoll函数就可以返回。
+
+d. **信号驱动式 IO**
+
+首先我们允许Socket进行信号驱动IO，并安装一个信号处理函数，进程继续运行并不阻塞。当数据准备好时，进程会收到一个SIGIO信号，可以在信号处理函数中调用I/O操作函数处理数据。
+
+e. **异步非阻塞 IO**
+
+异步 IO 不是顺序执行，用户进程进行了 aio_read 系统调用之后，无论内核数据是否准备好，都会直接返回给用户进程。然后用户态进程可以去做别的事情。等待 socket 数据准备好以后，内核会直接复制数据给进程，然后从内核向用户进程发送通知。
+
+![](/Users/cqj/project/private/leetcode-practice/statics/asynchronous_io.jpeg)
+
+ **各个 IO 模型的比较图：**
+
+![](/Users/cqj/project/private/leetcode-practice/statics/io_summary.jpeg)
+
+异步 IO 就像是用户进程将整个 IO 操作交给了 kernal 完成，然后 kernel 做完了发信号通知，用户进程不需要 check IO 操作的状态，也不需要主动地却拷贝数据。
+
+#### 16.2 比较 select、poll、epoll、kqueue
+
+select、poll、epoll 本质上都是同步 IO，它们都需要在读写事件就绪后自己负责进行读写，这个读写的过程是阻塞的。
+
+**select**
+
+[吹牛逼挺厉害的](https://my.oschina.net/u/4313784/blog/4262700)
+
+```c
+int select (int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+
+typedef __kernel_fd_set     fd_set;
+#undef __FD_SETSIZE
+#define __FD_SETSIZE    1024
+
+typedef struct {
+    unsigned long fds_bits[__FD_SETSIZE / (8 * sizeof(long))];
+} __kernel_fd_set;
+```
+
+1. select 函数监听的文件描述符有三类，writefds、readfds、execptfds
+
+2. 调用后 select 函数会阻塞，直到有描述符就绪(可读、可写、except) 或 超时(timeout)，select 函数返回，返回以后通过遍历 fdset，找到就绪的描述符。
+
+3. select  的主要缺陷是对单个进程打开的文件描述符有一定的限制，它由 FD_SIZE 设置，默认值是 1024。1024 的限制只是 POSIX 的约定，超过 1024 会造成越界，栈上突破，可能会造成数据覆盖。
+
+4. select 会返回一个整型，错误返回 -1，正确返回就绪的文件描述符个数。调用者怎么判断哪个文件描述符就绪了呢？select 会修改 readset、writeset、exceptset，如果一个文件描述符就绪，则为 1，没就绪，则为 0。这样调用者就要遍历整个位域，通过 FD_ISSET 宏来找到就绪的文件描述符。所以如果文件描述符很多，空闲的连接也很多，但是就绪的连接很少，效率会很低。
+
+**poll**
+
+```java
+int poll (struct pollfd *fds, unsigned int nfds, int timeout);
+
+struct pollfd {
+    int fd; /* file descriptor */
+    short events; /* requested events to watch */
+    short revents; /* returned events witnessed */
+};
+```
+
+1. poll 函数使用了一个 pollfd 的指针，pollfd 包含了要监视的event 和 要发生的event。
+
+2. pollfd 采用链表存储，没有最大数量的限制，但是数量过大后性能也会下降。
+
+3. poll 返回以后，需要轮询 pollfd 来获取就绪的描述符。
+
+**epoll**
+
+```c
+int epoll_create(int size)；
+int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
+int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
+```
+
+1. `epoll_create` 创建一个 epoll 句柄，size 并不是限制 epoll 所能监听的文件描述符的最大个数，只是对内核初始分配内部数据结构的一个建议。创建好的 epoll 句柄，本身占用一个 fd 值，用完以后必须释放。
+
+2.  `epoll_ctl` 是对指定的文件描述符执行 op 操作。其中 `epfd` 是上一个函数返回的 epoll 句柄，op 表示操作，fd 是需要监听的 fd，epoll_event 告诉内核需要监听什么事。
+
+3. `epoll_wait` 等待 epfd 上的 io 事件，最多返回 maxevents 个活跃事件。
+
+**epoll 两种工作模式，LT(epoll_wait 检测到描述符事件发生并将此事件通知应用程序，应用程序可以不立即处理该事件，下次调用 epoll_wait 时，会再次响应应用程序并通知此事件)、ET(epoll_wait 检测到描述符事件发生并将此事件通知应用程序，应用程序必须立即处理该事件，如不处理，下次调用 epoll_wait 时，不会再响应应用程序并通知此事件)**
+
+4. 没有并发连接数的限制，1G 的内存上能监听约 10W个端口
+
+5. 不用轮询所有的文件描述符，在注册 fd 时加入特定状态，一旦 fd 就绪会主动通知内核，避免线性轮询所有的文件描述符。仅仅活跃的 socket 连接才会主动通知内核。
+
+6. 使用一个 fd 管理多个 fd，将用户关系的 fd 存放到内核的一个事件表中，这样在用户空间和内核空间只需要 copy 一次。
