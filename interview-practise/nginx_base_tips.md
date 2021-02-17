@@ -215,7 +215,7 @@ nginx 是用于 web 服务、反向代理、缓存、负载均衡、媒体流 �
 
 ### 2. Nginx 多进程模型结构
 
-![](/Users/cqj/project/private/leetcode-practice/statics/nginx_struct.jpeg)
+![](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/nginx_struct.jpeg)
 
 ```markdown
 nginx 启动后，在 uninx 系统中会以 daemon 的方式在后台运行，后台进程包含一个 master 进程 和 多个 worker 进程。我们要操作 nginx，只需要和 master 进程通信即可。

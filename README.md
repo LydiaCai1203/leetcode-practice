@@ -48,12 +48,10 @@
 
 
 ## 后端基础
++ [nginx 基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/nginx_base_tips.md)
 + [Django基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/django_base_tips.md)
-
 + [后端基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/web_backend_tips.md)
-
 + [搭建后端框架积累](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/framework_tips.md)
-
 + [消息队列 rabbitmq 和 kafka 的异同](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/mq_tips.md)
 
 ## 初识GraphQL
