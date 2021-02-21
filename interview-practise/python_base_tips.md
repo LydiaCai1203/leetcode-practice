@@ -300,13 +300,14 @@ def retry_and_throw(func):
             else:
                 try:
                     print('try')
-                    return func(*args, **kwargs)
+                    func(*args, **kwargs)
                 except Exception as e:
                     print('catch')
                     continue
                 else:
                     print('no exception')
                     break
+	return f(*args, **kwargs)
     return inner
 
 @retry_and_throw
@@ -331,8 +332,9 @@ def record_runtime(func):
     @wraps(func)
     def inner(*args, **kwargs):
         from_time = time.time()
-        return func(*args, **kwargs)
+        func(*args, **kwargs)
         print(time.time() - from_time)
+	return func(*args, **kwargs)
     return inner
 ```
 
