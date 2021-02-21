@@ -61,7 +61,7 @@
 + [验证](https://github.com/LydiaCai1203/leetcode-practice/blob/master/graphql/validation.md)
 
 ## 数据结构
-+ [数据结构基础复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/datastructure_base_tips.md)
++ [基础排序算法复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/datastructure_base_tips.md)
 + leetcode(microsoft_question)
     + [easy](https://github.com/LydiaCai1203/leetcode-practice/blob/master/microsoft_leetcode/easy.md)
 
