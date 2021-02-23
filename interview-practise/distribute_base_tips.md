@@ -167,4 +167,17 @@ TCC(Try、Confirm、Cancel)，是一种解决多个微服务之间的分布式�
 
 [自己看吧](https://mp.weixin.qq.com/s/ujRRtdLOeKEHsHrtDRNXGA)
 
+### 2. 分布式 ID 的算法
 
+```markdown
+分布式 ID 首先要满足 全局唯一性、趋势递增、单调递增、信息安全 这几种要求。
+
+**UUID(Universally Unique Identifier) **
+概念：标准形式包含 32 个 16 进制的数字，以连字号分为 5 段。
+优点：1.性能非常高 2.本地生成没有网络消耗
+缺点：1.不易于存储 2.信息不安全 3.如果把 UUID 作为主键的话，非常不适用。官方文档上明确定义越短越好，36 个字符的 UUID 不符合要求。
+
+****
+```
+
+### 3. RPC 是什么
