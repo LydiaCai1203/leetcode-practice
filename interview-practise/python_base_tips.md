@@ -215,6 +215,7 @@ while True:
         def inner():
             print('enter inner func')
             register.append(func.__name__)
+	    return func()
         return inner
 
     @record
@@ -300,14 +301,14 @@ def retry_and_throw(func):
             else:
                 try:
                     print('try')
-                    func(*args, **kwargs)
+                    ret = func(*args, **kwargs)
                 except Exception as e:
                     print('catch')
                     continue
                 else:
                     print('no exception')
                     break
-	return f(*args, **kwargs)
+	return ret
     return inner
 
 @retry_and_throw
@@ -332,9 +333,9 @@ def record_runtime(func):
     @wraps(func)
     def inner(*args, **kwargs):
         from_time = time.time()
-        func(*args, **kwargs)
+        ret = func(*args, **kwargs)
         print(time.time() - from_time)
-	return func(*args, **kwargs)
+	return ret
     return inner
 ```
 
