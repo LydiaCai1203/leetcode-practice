@@ -215,7 +215,7 @@ while True:
         def inner():
             print('enter inner func')
             register.append(func.__name__)
-	    return func()
+        return func()
         return inner
 
     @record
@@ -232,7 +232,7 @@ while True:
         def __init__(self):
             self.items = list()
         def __call__(self, new_value):
-          	# 这样写了就代表对象是可调用的了
+              # 这样写了就代表对象是可调用的了
             self.items.append(new_value)
             total = sum(self.items)
             return total/len(self.items)
@@ -245,13 +245,13 @@ while True:
     func.__closure__[0].cell_contents         # 3
 
 ```python
-		def outer():
-  			var = 3
-    		def inner():
-      			print(var)
-    		return inner
-		func = outer()   # 现在 func == inner, outer() 执行完以后按道理来说 var 应该已经被 GC 回收
-		func()           # 打印出 3，发现 var 变量还在
+        def outer():
+              var = 3
+            def inner():
+                  print(var)
+            return inner
+        func = outer()   # 现在 func == inner, outer() 执行完以后按道理来说 var 应该已经被 GC 回收
+        func()           # 打印出 3，发现 var 变量还在
 ```
 
 ```python
@@ -308,7 +308,7 @@ def retry_and_throw(func):
                 else:
                     print('no exception')
                     break
-	return ret
+    return ret
     return inner
 
 @retry_and_throw
@@ -335,7 +335,7 @@ def record_runtime(func):
         from_time = time.time()
         ret = func(*args, **kwargs)
         print(time.time() - from_time)
-	return ret
+    return ret
     return inner
 ```
 
@@ -1140,8 +1140,8 @@ d.exetendleft('abc')
     # 偏函数的作用就是冻结某些函数的参数或者关键字参数，同时会生成一个带有新标签的的对象，也是一个函数。
     from functools import partial
     def add(*args):
-    		return sum(*args)
-    		
+            return sum(*args)
+    
     sum_3 = partial(add, [1,2,3])
     sum_5 = partial(add, [1,2,3,4,5])
 
@@ -1197,11 +1197,11 @@ lambda 的句法：
 ```markdown
 - 函数 和 lambda 的区别：
 函数名：
-	def add: pass         # 函数名称是 add
-	lambda x, y: x + y    # 函数名称是 lambda
+    def add: pass         # 函数名称是 add
+    lambda x, y: x + y    # 函数名称是 lambda
 追溯：
-	def add: pass         # 引发异常时，回溯会显示 add
-	lambda x, y: x + y    # 引发异常时，回溯会显示 lambda
+    def add: pass         # 引发异常时，回溯会显示 add
+    lambda x, y: x + y    # 引发异常时，回溯会显示 lambda
 ```
 
 **with**
@@ -1214,21 +1214,21 @@ with 语句用于使用上下文管理器定义的方法来包装块的执行，
 
 ```python
 class ManagerWriter(object):
-  	"""
-  			这个类的实例就是一个上下文管理器
-  	"""
-  	def __init__(self, filename: str):
-      	self.filename = filename
+      """
+              这个类的实例就是一个上下文管理器
+      """
+      def __init__(self, filename: str):
+          self.filename = filename
 
     def __enter__(self):
-      	self.file = open(self.filename, 'w')
+          self.file = open(self.filename, 'w')
         return self.file
-    
+
     def __exit__(self):
-      	self.file.close()
+          self.file.close()
 
 with ManagerWriter('my_file.txt') as f:        # 上下文表达式
-  	f.write('hello world.')
+      f.write('hello world.')
 ```
 
 ```markdown
@@ -1245,30 +1245,140 @@ from contextlib import contextmanager
 
 @contextmanager
 def timethis(label):
-  	start = time.time()
+      start = time.time()
     try:
-      	yield                # yield 之前的代码会在上下文管理器中作为 __enter__() 方法来执行
+          yield                # yield 之前的代码会在上下文管理器中作为 __enter__() 方法来执行
     finally:                 # yield 之后的代码会作为 __exit__() 方法执行。
-      	end = time.time()    # 如果出现异常，异常会在 yield 语句那里抛出。
+          end = time.time()    # 如果出现异常，异常会在 yield 语句那里抛出。
         print('{}:{}'.format(label, end - start))
 
 with timethis('counting'):
-  	n = 10000000
+      n = 10000000
     while n > 0:
-      	n -= 1
+          n -= 1
 ```
 
 ```python
 def list_transaction(orig_list: list):
-  	working = list(orig_list)
+      working = list(orig_list)
     yield working
     org_list[:] = working
 
 # 任何对列表的修改只有当所有代码运行完成并且不出现异常的情况下才会生效
 items = [1, 2, 3]
 with list_transaction(items) as working:
-  	working.append(4)
+      working.append(4)
     working.append(5)
     raise RuntimeError('oops')
 ```
+
+### 48. 怎么样能使一个类的实例变成可迭代对象?
+
+**方法一：实现 `__getitem__`**
+
+```python
+# 如果没有实现 __iter__, 但是实现了 __getitem__，python 就会创建一个迭代器，尝试按照顺序从 0 开始获取元素。
+
+class Foo:
+    def __init__(self):
+        self.members = [1, 2, 3, 4]
+        
+    def __getitem__(self, index: int):
+        return self.members[index]
+```
+
+**方法二：实现 `__iter__`**
+
+```python
+from typing import Iterator
+
+
+class Foo:
+    def __init__(self) -> None:
+        self.members = [1, 2, 3, 4]
+    def __iter__(self) -> Iterator:
+        return FooIterator(self.members)
+
+class FooIterator:
+    def __init__(self, members: list) -> None:
+        self.members = members
+        self.index = 0
+    def __next__(self):
+        try:
+            item = self.members[self.index]
+        except IndexError:
+            return StopIteration
+        self.index += 1
+        return item    
+    def __iter__(self):
+        return self
+```
+
+### 49. tuple 和 list 陷阱题...
+
+```python3
+# 说出一下 tuple 输出的最终结果
+a = (1, 2, [3])
+
+a[2].append(33)
+print(a)                   # (1, 2, [3, 33])
+
+a[2].extend([33])
+print(a)                   # (1, 2, [3, 33, 33])
+
+a[2] += [33]
+print(a)                   # 抛出异常.. a[2] = a[2] + [33] 是一个新的 list
+                           # a[2] 存的地址变了
+```
+
+# 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
