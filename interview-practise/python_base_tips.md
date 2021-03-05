@@ -1282,7 +1282,7 @@ with list_transaction(items) as working:
 class Foo:
     def __init__(self):
         self.members = [1, 2, 3, 4]
-        
+
     def __getitem__(self, index: int):
         return self.members[index]
 ```
@@ -1327,58 +1327,6 @@ a[2].extend([33])
 print(a)                   # (1, 2, [3, 33, 33])
 
 a[2] += [33]
-print(a)                   # 抛出异常.. a[2] = a[2] + [33] 是一个新的 list
-                           # a[2] 存的地址变了
+print(a)                   # (1, 2, [3, 33, 33])
+                           # 抛出异常.. a[2] = a[2] + [33] 因为 tuple 是不允许赋值操作的
 ```
-
-# 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
