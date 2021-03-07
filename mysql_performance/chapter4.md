@@ -285,7 +285,7 @@ ON DUPLICATE KEY UPDATE cnt = cnt + 1;
 
 #### 4.5.1 只修改 .frm 文件
 
-​		`ALTER TABLE` 允许使用 `MODIFY COLUMN `、`ALTER COLUMN`、`CHANGE COLUMN` 修改列。三种操作都是不一样的。
+​		`ALTER TABLE` 允许使用 `MODIFY COLUMN `、`ALTER COLUMN` 修改列。三种操作都是不一样的。
 
 ​		**下面一些操作可能不需要重建表：**
 
