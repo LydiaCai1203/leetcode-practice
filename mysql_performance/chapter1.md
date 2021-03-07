@@ -126,8 +126,8 @@
   commit;
   
   start transaction;   -- 事务2
-  update student set name = 'lydia' where id = 1;    -- 产生行锁
-  update student set name = 'all of us' where id = 2;  -- 写锁在事务1那里
+  update student set name = 'lydia' where id = 2;    -- 产生行锁
+  update student set name = 'all of us' where id = 1;  -- 写锁在事务1那里
   commit
   ```
 
