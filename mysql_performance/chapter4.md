@@ -24,7 +24,7 @@ Clare Churcher 的 《Beginning Database Design》帮助学习数据库设计。
 
   + 当可为 NULL 的列被索引时，每个索引记录需要一个额外的字节。
   + 在 MyISAM 里甚至还可能导致固定大小的索引变成可变大小的索引。
-  + DATETIME 和 TIMESTAMP 列都可以存储相同类型的数据：时间和日期，并且都是精确到秒。但是 TIMESTAMP 只使用 DATETIME 一半的存储时间。
+  + DATETIME 和 TIMESTAMP 列都可以存储相同类型的数据：时间和日期，并且都是精确到秒。但是 TIMESTAMP 只使用 DATETIME 一半的存储空间。
 
 
 ### 4.1.1 整数(whole number)
