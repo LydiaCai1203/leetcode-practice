@@ -1,4 +1,4 @@
-## REVIEW OF DATABASE（阿菜2019年自制面经）
+## REVIEW OF DATABASE
 
 ------------------
 ### 1. ★★☆ 范式理论。
@@ -24,6 +24,12 @@
     + **读已提交** 只能看见已经提交了的事务所做出的改变，脏读(no way)  不可重读(probably) 幻读(probably)
     + **可重复读** MySQL默认的隔离级别，确保多个数据库实例在并发读取数据的时候，可以看到同样的数据行。脏读(no way) 不可重复读(no way) 幻读(probably)
     + **可串行化** 通过强制事务排序，使之不可能互相发生冲突，就是说会在每个读的数据行上加上共享锁。这样做会导致大量的超时现象和锁竞争现象。脏读(no way) 不可重复读(no way) 幻读(no way)
+
+------------------
+### 4. MySQL InnoDB 有哪些索引类型？
+    1. 聚簇索引(主键索引、唯一索引)
+    2. 辅助索引(单列索引、联合索引、前缀索引)
+    3. 其它索引(全文索引、空间索引)
 
 ------------------
 ### 4. 数据库索引的实现有哪些数据结构
@@ -79,25 +85,26 @@
 
 -----------------
 ### 10. ★★★ B+Tree 原理，与其它查找树的比较
-[平衡树](https://github.com/AaronXYZ/PersonalBlog/issues/20)
+[看这篇](https://mp.weixin.qq.com/s/faOaXRQM8p0kwseSHaMCbg)
 
-[平衡树可视化构建过程](https://www.cs.usfca.edu/~galles/visualization/AVLtree.html)
-
-[B-Tree和B+Tree比较通俗的解释](https://blog.csdn.net/yin767833376/article/details/81511377)
-
-[数据库索引](https://www.kancloud.cn/kancloud/theory-of-mysql-index/41856)
-
-        1. 首先索引里面存的指针存的是数据库里面数据的物理地址 索引里面还有一个索引键值
-        2. 真实世界的索引并没有使用二叉树或者是红黑树的实现 大部分都是B-Tree或者是B+Tree的实现
+```markdown
+1. 首先索引里面存的指针存的是数据库里面数据的物理地址 索引里面还有一个索引键值
+2. 真实世界的索引并没有使用二叉树或者是红黑树的实现 大部分都是B-Tree或者是B+Tree的实现
+```
 #### 10.1 B-Tree
-    假如有一本英文字典，单词+详细解释组成了一条记录，现在需要索引单词，就会以单词为key, 单词+详细解释为data。B-Tree就是以这样一个二元组{key, data}来定义一条记录的。如果一个节点有三条记录，那么会有对应的四个指针，用以指向下一个结点。B-Tree是有序而且平衡的，所有的叶子节点都在同一层。
-
-+ 搜索：首先从跟节点进行查找，找到了就返回对应节点的data。否则对相应区间指向的指针  
+```markdown
+1. 平衡多叉树，所有的叶子节点都在同一层(注意这里和平衡树的定义还是有点不同的)。
+2. 每个节点都存储着一行所有的数据，因此一页存储区域存储的数据会少，树高会变高。树高变大就意味着磁盘 I/O 的次数会变多。
+3. 叶子节点之间不存在指针指向，因此对范围查找很不友好。
+```
 
 #### 10.2 B+Tree
-    1. B+Tree非叶子节点都只有key,没有data。
-    2. 所有的叶子节点之间都有一个链指针。
-    3. 数据记录都存放在叶子节点中。
+```markdown
+1. 平衡多叉树，所有的叶子节点都在同一层(注意这里和平衡树的定义还是有点不同的)。
+1. 非叶子节点都只有key, 没有data。
+2. 所有的叶子节点之间都有两个双向指针。
+3. 数据记录都存放在叶子节点中。(这里只是针对 InnoDB 是这样的，MyISAM 里存的就是磁盘地址)
+```
 
 #### 10.3 评判标准
 
@@ -140,28 +147,29 @@
 ### 12. ★★★ InnoDB 与 MyISAM 比较
 
 + MyISAM(B+Tree)
-
-[myisam索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/myisam_index.jpg)
-
-[myisam辅助索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/myisam_index2.jpg)
-    
-索引文件仅仅是保存数据记录的地址。在MyISAM中，主索引和辅索引在结构上没有任何区别，只是主索引要求key是唯一的，而辅助索引的key是可以重复的。MyISAM的索引方式是**非聚集的**。
+```markdown
+1. MyISAM 中没有聚簇索引的概念，认为 主键索引 和 辅助索引 的结构是一样的。
+1. MyISAM 中索引文件和数据文件是分开存储的，因此 主键索引 和 辅助索引 的叶子节点中存的 data 都是磁盘地址。
+2. 主键索引要求 key 是唯一的且非空，辅助索引是可重复可空的。
+```
 
 + InnoDB(B+Tree)
-
-[InnoDB索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/innodb_index.jpg)
-
-[InnoDB辅助索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/myisam_index2.jpg)
-
-**InnoDB的数据文件本身就是索引文件**，MyISAM的索引文件和数据文件是分开来的，索引文件仅仅保存数据记录的地址。但是在InnoDB中，叶节点data中保存的是完整的数据记录。这个索引key本身就是数据库的主键，因此InnoDB表数据文件本身就是主索引。
-
-叶节点包含了所有的数据，这种索引叫做**聚集索引**。因为InnoDB的数据文件本身是按照主键聚集，所以会要求InnoDB表**必须有主键**，MyISAM可以没有，如果没有显示指定主键，MySQL就会**自动指定**一列作为主键。如果不存在这种列，MySQL会**自动生成一个隐含的字段作为主键**。这个字段的长度为6个字节。类型是长整型的。
+```markdown
+1. InnoDB 的数据文件本身就是索引文件, 因此主键索引（聚簇索引）的叶子节点中保存的是完整的数据记录。
+2. InnoDB 的辅助索引叶子节点的 data 中保存的是主键值。
+3. 因为InnoDB的数据文件本身是按照主键聚集，所以会要求InnoDB表必须有主键，如果不存在这种列，MySQL会自动生成一个隐含的字段作为主键。这个字段的长度为6个字节。类型是长整型的。
+```
 
 #### 12.1 为什么不建议主键过长
-    因为所有的辅助索引都引用主索引，使用辅助索引搜索的时候会通过辅助索引找到主键，然后再通过主键索引找到数据。所以过长的主索引，会让辅助索引也变得很大。（这里还是有点不明白说的是什么意思）
+```markdown
+1. 因为所有的辅助索引都引用主索引，使用辅助索引搜索的时候会通过辅助索引找到主键，然后再通过主键索引找到数据。所以过长的主索引，会让辅助索引也变得很大。
+2. 同样节点过大也会导致一页存储的节点个数变少，树高就变大，IO 次数也会变多吧。
+```
 
 #### 12.2 使用非单调的字段作为主键在InnoDB表中 并不是一个好的做法
-    因为InnoDB的数据文件就是索引文件，底层实现是B+Tree。非单调的字段在插入的时候会导致树不断旋转分裂调整。十分低效，所以用自增字段作为主键是一个很好的选择。
+```markdown
+因为InnoDB的数据文件就是索引文件，底层实现是B+Tree。非单调的字段在插入的时候会导致树不断旋转分裂调整。十分低效，所以用自增字段作为主键是一个很好的选择。
+```
 
 -----------------
 ### 13. ★★★ MySQL 索引以及优化
@@ -200,10 +208,9 @@
 ```MySQL
     EXPLAIN SELECT * FROM employees.titles
             WHERE emp_no='10001'
-                  AND title IN ('Senior Engineer', 'Staff', 'Engineer', 'Senior Staff', 'Assistant Engineer', 'Technique Leader', 'Manager')
+                AND title IN ('Senior Engineer', 'Staff', 'Engineer', 'Senior Staff', 'Assistant Engineer', 'Technique Leader', 'Manager')
                 AND from_date='1986-06-26';
 ```
-    但是不觉得上面这种所谓的改进很low吗。。。
 
 #### 13.4 查询条件没有指定索引第一列
 ```MySQL
@@ -211,7 +218,7 @@
             FROM employees.titles 
             WHERE from_date='1986-06-26';
 ```
-    不是最左前缀，from_date是复合索引的一部分，没有问题，可以进行index类型的索引扫描方式。explain显示结果使用到了索引，是index类型的方式。这个需要求证一下。
+    不是最左前缀，from_date是复合索引的一部分，没有问题，可以进行index类型的索引扫描方式。explain显示结果使用到了索引，是index类型的方式。
 
 #### 13.5 匹配某列的前缀字符串
 ```MySQL
@@ -235,7 +242,7 @@
             FROM employees.titles 
             WHERE emp_no='10001' AND left(title, 6)='Senior';
 ```
-    但是由于使用了函数left，则无法为title列应用索引，而情况五中用LIKE则可以。
+    但是由于使用了函数left，则无法为title列应用索引， 
 
 #### 13.8 前缀索引
     有一种与索引选择性有关的索引优化策略叫做前缀索引，就是用列的前缀代替整个列作为索引key，当前缀长度合适时，可以做到既使得前缀索引的选择性接近全列索引，同时因为索引key变短而减少了索引文件的大小和维护开销。下面以employees.employees表为例介绍前缀索引的选择和使用
@@ -330,8 +337,13 @@
         + 如果是插入数据进数据表，那在undolog中记录的就是删除数据的操作。
 
 -----------------
-### 26. ★★★ MVCC(多版本并发控制)原理，当前读以及快照读，Next-Key Locks 解决幻影读
+### 17. ★★★ MVCC(多版本并发控制)原理，当前读以及快照读，Next-Key Locks 解决幻影读
 [MVCC原理 && 间隙锁](https://github.com/LydiaCai1203/leetcode-practice/edit/master/mysql_performance/mvcc_next_key.md)
+
+-----------------
+### 18. ★★★ MySQL 数据库调优 - 面试套路
++ [数据库调优](https://mp.weixin.qq.com/s/e0CqJG2-PCDgKLjQfh02tw)
++ [Explain 结果中每个字段的含义说明](https://www.jianshu.com/p/8fab76bbf448)
 
 -----------------
 ### 14. “N叉树”的N值在Mysql是否可以被调整
