@@ -126,8 +126,8 @@
   commit;
   
   start transaction;   -- 事务2
-  update student set name = 'lydia' where id = 1;    -- 产生行锁
-  update student set name = 'all of us' where id = 2;  -- 写锁在事务1那里
+  update student set name = 'lydia' where id = 2;    -- 产生行锁
+  update student set name = 'all of us' where id = 1;  -- 写锁在事务1那里
   commit
   ```
 
@@ -250,7 +250,7 @@
 ​		被设计于处理大量的短期(shorted-lived)事务。
 
 + InnoDB 的数据**存储**在表空间(table space)中，由一系列的数据文件组成。
-+ InnoDB 采用 **MVCC** 支持高并发，实现了四个标准的隔离级别，默认级别是 repeatable read。MVCC 和 间隙锁(next-key locking)可以解决幻行的问题。next-key locking 使得 InnoDB 不仅仅锁定查询所涉及的行，还会对索引中的间隙做锁定，防止幻行的插入。
++ InnoDB 采用 **MVCC** 支持高并发，实现了四个标准的隔离级别，默认级别是 repeatable read。MVCC 和 间隙锁(nest-key locking)可以解决幻行的问题。nest-key locking 使得 InnoDB 不仅仅锁定查询所涉及的行，还会对索引中的间隙做锁定，防止幻行的插入。
 + InnoDB 表是基于聚簇索引建立的，聚簇索引对主键查询有很高的性能。但是他的二级索引中必须包含主键列，因此如果表上的索引较多的话，主键应当尽可能的笑。
 + InnoDB 内部做了很多优化，包括从磁盘读取数据时采用的可预测性预读，能够自动在内存中创建 hash 索引以加速读操作的自适应哈希索引(adaptive hash index)，能加速插入操作的插入缓冲区等。
 + 官方手册中的 "InnoDB 事务模型与锁" 一节。有必要详细阅读。

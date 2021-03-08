@@ -24,7 +24,7 @@ Clare Churcher 的 《Beginning Database Design》帮助学习数据库设计。
 
   + 当可为 NULL 的列被索引时，每个索引记录需要一个额外的字节。
   + 在 MyISAM 里甚至还可能导致固定大小的索引变成可变大小的索引。
-  + DATETIME 和 TIMESTAMP 列都可以存储相同类型的数据：时间和日期，并且都是精确到秒。但是 TIMESTAMP 只使用 DATETIME 一半的存储时间。
+  + DATETIME 和 TIMESTAMP 列都可以存储相同类型的数据：时间和日期，并且都是精确到秒。但是 TIMESTAMP 只使用 DATETIME 一半的存储空间。
 
 
 ### 4.1.1 整数(whole number)
@@ -101,7 +101,7 @@ https://dev.mysql.com/doc/refman/8.0/en/char.html
 
 **datetime**
 
-​		范围：1001 年 ～ 9999 年。精度到秒，**它把日期和时间封装到格式为 YYYYMMDDHHMMSS 的整数中**，和时区无关。始终使用 8 byte 存储空间。默认情况下是一种可排序、无歧义的格式显示 datetime 值。例如 "2001-01-01 00:00:00"，这是 ANSI 标准定义的日期和时间的表示方法。
+​		范围：1001 年 ～ 9999 年。精度到秒，**它把日期和时间封装到格式为 YYYYMMDDHHMMSS 的整数中**。始终使用 8 byte 存储空间。默认情况下是一种可排序、无歧义的格式显示 datetime 值。例如 "2001-01-01 00:00:00"，这是 ANSI 标准定义的日期和时间的表示方法。
 
 ​		将 unix 时间存储为整数值，这样的时间通常不方便处理，不推荐使用。(突然想到某人设计的表，就全是日期整数，的确是很不方便)。
 
@@ -285,7 +285,7 @@ ON DUPLICATE KEY UPDATE cnt = cnt + 1;
 
 #### 4.5.1 只修改 .frm 文件
 
-​		`ALTER TABLE` 允许使用 `MODIFY COLUMN `、`ALTER COLUMN`、`CHANGE COLUMN` 修改列。三种操作都是不一样的。
+​		`ALTER TABLE` 允许使用 `MODIFY COLUMN `、`ALTER COLUMN` 修改列。三种操作都是不一样的。
 
 ​		**下面一些操作可能不需要重建表：**
 
