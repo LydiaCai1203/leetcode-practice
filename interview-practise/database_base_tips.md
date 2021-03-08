@@ -1,4 +1,4 @@
-## REVIEW OF DATABASE（阿菜2019年自制面经）
+## REVIEW OF DATABASE
 
 ------------------
 ### 1. ★★☆ 范式理论。
@@ -208,10 +208,9 @@
 ```MySQL
     EXPLAIN SELECT * FROM employees.titles
             WHERE emp_no='10001'
-                  AND title IN ('Senior Engineer', 'Staff', 'Engineer', 'Senior Staff', 'Assistant Engineer', 'Technique Leader', 'Manager')
+                AND title IN ('Senior Engineer', 'Staff', 'Engineer', 'Senior Staff', 'Assistant Engineer', 'Technique Leader', 'Manager')
                 AND from_date='1986-06-26';
 ```
-    但是不觉得上面这种所谓的改进很low吗。。。
 
 #### 13.4 查询条件没有指定索引第一列
 ```MySQL
@@ -219,7 +218,7 @@
             FROM employees.titles 
             WHERE from_date='1986-06-26';
 ```
-    不是最左前缀，from_date是复合索引的一部分，没有问题，可以进行index类型的索引扫描方式。explain显示结果使用到了索引，是index类型的方式。这个需要求证一下。
+    不是最左前缀，from_date是复合索引的一部分，没有问题，可以进行index类型的索引扫描方式。explain显示结果使用到了索引，是index类型的方式。
 
 #### 13.5 匹配某列的前缀字符串
 ```MySQL
@@ -243,7 +242,7 @@
             FROM employees.titles 
             WHERE emp_no='10001' AND left(title, 6)='Senior';
 ```
-    但是由于使用了函数left，则无法为title列应用索引，而情况五中用LIKE则可以。
+    但是由于使用了函数left，则无法为title列应用索引， 
 
 #### 13.8 前缀索引
     有一种与索引选择性有关的索引优化策略叫做前缀索引，就是用列的前缀代替整个列作为索引key，当前缀长度合适时，可以做到既使得前缀索引的选择性接近全列索引，同时因为索引key变短而减少了索引文件的大小和维护开销。下面以employees.employees表为例介绍前缀索引的选择和使用
