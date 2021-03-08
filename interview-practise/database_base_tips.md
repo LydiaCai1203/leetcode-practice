@@ -85,13 +85,7 @@
 
 -----------------
 ### 10. ★★★ B+Tree 原理，与其它查找树的比较
-[平衡树](https://github.com/AaronXYZ/PersonalBlog/issues/20)
-
-[平衡树可视化构建过程](https://www.cs.usfca.edu/~galles/visualization/AVLtree.html)
-
-[B-Tree和B+Tree比较通俗的解释](https://blog.csdn.net/yin767833376/article/details/81511377)
-
-[数据库索引](https://www.kancloud.cn/kancloud/theory-of-mysql-index/41856)
+[看这篇](https://mp.weixin.qq.com/s/faOaXRQM8p0kwseSHaMCbg)
 
 ```markdown
 1. 首先索引里面存的指针存的是数据库里面数据的物理地址 索引里面还有一个索引键值
