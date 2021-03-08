@@ -73,7 +73,7 @@ where name = 'caiqj' and sex = 'female' and course = '语文'；
 
 ### 7. 选择 唯一索引 还是 普通索引？
 
-[重点要回答到 change buffer，看这篇笔记]()
+[重点要回答到 change buffer，看这篇笔记](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql_performance/unique_idx_common_idx.md)
 
 ```markdown
 总结：
