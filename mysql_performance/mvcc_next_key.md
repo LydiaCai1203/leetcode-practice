@@ -148,7 +148,7 @@ tips:
     a. 如果事务 ID 不存在于 trx_idx 集合，则说明在 read_view 产生的时候已经 commit 了。
     b. 如果事务 ID 存在于 trx_idx，说明在 read_view 产生时该事务还未提交，如果数据的事务 ID 等于 creator_trx_id，说明这个数据是自己生成的，所以可以显示。
     c. 如果事务 ID 存在于 trx_idx，说明在 read_view 产生时该事务还未提交，如果数据的事务 ID 不等于 creator_trx_id，则不可以显示。
-    
+
 4）当不满足 read view 显示条件的时候，从 undo log 里面获取数据的历史版本，拿到历史的事务版本号，再从 1）步骤开始匹配，直到找到一条满足条件的历史数据进行显示，找不到则返回空结果。
 ```
 
@@ -173,8 +173,83 @@ tips:
 在快照读的情况下可以避免幻读问题，在当前读的情况下需要使用间隙锁来解决。
 ```
 
-### 10 next-key lock 解决幻行原理？
+### 10. 行锁(Record Lock) 间隙锁(Gap Lock) 解决幻行原理？
+
+[文档](https://dev.mysql.com/doc/refman/8.0/en/innodb-locking.html#innodb-gap-locks)
 
 ```markdown
-pass
+- Record Lock -
+
+概念：
+是对索引记录的锁定。即使表定义中没有显示索引的创建，InnoDB 也会创建默认的 聚簇索引。
+
+作用：
+防止其它的事务并发进行的时候，把某条记录进行插入删除更新等操作。
+
+什么时候使用行锁：
+1. select...for update
+2. lock in share mode
+3. update
+4. delete
+
+查看：
+`show engine innodb status;`
 ```
+
+```markdown
+- Gap Lock -
+
+概念：
+是一个在索引记录之间的间隙上的锁。或者是对第一个索引记录之前，最后一个索引记录之后的间隙加锁。间隙可能跨越单个索引值，多个索引值，甚至为空。
+
+作用：
+防止幻读出现，保证某个间隙内的数据在锁定情况下不会发生任何变化。插入数据的时候需要获取 gap lock。
+
+什么时候会使用间隙锁：
+1. 只在 RR 及以上的隔离级别中
+2. 进行了范围查找 或 搜索字段指包括多列唯一索引的部分列，间隙锁就会发生
+(注意：使用唯一索引搜索唯一行的时候，不会加 gap locks)
+(注意：排他间隙锁 和 共享间隙锁 没有区别，同一个 gap 可以加好几个 gap lock, 反正最后会进行合并 - -?)
+(注意：间隙所可以显示禁用 或者 换成 read commited 就可以)
+
+缺点：
+1. 容易导致死锁出现
+2. 事务由于两阶段提交的性质，在 MySQL 中事务都是串行执行的，这种机制会阻塞条件范围内的键值进行并发插入。往往会造成严重的锁等待。因此在并发插入较多的应用中，尽量使用精确查找条件来访问数据。
+
+example:
+# 如果 id 是 unuqie index, 这条语句不产生 gap lock。
+# 如果 id 不是索引列，或不是唯一索引，这条语句还会锁住 id=100 和前一条记录之间的 gap。
+select * from child where id = 100;
+```
+
+```markdown
+- Next-Key Lock -
+
+概念：
+是索引记录上的 一个 record lock 和 一个 gap lock 的组合。gap lock 是当前索引记录之前的那个 gap 上的锁。官方称为是【a next key is an index-record lock plus a gap lock on the gap preceding the index record】
+
+范围：
+假如有 10、11、13、20 四条索引记录，则 gap 有
+(negative infinity, 10]
+(10, 11]
+(11, 13]
+(13, 20]
+(20, positive infinity)
+在 RR 隔离级别下，InnoDB 会使用 Next-Key Lock 进行锁定以防止产生幻行。
+```
+
+*插播一句骚话：特别是 csdn 上总结的都是什么垃圾东西.......*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
