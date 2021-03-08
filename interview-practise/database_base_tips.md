@@ -331,7 +331,7 @@
 
 -----------------
 ### 26. ★★★ MVCC(多版本并发控制)原理，当前读以及快照读，Next-Key Locks 解决幻影读
-    
+[MVCC原理 && 间隙锁](https://github.com/LydiaCai1203/leetcode-practice/edit/master/mysql_performance/mvcc_next_key.md)
 
 -----------------
 ### 14. “N叉树”的N值在Mysql是否可以被调整
