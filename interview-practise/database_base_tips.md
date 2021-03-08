@@ -87,17 +87,21 @@
 
 [数据库索引](https://www.kancloud.cn/kancloud/theory-of-mysql-index/41856)
 
-        1. 首先索引里面存的指针存的是数据库里面数据的物理地址 索引里面还有一个索引键值
-        2. 真实世界的索引并没有使用二叉树或者是红黑树的实现 大部分都是B-Tree或者是B+Tree的实现
+```markdown
+1. 首先索引里面存的指针存的是数据库里面数据的物理地址 索引里面还有一个索引键值
+2. 真实世界的索引并没有使用二叉树或者是红黑树的实现 大部分都是B-Tree或者是B+Tree的实现
+```
 #### 10.1 B-Tree
     假如有一本英文字典，单词+详细解释组成了一条记录，现在需要索引单词，就会以单词为key, 单词+详细解释为data。B-Tree就是以这样一个二元组{key, data}来定义一条记录的。如果一个节点有三条记录，那么会有对应的四个指针，用以指向下一个结点。B-Tree是有序而且平衡的，所有的叶子节点都在同一层。
 
 + 搜索：首先从跟节点进行查找，找到了就返回对应节点的data。否则对相应区间指向的指针  
 
 #### 10.2 B+Tree
-    1. B+Tree非叶子节点都只有key,没有data。
-    2. 所有的叶子节点之间都有一个链指针。
-    3. 数据记录都存放在叶子节点中。
+```markdown
+1. B+Tree非叶子节点都只有key,没有data。
+2. 所有的叶子节点之间都有一个链指针。
+3. 数据记录都存放在叶子节点中。
+```
 
 #### 10.3 评判标准
 
@@ -141,17 +145,17 @@
 
 + MyISAM(B+Tree)
 
-[myisam索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/myisam_index.jpg)
+![myisam索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/myisam_index.jpg)
 
-[myisam辅助索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/myisam_index2.jpg)
+![myisam辅助索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/myisam_index2.jpg)
     
 索引文件仅仅是保存数据记录的地址。在MyISAM中，主索引和辅索引在结构上没有任何区别，只是主索引要求key是唯一的，而辅助索引的key是可以重复的。MyISAM的索引方式是**非聚集的**。
 
 + InnoDB(B+Tree)
 
-[InnoDB索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/innodb_index.jpg)
+![InnoDB索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/innodb_index.jpg)
 
-[InnoDB辅助索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/myisam_index2.jpg)
+![InnoDB辅助索引示意图](https://github.com/LydiaCai1203/leetcode-practice/blob/master/statics/myisam_index2.jpg)
 
 **InnoDB的数据文件本身就是索引文件**，MyISAM的索引文件和数据文件是分开来的，索引文件仅仅保存数据记录的地址。但是在InnoDB中，叶节点data中保存的是完整的数据记录。这个索引key本身就是数据库的主键，因此InnoDB表数据文件本身就是主索引。
 
