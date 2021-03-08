@@ -342,8 +342,8 @@
 
 -----------------
 ### 18. ★★★ MySQL 数据库调优 - 面试套路
-[数据库调优](https://mp.weixin.qq.com/s/e0CqJG2-PCDgKLjQfh02tw)
-[Explain 结果中每个字段的含义说明](https://www.jianshu.com/p/8fab76bbf448)
++ [数据库调优](https://mp.weixin.qq.com/s/e0CqJG2-PCDgKLjQfh02tw)
++ [Explain 结果中每个字段的含义说明](https://www.jianshu.com/p/8fab76bbf448)
 
 -----------------
 ### 14. “N叉树”的N值在Mysql是否可以被调整
