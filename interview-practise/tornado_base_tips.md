@@ -3,7 +3,7 @@
 ### 1. Tornado 是什么？
 
 ```markdown
-Tornado 是一个 Python web 框架和异步网络库，通过使用非阻塞网络 IO，Tornado 可以支持上万级的连接，处理 长连接、websockets 和 其他需要与每个用户保持长久连接的应用。使用它在处理严峻的网络流量时表现得足够强健，但却在创建和编写时有着足够的轻量级。
+Tornado 是一个 Python web 框架和异步网络库，通过使用非阻塞网络 IO，Tornado 可以支持上万级的连接，处理 长连接、websockets 和 其他需要与每个用户保持长久连接的应用。使用它在处理严峻的网络流量时表现得足够强健，但却在创建和编写时有着足够的轻量级。为了最小化并发连接的成本，
 
 下次想想如何从三个方面来说：
 1. 速度
@@ -227,7 +227,7 @@ class ShoppingCart(object):
 
     def unregister(self, callback):
         self.callbacks.remove(callback)
-        
+
     def moveItemToCart(self, session):
         if session in self.carts:
             return
@@ -280,7 +280,7 @@ class StatusHandler(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):
         pass
-        
+
     def callback(self, count):
         self.write_message('{"inventoryCount":"%d"}' % count)
 
@@ -316,6 +316,8 @@ if __name__ == '__main__':
 
 [官方文档](https://tordoc.readthedocs.io/zh_CN/master/guide/async.html)
 
+### 7. 异步和非阻塞 I/O
 
-
-
+```markdown
+q
+```
