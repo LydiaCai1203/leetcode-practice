@@ -15,7 +15,7 @@
 + [MySQL复习](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/MySQL%20%E8%A6%81%E7%82%B9.md)
 
 + [赶集网36条军规](https://github.com/LydiaCai1203/leetcode-practice/blob/master/mysql/36%E6%9D%A1%E5%86%9B%E8%A7%84.txt)
-
++ [数据库基础复习 - MySQL](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/database_base_tips.md)
 + [数据库基础复习 - Redis](https://github.com/LydiaCai1203/leetcode-practice/blob/master/interview-practise/database_base_tips_v2.md)
 
 + 极客时间-MySQL45讲整理
