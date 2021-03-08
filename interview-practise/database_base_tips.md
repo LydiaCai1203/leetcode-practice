@@ -337,8 +337,13 @@
         + 如果是插入数据进数据表，那在undolog中记录的就是删除数据的操作。
 
 -----------------
-### 26. ★★★ MVCC(多版本并发控制)原理，当前读以及快照读，Next-Key Locks 解决幻影读
+### 17. ★★★ MVCC(多版本并发控制)原理，当前读以及快照读，Next-Key Locks 解决幻影读
 [MVCC原理 && 间隙锁](https://github.com/LydiaCai1203/leetcode-practice/edit/master/mysql_performance/mvcc_next_key.md)
+
+-----------------
+### 18. ★★★ MySQL 数据库调优 - 面试套路
+[数据库调优](https://mp.weixin.qq.com/s/e0CqJG2-PCDgKLjQfh02tw)
+[Explain 结果中每个字段的含义说明](https://www.jianshu.com/p/8fab76bbf448)
 
 -----------------
 ### 14. “N叉树”的N值在Mysql是否可以被调整
