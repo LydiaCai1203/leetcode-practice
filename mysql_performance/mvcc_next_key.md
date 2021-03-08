@@ -1,4 +1,4 @@
-# MySQL 基础 - InnoDB 并发控制
+# MVCC 和 Next-key 原理
 
 ### 1. MySQL 中的事务
 
@@ -173,4 +173,8 @@ tips:
 在快照读的情况下可以避免幻读问题，在当前读的情况下需要使用间隙锁来解决。
 ```
 
-### 10.
+### 10 next-key lock 解决幻行原理？
+
+```markdown
+pass
+```
