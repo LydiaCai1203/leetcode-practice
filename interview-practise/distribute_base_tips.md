@@ -151,7 +151,6 @@ TCC(Try、Confirm、Cancel)，是一种解决多个微服务之间的分布式�
 
 3. order-service 有一个后台任务，将 t_local_msg 里的消息源源不断取出来发给 mq。得到 mq 的 ACK 以后，在本地的 t_local_msg 表中删除这条记录。另外保证消息发送到 mq 里面是有序的就行。
 
-
 4. repo-service 拿到 repo_deduction_msg 消息以后，repo-service 成功处理完会向 mq 响应 ACK，mq 收到这个 ACK 才会认为 repo-service 成功处理了。否则就重复推送。repo-service 要做幂等性处理。可能是在 repo-service 中维护了一张判重表，成功处理过的消息 ID 就不再处理了。
 ```
 
@@ -176,7 +175,6 @@ TCC(Try、Confirm、Cancel)，是一种解决多个微服务之间的分布式�
 概念：标准形式包含 32 个 16 进制的数字，以连字号分为 5 段。
 优点：1.性能非常高 2.本地生成没有网络消耗
 缺点：1.不易于存储 2.信息不安全 3.如果把 UUID 作为主键的话，非常不适用。官方文档上明确定义越短越好，36 个字符的 UUID 不符合要求。
-
 ****
 ```
 

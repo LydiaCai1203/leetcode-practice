@@ -149,12 +149,33 @@
   
   缺点：
   
-      1. 性能开销太大，网络带宽压力等
-      2. 没有扩展性，如果某个 Queue 负载很重，加机器也没用，加机器也会包含这个 Queue 的负载。
+  ```markdown
+  1. 性能开销太大，网络带宽压力等
+  2. 没有扩展性，如果某个 Queue 负载很重，加机器也没用，加机器也会包含这个 Queue 的负载。
+  ```
 
 --------------------
 
 ### 7. Kafka 的高可用性
+
+**kafka 架构**
+
+```markdown
+1. producer：生产者，push 消息到 kafka 中。
+
+2. broker: kafka cluster 中的某个实例。
+3. topic: 一类消息, 消息的逻辑层分类。
+4. partition: 每一个 topic 的数据分布在多个 partition 上，物理分区。且每一个 topic 的 partition 会分布在多台 broker 上。
+5. replicas: partition 的副本，保证其高可用。
+6. leader: repilicas 中的一个角色，producer 和 consumer 都只和 leader 交互。
+7. follower: repilicas 中的一个角色，从 leader 中复制数据，一旦 leader 挂了，会从其 follower 中选举一个成为 leader。
+
+8. consumer: 消费者，从 kafka 中 pull 数据。
+9. consumer group: 每个 consumer 都属于一个 group, 同一个 group 内的 consumer 不能消费同一条数据，但是多个 group 可以消费到同一条数据。
+
+10. controller: kafka cluster 中的一个服务器，用来进行 leader election 以及 各种 failover。
+11. zookeeper: kafka 通过 zookeeper 来收集 cluster 的 meta 信息。
+```
 
 ```markdown
   多个 broker 组成，每个 broker 是一个节点，创建一个 topic, 这个 topic 可以划分为多个 partition, 每个 partition 可以存在于不同的 broker 上，每个 partition 就放一部分的数据。这个就是分布式消息队列，一个 topic 里的数据分布在多太机器上。实际上 RabbitMQ 之类的并不是分布式消息队列，就是传统的消息队列。他一个 Queue 里的数据都是放在一个节点里的。
@@ -288,8 +309,6 @@ Kafka 有一个 offset 的概念，每个消息写入都会有一个 offset 代�
 这个事儿，具体参考我们之前可用性那个环节讲解的kafka的高可用保障机制。多副本 -> leader & follower -> broker挂了重新选举leader即可对外服务。
 ```
 
-
-
 **4.能不能支持数据0丢失啊？可以的，参考我们之前说的那个kafka数据零丢失方案**
 
 ### 13. 如何保证消息不丢失？
@@ -403,3 +422,25 @@ ps: 消息的可靠性增强了，自然性能就下降了，等待消息刷盘�
 ```markdown
 三阶段提交把投票阶段分成两部分，这样就变成了 CanCommit、PreCommit、DoCommit 单个阶段了。加上了 CanCommit 可以在预执行之前，保证所有的参与者都具备可执行的条件，从而减少资源浪费。
 ```
+
+### 19. 队列持久化
+
+**kafka**
+
+```markdown
+本身就是追加到日志文件里的，相当于直接写入磁盘，所以不用特意做持久化。
+```
+
+**rabbitmq**
+
+```markdown
+1. 声明队列的时候设置持久化标识 durable=True
+2. 发送消息到队列时要对消息进行持久化标识的设置 PERSISTENT_TEXT_PLAIN
+3. 声明exchange的时候要设置持久化标识 durable=True
+
+即使都声明了持久化也不能完全保证数据不会丢失，因为数据刚写入 Queue 的时候是在内存中，一段时间后也是在磁盘缓冲区中，RabbitMQ 并不会为每条消息都进行 fsync 操作，因此在还没 flush 到磁盘上就宕机了，还是会出现数据丢失。
+
+解决方案就是上文提到的镜像集群的方式。保证服务的高可用。
+```
+
+
