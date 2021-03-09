@@ -105,9 +105,11 @@ print(p1.name, p2.name)
 
 ##### 4.5 type、 isinstance、id(object)、object.__dict__
 
-    1. type 返回的是变量的类型，但是istance不仅可以判断1是不是int类型，它还可以判断1是不是int的继承类的实例
-    2. id可以查看引用所指向的内存地址
-    3. __dict__可以查看一个类的所有的自定义所建造的属性
+```markdown
+1. type 返回的是变量的类型，但是istance不仅可以判断1是不是int类型，它还可以判断1是不是int的继承类的实例
+2. id可以查看引用所指向的内存地址
+3. __dict__可以查看一个类的所有的自定义所建造的属性
+```
 
 ##### 4.6 callable() 可以判断对象是否是可调用的
 
@@ -1245,17 +1247,17 @@ from contextlib import contextmanager
 
 @contextmanager
 def timethis(label):
-      start = time.time()
+    start = time.time()
     try:
-          yield                # yield 之前的代码会在上下文管理器中作为 __enter__() 方法来执行
+        yield                # yield 之前的代码会在上下文管理器中作为 __enter__() 方法来执行
     finally:                 # yield 之后的代码会作为 __exit__() 方法执行。
-          end = time.time()    # 如果出现异常，异常会在 yield 语句那里抛出。
+        end = time.time()    # 如果出现异常，异常会在 yield 语句那里抛出。
         print('{}:{}'.format(label, end - start))
 
 with timethis('counting'):
-      n = 10000000
+n = 10000000
     while n > 0:
-          n -= 1
+        n -= 1
 ```
 
 ```python
