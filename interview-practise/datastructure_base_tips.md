@@ -152,20 +152,16 @@ def quicksort_v2(array: list, begin: int, end: int) -> None:
     left, right = begin + 1, end
 
     while True:
-        while True:
-            if left >= right or array[right] < pivot:
-                break
+        while left < right and array[right] > pivot:
             right = right - 1
         
-        while True:
-            if left >= right or array[left] > pivot:
-                break
+        while left < right or array[left] < pivot:
             left = left + 1
 
-        if left != right:
-            array[left], array[right] = array[right], array[left]
-        else:
+        if left == right:
             break
+	    
+        array[left], array[right] = array[right], array[left]
     
     flag = False
     if array[pivot_idx] > array[left]:
