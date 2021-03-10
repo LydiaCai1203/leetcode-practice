@@ -2,13 +2,12 @@
 
 [直接看大佬的github](https://github.com/CyC2018/Backend-Interview-Guide/blob/master/doc/%E4%B8%80%E6%96%87%E5%B8%AE%E4%BD%A0%E7%90%86%E6%B8%85%E9%9D%A2%E8%AF%95%E7%9F%A5%E8%AF%86%E7%82%B9.md)
 
-#### 分布式与系统设计部分对于大厂面试来说至关重要，但是小厂面试考察的会少一点。
-
-#### 语言基础部分，阿里喜欢问 Java、腾讯喜欢问 C++，其它大厂面试考察会少一些，小厂面试会考察多一些。
-
-#### 数据库、中间件和框架部分对于大厂面试来说不是那么重要，但是对于小厂面试会重要一些。
-
-##### 站在巨人的肩膀上，借鉴大佬的经验，整理自己的答案。
+```markdown
+前言：
+1. 分布式与系统设计部分对于大厂面试来说至关重要，但是小厂面试考察的会少一点。
+2. 语言基础部分，阿里喜欢问 Java、腾讯喜欢问 C++，其它大厂面试考察会少一些，小厂面试会考察多一些。
+3. 数据库、中间件和框架部分对于大厂面试来说不是那么重要，但是对于小厂面试会重要一些。
+```
 
 --------------------
 
@@ -270,7 +269,13 @@ kill -9 pid: 表示给 PID 为 1050 的进程发送 SIGKILL 信号，用于立�
 
 ### 9. ★★★ 虚拟内存的作用，分页系统实现虚拟内存原理。
 
-----------------------
+[what is virtual memory](https://searchstorage.techtarget.com/definition/virtual-memory)
+
+```markdown
+虚拟内存是一种内存管理技术，可以将辅助内存当作主存的一部分来使用。虚拟
+```
+
+------------------------------
 
 ### 10. ★★★ 页面置换算法的原理，特别是 LRU 的实现原理，最好能手写，再说明它在 Redis 等作为缓存置换算法。
 
@@ -335,6 +340,10 @@ kill -9 pid: 表示给 PID 为 1050 的进程发送 SIGKILL 信号，用于立�
 
 Aother closely related I/O model is to use multithreading with blocking I/O. That model very closely resembles the model describe above, except that instead of using *select* to block on multiple file descriptors, the program uses multiple threads.
 
+### 4. ★★★ 僵尸进程与孤儿进程的区别，从 SIGCHLD 分析产生僵尸进程的原因。
+
+
+
 ### 2. Linux 的 Socket 事件 wakeup callback 机制
 
 ---------------------
@@ -350,5 +359,3 @@ Aother closely related I/O model is to use multithreading with blocking I/O. Tha
       grep: grep pattern filename 可以搜索文件中的符合pattern 的关键字
 
 ### 4. ★★★ 僵尸进程与孤儿进程的区别，从 SIGCHLD 分析产生僵尸进程的原因。
-
-
