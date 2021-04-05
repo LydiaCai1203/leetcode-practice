@@ -42,47 +42,142 @@ struct list_elemant {
 #### 6.1.4 Linux 内核中的实现
 
 ```c
-struct fox {
-  unsigned long tail_length;           // 尾巴长度8
-  unsigned long weight;                // 重量
-  bool is_fantastic;                   // 这只狐狸奇妙吗？
-}
+内核里实现的链表是侵入式链表，并不在节点内保存数据，节点仅仅包含指向前后节点的指针，
 ```
 
-```c
-/* Linux 内核不是将数据结构塞入链表，而是将链表节点塞入数据结构 */
-struct fox {
-  unsigned long tail_length; // 尾巴长度
-  unsigned long weight; // 重量
-  bool is_fantastic; // 这只狐狸奇妙吗？
-  struct fox *next;
-  struct fox *prev;
-}
-```
 
-**1. 链表数据结构**
 
-```markdown
-在 Linux 2.1 内核开发系列中，首次引入了官方内核链表的实现。链表代码在头文件 `<linux/list.h>` 中声明。
-```
 
-```c
-struct list_head {
-  struct list_head *next;
-  struct list_head *prev;
-}
 
-struct fox {
-  unsigned long tail_length; // 尾巴长度
-  unsigned long weight; // 重量
-  bool is_fantastic; // 这只狐狸奇妙吗？
-  struct list_head list; // fox.list.prev 指向前一个元素，fox.list.next 指向后一个元素
-}
-```
 
-```markdown
-内核又提供了一组链表操作例程，比如 `list_add()` 加入一个新节点到链表中。所有的链表操作例程都只接收 `list_head` 结构作为参数。不过使用 `container_of(ptr, type, member)` 可以让我们很方便地从链表指针找到父结构中包含的任何变量。因此依靠 `container_of` 就可以获得包含 `list_head` 的父类型结构体。这样我们使用 这些链表操作例程 也就不需要知道锁嵌入对象的数据结构是什么了。
-```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
